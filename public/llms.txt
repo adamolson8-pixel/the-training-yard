@@ -5,8 +5,8 @@
 ## Business Information
 - **Name:** The Training Yard
 - **Type:** Indoor Sports Training Facility
-- **Location:** 1234 Sports Way, Des Moines, IA 50309
-- **Phone:** (515) 555-0199
+- **Location:** 2519 NW 66th Ave, Des Moines, IA 50313
+- **Phone:** 515.802.1457
 - **Email:** info@trainingyarddsm.com
 - **Website:** https://trainingyarddsm.com
 - **Hours:** Monday–Friday 6:00 AM – 10:00 PM, Saturday–Sunday 8:00 AM – 8:00 PM
