@@ -7,8 +7,10 @@
         alt="The Training Yard indoor sports facility"
         class="w-full h-full object-cover"
       />
-      <div class="absolute inset-0 bg-gradient-to-r from-dark/95 via-dark/80 to-dark/60"></div>
-      <div class="absolute inset-0 bg-gradient-to-t from-dark via-transparent to-transparent"></div>
+      <!-- Directional gradient: dark behind text (bottom-left), transparent over facility (top-right) -->
+      <div class="absolute inset-0" style="background: linear-gradient(135deg, rgba(15,15,26,0.85) 0%, rgba(15,15,26,0.55) 40%, rgba(15,15,26,0.25) 100%);"></div>
+      <!-- Subtle bottom scrim for text legibility -->
+      <div class="absolute inset-0 bg-gradient-to-t from-dark/70 via-transparent to-transparent"></div>
     </div>
 
     <!-- Animated Grid Pattern -->
@@ -17,12 +19,12 @@
     <!-- Content -->
     <div class="relative section-container py-20 md:py-28">
       <div class="max-w-3xl">
-        <!-- Logo Stamp -->
+        <!-- Logo Stamp — large, dominant brand anchor -->
         <div class="mb-8 animate-fade-in">
           <img
             src="/images/logo.jpg"
             alt="The Training Yard"
-            class="h-24 md:h-32 w-auto rounded-2xl shadow-glow-red-lg border-2 border-primary/30"
+            class="h-28 md:h-40 w-auto rounded-2xl shadow-glow-red-lg border-2 border-primary/30"
           />
         </div>
 
@@ -32,15 +34,14 @@
           <span class="text-sm font-medium text-primary-light">Des Moines' Premier Indoor Training Facility</span>
         </div>
 
-        <!-- Heading -->
-        <h1 class="heading-xl text-white mb-6 animate-fade-in-up" style="animation-delay: 0.1s; opacity: 0;">
-          Indoor Turf &amp; Batting Cage
-          <span class="text-gradient"> Training</span>
-          for Youth Athletes &amp; Teams
+        <!-- Heading — tight two-liner with brand-red accent -->
+        <h1 class="heading-xl text-white mb-6 animate-fade-in-up !leading-[1.1]" style="animation-delay: 0.1s; opacity: 0; text-shadow: 0 2px 20px rgba(0,0,0,0.5);">
+          Indoor Turf &amp; Batting Cages<br class="hidden sm:block" />
+          for <span class="text-primary">Youth Athletes</span>
         </h1>
 
-        <!-- Subheading -->
-        <p class="text-lg md:text-xl text-gray-300 mb-8 max-w-2xl animate-fade-in-up leading-relaxed" style="animation-delay: 0.2s; opacity: 0;">
+        <!-- Subheading — carries the full messaging now -->
+        <p class="text-lg md:text-xl text-gray-200 mb-8 max-w-2xl animate-fade-in-up leading-relaxed" style="animation-delay: 0.2s; opacity: 0; text-shadow: 0 1px 10px rgba(0,0,0,0.4);">
           Baseball. Softball. Soccer. Agility. 6,000 sq ft of premium synthetic turf and 4 batting cages —
           open year-round for individual training, team practices, and competitive development.
         </p>

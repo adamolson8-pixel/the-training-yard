@@ -5,12 +5,8 @@
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
         <!-- Brand Column -->
         <div class="lg:col-span-1">
-          <NuxtLink to="/" class="flex items-center gap-4 mb-6 group">
-            <img src="/images/logo.jpg" alt="The Training Yard" class="h-20 w-auto rounded-xl shadow-glow-red transition-transform duration-300 group-hover:scale-105" />
-            <div>
-              <div class="font-display font-bold text-xl text-white leading-tight">THE TRAINING YARD</div>
-              <div class="text-[10px] text-primary tracking-widest uppercase font-semibold">Indoor Sports Facility</div>
-            </div>
+          <NuxtLink to="/" class="inline-block mb-6 group">
+            <img src="/images/logo.jpg" alt="The Training Yard — Indoor Sports Facility, Des Moines IA" class="h-20 w-auto rounded-xl shadow-glow-red transition-transform duration-300 group-hover:scale-105" />
           </NuxtLink>
           <p class="text-gray-400 text-sm leading-relaxed mb-4">
             Des Moines' premier indoor training facility. 6,000 sq ft of multi-sport turf and batting cages for athletes of all ages.
