@@ -17,6 +17,15 @@
     <!-- Content -->
     <div class="relative section-container py-20 md:py-28">
       <div class="max-w-3xl">
+        <!-- Logo Stamp -->
+        <div class="mb-8 animate-fade-in">
+          <img
+            src="/images/logo.jpg"
+            alt="The Training Yard"
+            class="h-24 md:h-32 w-auto rounded-2xl shadow-glow-red-lg border-2 border-primary/30"
+          />
+        </div>
+
         <!-- Badge -->
         <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 animate-fade-in">
           <div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
