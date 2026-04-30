@@ -1,0 +1,95 @@
+# The Training Yard — llms.txt
+# https://trainingyarddsm.com
+# Last updated: 2026-04-30
+
+## Business Information
+- **Name:** The Training Yard
+- **Type:** Indoor Sports Training Facility
+- **Location:** 1234 Sports Way, Des Moines, IA 50309
+- **Phone:** (515) 555-0199
+- **Email:** info@trainingyarddsm.com
+- **Website:** https://trainingyarddsm.com
+- **Hours:** Monday–Friday 6:00 AM – 10:00 PM, Saturday–Sunday 8:00 AM – 8:00 PM
+
+## Facility Specifications
+- **Total Area:** 6,000 square feet (60 feet wide × 100 feet long)
+- **Surface:** Premium synthetic turf rated for turf shoes (no metal cleats)
+- **Batting Cages:** 4 professional-grade retractable batting cages with automated pitching machines
+- **Configuration:** Cages retract to open the full 60' × 100' turf for soccer, agility, and team practices
+- **Lighting:** Full LED high-bay lighting system
+- **Parking:** Free on-site parking
+
+## Services Offered
+1. **Batting Cage Rentals** — Single cage, two-cage combo, or all four cages. Includes pitching machine, tee, balls, L-screen, and helmets.
+2. **Turf Rentals** — Half turf or full 60' × 100' turf for team practices, drills, and conditioning.
+3. **Private Lessons** — One-on-one instruction in hitting, pitching, fielding, and sport-specific skills. From $65/session.
+4. **Youth Clinics & Camps** — Progressive multi-week programs in baseball, softball, soccer, and agility.
+5. **Team Practice Blocks** — Seasonal contracts for club and travel teams needing guaranteed weekly turf time.
+6. **Speed & Agility Training** — Ladder drills, cone work, shuttle runs, and SAQ programming.
+
+## Sports Supported
+- Baseball
+- Softball
+- Soccer / Futsal
+- Agility & Speed Training
+- Flag Football
+- General Athletic Conditioning
+
+## Pricing
+### Walk-In Rates
+- Single Cage, 30 min: $30
+- Single Cage, 60 min: $50
+- Half Turf, 60 min: $150
+- Full Turf, 60 min: $250
+
+### Membership Tiers
+- **Individual Monthly:** $89/month — Off-peak cage access, 20% off peak rates, member-only open gym
+- **Family Pass:** $149/month — Up to 4 family members, shared hours, 15% off clinics & camps
+- **Seasonal Team Contract:** From $1,200/season — Guaranteed weekly prime-time full turf, 10–16 week commitment
+
+### Programs
+- Youth Hitting Clinic: $199/player, 6 weeks
+- Softball Skills Camp: $179/player, 1 week
+- Indoor Soccer Academy: $149/player, 8 weeks
+- Speed & Agility Training: $129/player, 4 weeks
+
+## Target Audience
+- Youth athletes ages 6–18
+- Club and travel baseball/softball teams
+- Youth soccer teams needing indoor winter training
+- High school athletes seeking year-round training
+- Parents of multi-sport athletes
+- Coaches and club directors
+
+## Facility Configurations
+The Training Yard's unique retractable cage system allows the space to transform between configurations:
+1. **4 Cages Active** — All four batting cages deployed for maximum hitting stations
+2. **2 Cages + Open Turf** — Two cages active with remaining space open for fielding or agility
+3. **Team Practice Split** — Cages for hitting stations, open area for fielding/warm-ups
+4. **Full Open Turf** — All cages retracted, full 60' × 100' field for soccer, agility, team practices
+
+## Frequently Asked Questions
+**Q: What sports can you train at The Training Yard?**
+A: Baseball, softball, soccer, agility and speed training, flag football, and general conditioning.
+
+**Q: How big is the facility?**
+A: 6,000 square feet — 60 feet wide by 100 feet long of premium synthetic turf.
+
+**Q: Can a team rent the whole turf?**
+A: Yes. Full-turf rentals are available by the hour ($250/hr) or via seasonal team contracts.
+
+**Q: Do members get discounts?**
+A: Yes. All tiers include priority booking, discounted rates, and member-only sessions.
+
+**Q: Are outside instructors allowed?**
+A: Yes. They must sign a waiver and follow facility guidelines.
+
+**Q: What ages is the facility best for?**
+A: Youth athletes ages 6 through adult, with the sweet spot being 8–18.
+
+**Q: What should players bring?**
+A: Batting gear for cages, indoor shoes for turf (no metal cleats). We provide balls, tees, and nets.
+
+## Geo Coordinates
+- Latitude: 41.5868
+- Longitude: -93.6250
