@@ -31,3 +31,6 @@ logs
 *.txt
 !public/llms.txt
 !public/robots.txt
+
+# Local Netlify folder
+.netlify
