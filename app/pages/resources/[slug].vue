@@ -28,7 +28,7 @@
     </section>
 
     <!-- Article Body -->
-    <section class="section-spacing bg-dark">
+    <section class="py-12 md:py-16 bg-dark">
       <div class="section-container">
         <div class="max-w-3xl mx-auto">
           <div class="prose-content" v-html="renderedContent"></div>
