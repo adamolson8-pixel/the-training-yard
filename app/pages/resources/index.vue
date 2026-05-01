@@ -71,21 +71,16 @@
               <div class="absolute top-3 left-3">
                 <span :class="getCategoryBadge(resource.category)">{{ resource.categoryLabel }}</span>
               </div>
-              <div v-if="resource.type === 'video'" class="absolute inset-0 flex items-center justify-center">
-                <div class="w-14 h-14 rounded-full bg-primary/90 flex items-center justify-center backdrop-blur-sm transition-transform duration-300 group-hover:scale-110">
-                  <svg class="w-6 h-6 text-white ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-                </div>
-              </div>
             </div>
             <div class="p-6">
               <div class="flex items-center gap-2 mb-2 text-xs text-gray-500">
-                <span>{{ resource.type === 'video' ? '📹 Video' : '📝 Article' }}</span>
+                <span>📝 Article</span>
                 <span>·</span>
                 <span>{{ resource.readTime }}</span>
               </div>
               <h3 class="font-display font-semibold text-white text-lg mb-2 group-hover:text-primary-light transition-colors">{{ resource.title }}</h3>
               <p class="text-gray-400 text-sm leading-relaxed mb-4">{{ resource.excerpt }}</p>
-              <span class="text-primary text-sm font-semibold">{{ resource.type === 'video' ? 'Watch Now' : 'Read More' }} →</span>
+              <span class="text-primary text-sm font-semibold">Read More →</span>
             </div>
           </NuxtLink>
         </div>

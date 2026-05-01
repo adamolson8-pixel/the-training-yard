@@ -16,7 +16,7 @@
         </nav>
         <div class="flex items-center gap-3 mb-4">
           <span :class="post.category === 'baseball' ? 'badge-cage' : post.category === 'soccer' ? 'badge-turf' : 'badge-primary'">{{ post.categoryLabel }}</span>
-          <span class="text-gray-400 text-sm">{{ post.type === 'video' ? '📹 Video Guide' : '📝 Article' }} · {{ post.readTime }}</span>
+          <span class="text-gray-400 text-sm">📝 Article · {{ post.readTime }}</span>
         </div>
         <h1 class="heading-lg text-white mb-4 max-w-4xl">{{ post.title }}</h1>
         <div class="flex items-center gap-4 text-sm text-gray-400">
