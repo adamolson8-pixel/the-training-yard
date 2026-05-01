@@ -74,8 +74,8 @@
 const tiers = [
   {
     name: 'Individual Monthly',
-    target: 'Dedicated youth athletes',
-    price: 89,
+    target: 'One athlete',
+    price: 75,
     period: 'mo',
     popular: false,
     cta: 'Get Started',
@@ -89,8 +89,8 @@ const tiers = [
   },
   {
     name: 'Family Pass',
-    target: 'Multi-sport households',
-    price: 149,
+    target: 'Household members (up to 4)',
+    price: 120,
     period: 'mo',
     popular: true,
     cta: 'Join Now',

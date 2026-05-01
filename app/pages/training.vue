@@ -65,10 +65,10 @@
           <h3 class="font-display font-semibold text-white mb-2">Walk-In &amp; One-Time Rates</h3>
           <p class="text-gray-400 text-sm mb-4">No membership needed for single sessions.</p>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            <div class="p-3"><div class="text-2xl font-bold text-white">$30</div><div class="text-xs text-gray-400">Single Cage · 30 min</div></div>
-            <div class="p-3"><div class="text-2xl font-bold text-white">$50</div><div class="text-xs text-gray-400">Single Cage · 60 min</div></div>
-            <div class="p-3"><div class="text-2xl font-bold text-white">$150</div><div class="text-xs text-gray-400">Half Turf · 60 min</div></div>
-            <div class="p-3"><div class="text-2xl font-bold text-white">$250</div><div class="text-xs text-gray-400">Full Turf · 60 min</div></div>
+            <div class="p-3"><div class="text-2xl font-bold text-white">$25</div><div class="text-xs text-gray-400">Single Cage · 30 min</div></div>
+            <div class="p-3"><div class="text-2xl font-bold text-white">$45</div><div class="text-xs text-gray-400">Single Cage · 60 min</div></div>
+            <div class="p-3"><div class="text-2xl font-bold text-white">$65</div><div class="text-xs text-gray-400">Small Turf · 60 min</div></div>
+            <div class="p-3"><div class="text-2xl font-bold text-white">$225</div><div class="text-xs text-gray-400">Full Facility · 60 min</div></div>
           </div>
         </div>
       </div>
@@ -100,7 +100,7 @@
 <script setup lang="ts">
 useHead({
   title: 'Memberships & Rates | The Training Yard | Des Moines',
-  meta: [{ name: 'description', content: 'Membership plans from $89/mo. Individual, Family & Team tiers. Book batting cages and turf rentals at The Training Yard Des Moines.' }],
+  meta: [{ name: 'description', content: 'Membership plans from $75/mo. Individual, Family & Team tiers. Book batting cages and turf rentals at The Training Yard Des Moines.' }],
 })
 
 useJsonLd([
@@ -120,8 +120,8 @@ useJsonLd([
 const openFaq = ref<number | null>(null)
 
 const tiers = [
-  { name: 'Individual Monthly', target: 'Dedicated youth athletes', price: '89', period: 'mo', popular: false, cta: 'Get Started', features: ['Off-peak cage access included', '20% off peak-hour cage rates', 'Online booking priority (48hr advance)', 'Member-only open gym hours', 'Free equipment usage'] },
-  { name: 'Family Pass', target: 'Multi-sport households', price: '149', period: 'mo', popular: true, cta: 'Join Now', features: ['Everything in Individual for up to 4 members', 'Shared cage & turf hour credits', 'Priority peak-hour booking (72hr advance)', 'Free equipment rentals', 'Exclusive member events', '2 guest passes per month'] },
+  { name: 'Individual Monthly', target: 'One athlete', price: '75', period: 'mo', popular: false, cta: 'Get Started', features: ['Off-peak cage access included', 'Discounted peak-hour cage rates', 'Online booking priority (48hr advance)', 'Member-only open gym hours', 'Free equipment usage'] },
+  { name: 'Family Pass', target: 'Household members (up to 4)', price: '120', period: 'mo', popular: true, cta: 'Join Now', features: ['Everything in Individual for up to 4 members', 'Shared cage & turf hour credits', 'Priority peak-hour booking (72hr advance)', 'Free equipment rentals', 'Exclusive member events', '2 guest passes per month'] },
   { name: 'Seasonal Team', target: 'Club & travel teams', price: '1,200', period: 'season', popular: false, cta: 'Contact for Details', features: ['Guaranteed weekly prime-time full turf', 'Full 60\' × 100\' field access', 'Season commitment (10–16 weeks)', 'Team storage locker included', 'Dedicated scheduling coordinator', '20% off all cage add-ons'] },
 ]
 

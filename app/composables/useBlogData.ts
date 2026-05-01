@@ -85,7 +85,7 @@ Every batting cage rental at The Training Yard includes:
 
 ## How to Book a Cage Session
 
-Individual cage rentals start at $30 for 30 minutes or $50 for a full hour. [Members](/training) get 20% off peak-hour rates and priority booking. [Book your cage session](/training) online or call us at 515.802.1457.
+Individual cage rentals start at $25 for 30 minutes or $45 for a full hour. [Members](/training) get discounted rates and priority booking. [Book your cage session](/training) online or call us at 515.802.1457.
 
 ## Indoor Hitting Training in Des Moines
 
@@ -170,7 +170,7 @@ Quick stretch. Coaching recap: one thing the team did well, one thing to work on
 
 ## Booking Full-Turf Team Practices
 
-The Training Yard offers full 60' × 100' turf rentals at $250/hour for walk-in teams, or discounted rates through our [Seasonal Team membership](/training) starting at $1,200/season with guaranteed weekly prime-time slots.
+The Training Yard offers full 60' × 100' turf rentals at $225/hour for walk-in teams, or discounted rates through our [Seasonal Team membership](/training) starting at $1,200/season with guaranteed weekly prime-time slots.
 
 [Contact us](/about) to schedule your team's winter practice block. We recommend booking 2–3 weeks in advance for peak evening and weekend slots.`,
     },
@@ -254,7 +254,7 @@ The Training Yard's full 60' × 100' synthetic turf supports soccer training yea
 - Technical footwork sessions
 - Team tactical drills
 
-[Book turf time](/training) for your soccer team or individual session. Full turf rentals start at $250/hour, with discounted rates for [members](/training).`,
+[Book turf time](/training) for your soccer team or individual session. Full turf rentals start at $225/hour, with discounted rates for [members](/training).`,
     },
     {
       slug: 'softball-pitching-warm-up-routine',
@@ -323,7 +323,7 @@ After completing this warm-up, you're ready for your full pitching session — w
 
 ## Cage Rentals for Pitching at The Training Yard
 
-Our batting cages double as pitching lanes. The 60-foot distance accommodates full fastpitch pitching mechanics. Book a [single cage for $30/half hour or $50/hour](/training), and bring your catcher or use our backstop net.
+Our batting cages double as pitching lanes. The 60-foot distance accommodates full fastpitch pitching mechanics. Book a [single cage for $25/half hour or $45/hour](/training), and bring your catcher or use our backstop net.
 
 [Members](/training) receive 20% off cage rates and priority booking for peak afternoon and evening slots when Des Moines fastpitch teams are most active.`,
     },
@@ -422,7 +422,7 @@ Iowa weather limits outdoor agility training to roughly 5 months of the year. In
 
 ## Book Turf Time for Agility Training
 
-Half-turf rentals (30' × 100') start at $150/hour — enough space for a full cone circuit. [Full turf](/training) at $250/hour accommodates team-sized groups. [Members](/training) get discounted rates and priority booking.`,
+Small turf rentals (55' × 55') start at $65/hour — enough space for a full cone circuit. [Full turf](/training) at $225/hour accommodates team-sized groups. [Members](/training) get discounted rates and priority booking.`,
     },
     {
       slug: 'coaching-101-managing-indoor-practice-time',
@@ -440,7 +440,7 @@ Half-turf rentals (30' × 100') start at $150/hour — enough space for a full c
 
 You've booked an hour of indoor turf. Your team of 14 players shows up. And within 10 minutes, half the team is standing around while 3 kids hit in the cage and 2 more shag balls.
 
-**That's $250/hour wasted.**
+**That's $225/hour wasted.**
 
 The difference between a productive indoor practice and a waste of money comes down to one thing: structure. Coaches who plan station rotations with specific time blocks, group sizes, and objectives get 3x more reps per player than coaches who wing it.
 
@@ -466,7 +466,7 @@ Set a countdown timer on your phone and place it where all groups can see it (or
 
 ### Rule 4: Arrive 10 Minutes Early to Set Up
 
-Your rental starts at the scheduled time. If you spend the first 10 minutes dragging out cones and setting up tees, you've lost 16% of your practice ($40 worth of time at $250/hour).
+Your rental starts at the scheduled time. If you spend the first 10 minutes dragging out cones and setting up tees, you've lost 16% of your practice ($36 worth of time at $225/hour).
 
 **Pro move:** Assign 2 parents to arrive early and set up stations while you brief players outside.
 
