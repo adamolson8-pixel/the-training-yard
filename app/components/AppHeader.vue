@@ -1,13 +1,13 @@
 <template>
   <header class="sticky top-0 z-40 bg-dark/90 backdrop-blur-xl border-b border-white/5">
     <div class="section-container">
-      <div class="flex items-center justify-between h-[4.5rem] md:h-20">
+      <div class="flex items-center justify-between h-20 md:h-24">
         <!-- Logo -->
         <NuxtLink id="header-logo" to="/" class="flex items-center group">
           <img
             src="/images/logo.jpg"
             alt="The Training Yard — Indoor Sports Facility, Des Moines IA"
-            class="h-14 md:h-16 w-auto rounded-xl shadow-glow-red transition-transform duration-300 group-hover:scale-105"
+            class="h-16 md:h-20 w-auto rounded-xl shadow-glow-red transition-transform duration-300 group-hover:scale-105"
           />
         </NuxtLink>
 
