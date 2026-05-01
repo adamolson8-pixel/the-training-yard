@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-4xl mx-auto">
+  <div class="max-w-4xl mx-auto relative">
     <!-- Resource Selector -->
     <div class="flex flex-wrap justify-center gap-3 mb-8">
       <button
@@ -7,7 +7,7 @@
         :key="r.id"
         class="px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300"
         :class="selectedResource === r.id ? 'bg-red-gradient text-white shadow-glow-red' : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/10'"
-        @click="selectedResource = r.id"
+        @click="changeResource(r.id)"
       >
         {{ r.label }}
       </button>
@@ -42,11 +42,6 @@
             :disabled="isPast(day)"
           >
             {{ day }}
-            <div v-if="!isPast(day) && getAvailability(day) > 0" class="absolute bottom-1 left-1/2 -translate-x-1/2">
-              <div class="flex gap-0.5">
-                <div v-for="n in Math.min(getAvailability(day), 3)" :key="n" class="w-1 h-1 rounded-full" :class="getAvailability(day) > 5 ? 'bg-turf' : getAvailability(day) > 2 ? 'bg-cage' : 'bg-primary'"></div>
-              </div>
-            </div>
           </button>
           <div v-else class="w-full aspect-square"></div>
         </div>
@@ -66,6 +61,7 @@
             class="p-3 rounded-xl text-sm text-center transition-all duration-300"
             :class="slot.available ? 'bg-turf/10 border border-turf/30 text-white hover:bg-turf/20 hover:border-turf/50' : 'bg-white/5 border border-white/5 text-gray-600 cursor-not-allowed'"
             :disabled="!slot.available"
+            @click="openBookingModal(slot)"
           >
             <div class="font-semibold">{{ slot.time }}</div>
             <div class="text-xs mt-1" :class="slot.available ? 'text-turf' : 'text-gray-600'">
@@ -75,24 +71,55 @@
         </div>
         <div v-else class="text-center py-8 text-gray-400">No slots available for this day.</div>
       </div>
+    </div>
 
-      <!-- Legend -->
-      <div class="flex flex-wrap justify-center gap-4 mt-6 pt-4 border-t border-white/5 text-xs text-gray-500">
-        <div class="flex items-center gap-1.5"><div class="w-2 h-2 rounded-full bg-turf"></div> Many available</div>
-        <div class="flex items-center gap-1.5"><div class="w-2 h-2 rounded-full bg-cage"></div> Few remaining</div>
-        <div class="flex items-center gap-1.5"><div class="w-2 h-2 rounded-full bg-primary"></div> Almost full</div>
+    <!-- Booking Modal -->
+    <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+      <div class="glass-card p-6 md:p-8 max-w-md w-full">
+        <h3 class="font-display text-2xl font-bold text-white mb-2">Confirm Booking</h3>
+        <p class="text-gray-400 mb-6">You are booking a <strong>{{ selectedResourceLabel }}</strong>.</p>
+        
+        <div class="bg-white/5 rounded-xl p-4 mb-6">
+          <div class="flex justify-between mb-2">
+            <span class="text-gray-500">Date</span>
+            <span class="text-white font-medium">{{ monthName }} {{ selectedDay }}, {{ currentYear }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500">Time</span>
+            <span class="text-white font-medium">{{ selectedSlot?.time }}</span>
+          </div>
+        </div>
+
+        <div v-if="bookingError" class="text-primary text-sm mb-4 bg-primary/10 p-3 rounded-lg">{{ bookingError }}</div>
+        <div v-if="user" class="text-sm text-turf mb-4">Logged in as {{ user.email }}</div>
+        <div v-else class="text-sm text-primary mb-4">You must be logged in to book.</div>
+
+        <div class="flex gap-3">
+          <button class="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-white/10 hover:bg-white/20 transition-colors" @click="showModal = false" :disabled="bookingInProgress">Cancel</button>
+          <button class="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-red-gradient hover:shadow-glow-red transition-all disabled:opacity-50" @click="confirmBooking" :disabled="!user || bookingInProgress">
+            <span v-if="bookingInProgress">Booking...</span>
+            <span v-else>Confirm</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+const user = useSupabaseUser()
+
 const selectedResource = ref('single-cage')
 const currentMonth = ref(new Date().getMonth())
 const currentYear = ref(new Date().getFullYear())
 const selectedDay = ref<number | null>(null)
 const loading = ref(false)
-const slots = ref<{ time: string; available: boolean }[]>([])
+const slots = ref<any[]>([])
+
+const showModal = ref(false)
+const selectedSlot = ref<any>(null)
+const bookingInProgress = ref(false)
+const bookingError = ref('')
 
 const resources = [
   { id: 'single-cage', label: 'Single Cage' },
@@ -100,6 +127,8 @@ const resources = [
   { id: 'half-turf', label: 'Half Turf' },
   { id: 'full-turf', label: 'Full Turf' },
 ]
+
+const selectedResourceLabel = computed(() => resources.find(r => r.id === selectedResource.value)?.label)
 
 const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December']
 const monthName = computed(() => monthNames[currentMonth.value])
@@ -130,29 +159,68 @@ const isPast = (day: number) => {
   return d < today
 }
 
-const getAvailability = (day: number) => {
-  // Mock availability - will be replaced by real API data
-  const seed = (day * 7 + currentMonth.value * 31) % 10
-  return isPast(day) ? 0 : seed
-}
-
 const getDayClass = (day: number) => {
   if (isPast(day)) return 'text-gray-700 cursor-not-allowed'
   if (selectedDay.value === day) return 'bg-red-gradient text-white shadow-glow-red'
   return 'text-gray-300 hover:bg-white/10'
 }
 
+const changeResource = (id: string) => {
+  selectedResource.value = id
+  if (selectedDay.value) selectDay(selectedDay.value)
+}
+
 const selectDay = async (day: number) => {
   if (isPast(day)) return
   selectedDay.value = day
   loading.value = true
-  // Simulate API call to /.netlify/functions/check-availability
-  await new Promise(r => setTimeout(r, 600))
-  const mockSlots = ['6:00 AM','7:00 AM','8:00 AM','9:00 AM','10:00 AM','11:00 AM','12:00 PM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM','6:00 PM','7:00 PM','8:00 PM','9:00 PM']
-  slots.value = mockSlots.map(time => ({
-    time,
-    available: Math.random() > 0.3,
-  }))
+  
+  // Format date to YYYY-MM-DD
+  const dateStr = `${currentYear.value}-${String(currentMonth.value + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+  
+  try {
+    const data = await $fetch('/api/availability', {
+      query: { date: dateStr, resource_id: selectedResource.value }
+    })
+    slots.value = (data as any).slots || []
+  } catch (e) {
+    console.error('Failed to fetch availability', e)
+    slots.value = []
+  }
+  
   loading.value = false
+}
+
+const openBookingModal = (slot: any) => {
+  if (!slot.available) return
+  if (!user.value) {
+    navigateTo('/login')
+    return
+  }
+  selectedSlot.value = slot
+  bookingError.value = ''
+  showModal.value = true
+}
+
+const confirmBooking = async () => {
+  bookingInProgress.value = true
+  bookingError.value = ''
+  
+  try {
+    await $fetch('/api/bookings', {
+      method: 'POST',
+      body: {
+        resource_id: selectedResource.value,
+        start_time: selectedSlot.value.raw_time
+      }
+    })
+    showModal.value = false
+    // Refresh slots
+    if (selectedDay.value) selectDay(selectedDay.value)
+  } catch (e: any) {
+    bookingError.value = e.data?.statusMessage || 'Booking failed. Please try again.'
+  }
+  
+  bookingInProgress.value = false
 }
 </script>

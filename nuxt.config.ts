@@ -6,6 +6,7 @@ export default defineNuxtConfig({
   modules: [
     '@nuxtjs/tailwindcss',
     '@nuxtjs/google-fonts',
+    '@nuxtjs/supabase',
   ],
 
   googleFonts: {
@@ -64,5 +65,15 @@ export default defineNuxtConfig({
     '/resources/agility-cone-drills-multi-sport-athletes': { prerender: true },
     '/resources/coaching-101-managing-indoor-practice-time': { prerender: true },
     '/about': { prerender: true },
+    '/login': { prerender: true },
+    '/confirm': { prerender: true },
   },
+
+  supabase: {
+    redirectOptions: {
+      login: '/login',
+      callback: '/confirm',
+      exclude: ['/', '/about', '/facility', '/training', '/resources/*', '/api/*'],
+    }
+  }
 })
