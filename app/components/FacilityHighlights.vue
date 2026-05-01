@@ -66,7 +66,7 @@ const configurations = [
   },
   {
     title: 'Two-Cage Combo',
-    description: 'Side-by-side cages for group lessons, pitcher-catcher pairs, or small team rotational drills.',
+    description: 'Side-by-side cages for group practice, pitcher-catcher pairs, or small team rotational drills.',
     badge: 'Small Groups',
     badgeClass: 'text-cage',
     iconBg: 'bg-cage/10',

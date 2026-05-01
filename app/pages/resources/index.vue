@@ -9,7 +9,7 @@
           <span class="text-white">Resources</span>
         </nav>
         <h1 class="heading-xl text-white mb-4">Training Resources &amp; Education</h1>
-        <p class="text-xl text-gray-300 max-w-2xl">Drills, coaching guides, and training tips to maximize every session on our turf and in our cages.</p>
+        <p class="text-xl text-gray-300 max-w-2xl">Drills and practice plans to maximize every session on our turf and in our cages.</p>
       </div>
     </section>
 
@@ -97,7 +97,7 @@
       <div class="section-container text-center">
         <h2 class="heading-md text-white mb-4">Put These Drills Into Action</h2>
         <p class="text-gray-400 mb-8 max-w-xl mx-auto">Book a cage or reserve the turf to practice the techniques you've learned.</p>
-        <NuxtLink to="/training" class="btn-primary-lg">Book a Training Session</NuxtLink>
+        <NuxtLink to="/training" class="btn-primary-lg">Book a Rental</NuxtLink>
       </div>
     </section>
   </div>
@@ -106,7 +106,7 @@
 <script setup lang="ts">
 useHead({
   title: 'Training Resources | The Training Yard | Des Moines',
-  meta: [{ name: 'description', content: 'Free baseball, softball, soccer, and agility training resources. Drill videos, coaching guides, and practice plans from The Training Yard in Des Moines, IA.' }],
+  meta: [{ name: 'description', content: 'Free baseball, softball, soccer, and agility training resources. Drill videos, practice plans, and facility guides from The Training Yard in Des Moines, IA.' }],
 })
 
 useJsonLd([

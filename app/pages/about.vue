@@ -68,8 +68,6 @@
                   <option value="cage-rental">Batting Cage Rental</option>
                   <option value="turf-rental">Turf / Team Rental</option>
                   <option value="membership">Memberships</option>
-                  <option value="clinic">Clinics & Camps</option>
-                  <option value="private-lesson">Private Lessons</option>
                   <option value="facility-tour">Facility Tour</option>
                   <option value="other">Other</option>
                 </select>
@@ -153,7 +151,7 @@
 <script setup lang="ts">
 useHead({
   title: 'About & Contact | The Training Yard | Des Moines, IA',
-  meta: [{ name: 'description', content: 'Contact The Training Yard in Des Moines, IA. Visit us at 1234 Sports Way. Call (515) 555-0199. Indoor batting cages, turf rentals, and training programs.' }],
+  meta: [{ name: 'description', content: 'Contact The Training Yard in Des Moines, IA. Visit us at 1234 Sports Way. Call (515) 555-0199. Indoor batting cages and turf rentals.' }],
 })
 
 useJsonLd([

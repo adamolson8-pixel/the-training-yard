@@ -25,7 +25,7 @@ export function useBlogData() {
       readTime: '8 min',
       image: '/images/baseball-training.png',
       publishDate: '2026-04-15',
-      author: 'The Training Yard Coaching Staff',
+      author: 'The Training Yard',
       excerpt: 'A 4-station tee drill rotation designed for a single batting cage. Build bat speed and contact consistency in 30 minutes.',
       content: `## Why Tee Work Still Matters in 2026
 
@@ -103,7 +103,7 @@ Located at 2519 NW 66th Ave in Des Moines — [get directions](/about) or [sched
       readTime: '6 min read',
       image: '/images/hero-facility.png',
       publishDate: '2026-04-10',
-      author: 'The Training Yard Coaching Staff',
+      author: 'The Training Yard',
       excerpt: 'How to run a productive 60-minute indoor practice with 12-15 players in a 60\' × 100\' turf space.',
       content: `## The Iowa Winter Training Problem
 
@@ -184,7 +184,7 @@ The Training Yard offers full 60' × 100' turf rentals at $250/hour for walk-in 
       readTime: '5 min',
       image: '/images/soccer-agility.png',
       publishDate: '2026-04-08',
-      author: 'The Training Yard Coaching Staff',
+      author: 'The Training Yard',
       excerpt: 'Five ladder drill patterns that develop first-step quickness and change-of-direction speed on indoor turf.',
       content: `## Why Ladder Work Matters for Soccer Players
 
@@ -266,7 +266,7 @@ The Training Yard's full 60' × 100' synthetic turf supports soccer training yea
       readTime: '4 min read',
       image: '/images/baseball-training.png',
       publishDate: '2026-04-01',
-      author: 'The Training Yard Coaching Staff',
+      author: 'The Training Yard',
       excerpt: 'A complete pre-session warm-up sequence for fastpitch pitchers training in an indoor cage environment.',
       content: `## Why a Proper Warm-Up Matters for Fastpitch Pitchers
 
@@ -337,7 +337,7 @@ Our batting cages double as pitching lanes. The 60-foot distance accommodates fu
       readTime: '10 min',
       image: '/images/soccer-agility.png',
       publishDate: '2026-03-25',
-      author: 'The Training Yard Coaching Staff',
+      author: 'The Training Yard',
       excerpt: 'Eight cone configurations that build lateral movement, deceleration, and reaction time on synthetic turf.',
       content: `## Why Cone Drills Are the Foundation of Athletic Speed
 
@@ -434,7 +434,7 @@ Half-turf rentals (30' × 100') start at $150/hour — enough space for a full c
       readTime: '7 min read',
       image: '/images/hero-facility.png',
       publishDate: '2026-03-18',
-      author: 'The Training Yard Coaching Staff',
+      author: 'The Training Yard',
       excerpt: 'Station rotation strategies, time management, and group sizing tips for coaches renting indoor facility time.',
       content: `## The #1 Mistake Coaches Make with Indoor Facility Time
 
@@ -504,7 +504,7 @@ You just need to bring: bats, gloves, and a plan.
 
 ## Coaching Resources at The Training Yard
 
-We offer a [free downloadable practice plan template](/resources) optimized for our 60' × 100' space. [Members](/training) at the Seasonal Team tier also receive a complimentary practice plan consultation with our coaching staff to customize station rotations for your team's specific needs.
+We offer a [free downloadable practice plan template](/resources) optimized for our 60' × 100' space.
 
 [Book your team practice](/training) or [contact us](/about) with questions about team configurations and seasonal contracts.`,
     },

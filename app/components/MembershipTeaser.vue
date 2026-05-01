@@ -82,7 +82,7 @@ const tiers = [
     features: [
       'Off-peak cage access included',
       'Discounted peak-hour rates',
-      '10% off private lessons',
+      '10% off turf rentals',
       'Online booking priority',
       'Member-only open gym hours',
     ],
@@ -97,7 +97,7 @@ const tiers = [
     features: [
       'Up to 4 family members',
       'Shared cage & turf hours',
-      '15% off all clinics & camps',
+      '15% off additional cage rentals',
       'Priority peak-hour booking',
       'Free equipment rentals',
       'Exclusive member events',

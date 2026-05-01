@@ -7,11 +7,11 @@
         <nav class="flex items-center gap-2 text-sm text-gray-400 mb-6" aria-label="Breadcrumb">
           <NuxtLink to="/" class="hover:text-white transition-colors">Home</NuxtLink>
           <span>/</span>
-          <span class="text-white">Training &amp; Memberships</span>
+          <span class="text-white">Memberships &amp; Rates</span>
         </nav>
-        <h1 class="heading-xl text-white mb-4">Training Programs &amp; Memberships</h1>
+        <h1 class="heading-xl text-white mb-4">Memberships &amp; Rates</h1>
         <p class="text-xl text-gray-300 max-w-2xl">
-          From individual cage sessions to full-season team contracts. Choose the plan that matches your goals.
+          From individual cage sessions to full-season team contracts. Choose the rental plan that matches your goals.
         </p>
       </div>
     </section>
@@ -74,27 +74,6 @@
       </div>
     </section>
 
-    <!-- Programs -->
-    <section class="section-spacing bg-dark">
-      <div class="section-container">
-        <div class="text-center mb-12">
-          <span class="badge-cage mb-4 inline-block">Programs</span>
-          <h2 class="heading-lg text-white mb-4">Clinics, Camps &amp; Group Training</h2>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          <div v-for="p in programs" :key="p.title" class="glass-card-hover p-6">
-            <div class="text-3xl mb-4">{{ p.icon }}</div>
-            <h3 class="font-display font-semibold text-white text-lg mb-2">{{ p.title }}</h3>
-            <p class="text-gray-400 text-sm leading-relaxed mb-4">{{ p.desc }}</p>
-            <div class="flex items-center gap-2 text-sm">
-              <span class="text-primary font-semibold">{{ p.price }}</span>
-              <span class="text-gray-500">·</span>
-              <span class="text-gray-400">{{ p.sched }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
 
     <!-- FAQ -->
     <section class="section-spacing bg-dark-card/30">
@@ -120,15 +99,15 @@
 
 <script setup lang="ts">
 useHead({
-  title: 'Training & Memberships | The Training Yard | Des Moines',
-  meta: [{ name: 'description', content: 'Membership plans from $89/mo. Individual, Family & Team tiers. Book batting cages, turf rental, and clinics at The Training Yard Des Moines.' }],
+  title: 'Memberships & Rates | The Training Yard | Des Moines',
+  meta: [{ name: 'description', content: 'Membership plans from $89/mo. Individual, Family & Team tiers. Book batting cages and turf rentals at The Training Yard Des Moines.' }],
 })
 
 useJsonLd([
-  getServiceSchema('Training Memberships', 'Monthly membership plans for individuals, families, and teams at The Training Yard.'),
+  getServiceSchema('Facility Memberships', 'Monthly membership plans for individuals, families, and teams at The Training Yard.'),
   getBreadcrumbSchema([
     { name: 'Home', url: 'https://trainingyarddsm.com/' },
-    { name: 'Training & Memberships', url: 'https://trainingyarddsm.com/training' },
+    { name: 'Memberships & Rates', url: 'https://trainingyarddsm.com/training' },
   ]),
   getFaqSchema([
     { question: 'What is included with a cage rental?', answer: 'Each cage rental includes pitching machine, tee, balls, L-screen, and helmets.' },
@@ -141,24 +120,15 @@ useJsonLd([
 const openFaq = ref<number | null>(null)
 
 const tiers = [
-  { name: 'Individual Monthly', target: 'Dedicated youth athletes', price: '89', period: 'mo', popular: false, cta: 'Get Started', features: ['Off-peak cage access included', '20% off peak-hour cage rates', '10% off private lessons', 'Online booking priority (48hr advance)', 'Member-only open gym hours', 'Free equipment usage'] },
-  { name: 'Family Pass', target: 'Multi-sport households', price: '149', period: 'mo', popular: true, cta: 'Join Now', features: ['Everything in Individual for up to 4 members', 'Shared cage & turf hour credits', '15% off all clinics & camps', 'Priority peak-hour booking (72hr advance)', 'Free equipment rentals', 'Exclusive member events', '2 guest passes per month'] },
+  { name: 'Individual Monthly', target: 'Dedicated youth athletes', price: '89', period: 'mo', popular: false, cta: 'Get Started', features: ['Off-peak cage access included', '20% off peak-hour cage rates', 'Online booking priority (48hr advance)', 'Member-only open gym hours', 'Free equipment usage'] },
+  { name: 'Family Pass', target: 'Multi-sport households', price: '149', period: 'mo', popular: true, cta: 'Join Now', features: ['Everything in Individual for up to 4 members', 'Shared cage & turf hour credits', 'Priority peak-hour booking (72hr advance)', 'Free equipment rentals', 'Exclusive member events', '2 guest passes per month'] },
   { name: 'Seasonal Team', target: 'Club & travel teams', price: '1,200', period: 'season', popular: false, cta: 'Contact for Details', features: ['Guaranteed weekly prime-time full turf', 'Full 60\' × 100\' field access', 'Season commitment (10–16 weeks)', 'Team storage locker included', 'Dedicated scheduling coordinator', '20% off all cage add-ons'] },
-]
-
-const programs = [
-  { icon: '⚾', title: 'Youth Hitting Clinic', desc: 'Progressive 6-week hitting program covering stance, mechanics, and pitch recognition.', price: '$199/player', sched: '6 weeks · Saturdays' },
-  { icon: '🥎', title: 'Softball Skills Camp', desc: 'Intensive skills camp for hitting, fielding, base-running, and positional play.', price: '$179/player', sched: '1 week · Summer' },
-  { icon: '⚽', title: 'Indoor Soccer Academy', desc: 'Technical skills and small-sided games. Footwork, passing, and tactics.', price: '$149/player', sched: '8 weeks · Evenings' },
-  { icon: '⚡', title: 'Speed & Agility', desc: 'Ladder drills, cone work, shuttle runs, and SAQ programming for all sports.', price: '$129/player', sched: '4 weeks · Tue/Thu' },
-  { icon: '🏈', title: 'Pre-Season Boot Camp', desc: 'Custom conditioning for teams preparing for their upcoming season.', price: 'Custom quote', sched: 'Flexible' },
-  { icon: '🎯', title: 'Private Lessons', desc: 'One-on-one instruction with certified coaches in any discipline.', price: 'From $65', sched: 'By appointment' },
 ]
 
 const faqs = [
   { q: 'What is included with a cage rental?', a: 'Each cage rental includes access to an automated pitching machine, batting tee, bucket of baseballs or softballs, and an L-screen. Helmets are available to borrow.' },
   { q: 'Do members get discounts or priority booking?', a: 'Yes. All membership tiers receive priority booking (48–72 hours in advance), 20% off peak cage rates, and member-only open gym sessions.' },
-  { q: 'Are outside instructors allowed?', a: 'Yes. They must sign our standard waiver and follow all facility guidelines. We also offer in-house instruction.' },
+  { q: 'Are outside instructors allowed?', a: 'Yes. They must sign our standard waiver and follow all facility guidelines.' },
   { q: 'What is the cancellation policy?', a: 'Cancellations 24+ hours in advance get a full refund. Same-day cancellations incur a 50% fee. Rescheduling is free with 12+ hours notice.' },
   { q: 'Can I freeze or cancel my membership?', a: 'Monthly memberships can be frozen for up to 30 days/year. Cancellations require 30 days written notice.' },
 ]
