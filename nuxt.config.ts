@@ -57,6 +57,12 @@ export default defineNuxtConfig({
     '/facility': { prerender: true },
     '/training': { prerender: true },
     '/resources': { prerender: true },
+    '/resources/indoor-hitting-drill-tee-work-progressions': { prerender: true },
+    '/resources/winter-practice-plan-youth-teams': { prerender: true },
+    '/resources/soccer-footwork-ladder-drills-for-speed': { prerender: true },
+    '/resources/softball-pitching-warm-up-routine': { prerender: true },
+    '/resources/agility-cone-drills-multi-sport-athletes': { prerender: true },
+    '/resources/coaching-101-managing-indoor-practice-time': { prerender: true },
     '/about': { prerender: true },
   },
 })

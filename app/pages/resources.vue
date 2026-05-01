@@ -60,10 +60,11 @@
 
         <!-- Resource Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <article
+          <NuxtLink
             v-for="resource in filteredResources"
-            :key="resource.title"
-            class="glass-card-hover overflow-hidden group"
+            :key="resource.slug"
+            :to="`/resources/${resource.slug}`"
+            class="glass-card-hover overflow-hidden group block"
           >
             <div class="relative h-48 overflow-hidden">
               <img :src="resource.image" :alt="resource.title" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
@@ -84,11 +85,9 @@
               </div>
               <h3 class="font-display font-semibold text-white text-lg mb-2 group-hover:text-primary-light transition-colors">{{ resource.title }}</h3>
               <p class="text-gray-400 text-sm leading-relaxed mb-4">{{ resource.excerpt }}</p>
-              <div class="flex items-center justify-between">
-                <span class="text-primary text-sm font-semibold cursor-pointer hover:underline">{{ resource.type === 'video' ? 'Watch Now' : 'Read More' }} →</span>
-              </div>
+              <span class="text-primary text-sm font-semibold">{{ resource.type === 'video' ? 'Watch Now' : 'Read More' }} →</span>
             </div>
-          </article>
+          </NuxtLink>
         </div>
 
         <!-- Load More -->
@@ -137,14 +136,8 @@ const categories = [
   { id: 'coaching', label: 'Coaching Resources' },
 ]
 
-const resources = [
-  { title: 'Indoor Hitting Drill: Tee Work Progressions', excerpt: 'A 4-station tee drill rotation designed for a single batting cage. Build bat speed and contact consistency in 30 minutes.', image: '/images/baseball-training.png', type: 'video', readTime: '8 min', category: 'baseball', categoryLabel: 'Baseball' },
-  { title: 'Winter Practice Plan for Youth Teams', excerpt: 'How to run a productive 60-minute indoor practice with 12-15 players in a 60\' × 100\' turf space.', image: '/images/hero-facility.png', type: 'article', readTime: '6 min read', category: 'coaching', categoryLabel: 'Coaching' },
-  { title: 'Soccer Footwork: Ladder Drills for Speed', excerpt: 'Five ladder drill patterns that develop first-step quickness and change-of-direction speed on indoor turf.', image: '/images/soccer-agility.png', type: 'video', readTime: '5 min', category: 'soccer', categoryLabel: 'Soccer' },
-  { title: 'Softball Pitching Warm-Up Routine', excerpt: 'A complete pre-session warm-up sequence for fastpitch pitchers training in an indoor cage environment.', image: '/images/baseball-training.png', type: 'article', readTime: '4 min read', category: 'baseball', categoryLabel: 'Softball' },
-  { title: 'Agility Cone Drills for Multi-Sport Athletes', excerpt: 'Eight cone configurations that build lateral movement, deceleration, and reaction time on synthetic turf.', image: '/images/soccer-agility.png', type: 'video', readTime: '10 min', category: 'soccer', categoryLabel: 'Agility' },
-  { title: 'Coaching 101: Managing Indoor Practice Time', excerpt: 'Station rotation strategies, time management, and group sizing tips for coaches renting indoor facility time.', image: '/images/hero-facility.png', type: 'article', readTime: '7 min read', category: 'coaching', categoryLabel: 'Coaching' },
-]
+const { getAllPosts } = useBlogData()
+const resources = getAllPosts()
 
 const filteredResources = computed(() =>
   activeCategory.value === 'all' ? resources : resources.filter(r => r.category === activeCategory.value)
