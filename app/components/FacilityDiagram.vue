@@ -37,10 +37,19 @@
             <!-- Center Circle -->
             <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full border border-white/10 z-0"></div>
 
+            <!-- Full Open Turf Overlay (Covers Everything) -->
+            <Transition name="fade">
+              <div v-if="activeMode === 'open-turf'" class="absolute inset-0 flex flex-col items-center justify-center z-20 bg-turf/5 backdrop-blur-sm">
+                <div class="text-5xl mb-3">⚽</div>
+                <div class="text-white font-display font-bold text-2xl">Full 100' × 60' Open Turf</div>
+                <div class="text-turf text-sm mt-2">All 4 cages retracted for maximum training area</div>
+              </div>
+            </Transition>
+
             <!-- Left Side: Always Open Turf (52%) -->
             <div class="w-[52%] h-full flex flex-col items-center justify-center z-10">
               <Transition name="fade">
-                <div v-if="activeMode === 'open-turf' || activeMode === 'cages'" class="text-center">
+                <div v-if="activeMode !== 'open-turf'" class="text-center">
                   <div class="text-4xl mb-2">⚽</div>
                   <div class="text-white font-display font-bold text-lg">Open Turf</div>
                   <div class="text-turf text-sm mt-1">52' × 60'</div>
@@ -50,13 +59,6 @@
 
             <!-- Right Side: Cage Area (48%) -->
             <div class="w-[48%] h-full relative z-10">
-              <!-- Open Turf Mode Text (When all cages retracted) -->
-              <Transition name="fade">
-                <div v-if="activeMode === 'open-turf'" class="absolute inset-0 flex flex-col items-center justify-center">
-                  <div class="text-white font-display font-bold text-lg">Open Turf</div>
-                  <div class="text-turf text-sm mt-1">Cages Retracted</div>
-                </div>
-              </Transition>
 
               <!-- Team Practice Mode Text (When cages 3/4 retracted) -->
               <Transition name="fade">
