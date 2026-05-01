@@ -31,79 +31,92 @@
       <div class="max-w-4xl mx-auto">
         <div class="glass-card p-8 md:p-12">
           <!-- Field Container -->
-          <div class="relative bg-turf/10 rounded-xl border-2 border-turf/30 aspect-[100/60] overflow-hidden">
-            <!-- Field lines -->
-            <div class="absolute inset-0 flex items-center justify-center">
-              <div class="w-px h-full bg-white/10"></div>
-            </div>
-            <div class="absolute inset-0 flex items-center justify-center">
-              <div class="w-20 h-20 rounded-full border border-white/10"></div>
-            </div>
+          <div class="relative bg-turf/10 rounded-xl border-2 border-turf/30 aspect-[100/60] overflow-hidden flex">
+            <!-- Center Line -->
+            <div class="absolute left-1/2 top-0 bottom-0 w-px bg-white/10 z-0"></div>
+            <!-- Center Circle -->
+            <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full border border-white/10 z-0"></div>
 
-            <!-- Cage Dividers - Animated -->
-            <Transition name="cage">
-              <div v-if="activeMode === 'cages' || activeMode === 'two-cage'" class="absolute inset-0 flex">
-                <div
-                  v-for="i in 4"
-                  :key="i"
-                  class="flex-1 border-r-2 last:border-r-0 transition-all duration-700 flex items-center justify-center"
-                  :class="getCageClass(i)"
-                  :style="getCageStyle(i)"
-                >
-                  <div class="text-center" v-if="isCageActive(i)">
-                    <div class="text-2xl mb-1">{{ activeMode === 'cages' ? '⚾' : '⚾' }}</div>
-                    <div class="text-xs font-semibold text-white/80">Cage {{ i }}</div>
-                  </div>
-                </div>
-              </div>
-            </Transition>
-
-            <!-- Open Turf Mode -->
-            <Transition name="fade">
-              <div v-if="activeMode === 'open-turf'" class="absolute inset-0 flex items-center justify-center">
-                <div class="text-center">
+            <!-- Left Side: Always Open Turf (52%) -->
+            <div class="w-[52%] h-full flex flex-col items-center justify-center z-10">
+              <Transition name="fade">
+                <div v-if="activeMode === 'open-turf' || activeMode === 'cages'" class="text-center">
                   <div class="text-4xl mb-2">⚽</div>
-                  <div class="text-white font-display font-bold text-lg">Full 60' × 100' Open Turf</div>
-                  <div class="text-turf text-sm mt-1">All cages retracted</div>
+                  <div class="text-white font-display font-bold text-lg">Open Turf</div>
+                  <div class="text-turf text-sm mt-1">52' × 60'</div>
                 </div>
-              </div>
-            </Transition>
+              </Transition>
+            </div>
 
-            <!-- Team Practice Mode -->
-            <Transition name="fade">
-              <div v-if="activeMode === 'team'" class="absolute inset-0 flex">
-                <div class="flex-1 border-r-2 border-white/10 flex items-center justify-center bg-cage/5">
-                  <div class="text-center">
-                    <div class="text-2xl mb-1">⚾</div>
-                    <div class="text-xs font-semibold text-white/80">Cage 1<br /><span class="text-cage text-[10px]">Hitting Station</span></div>
+            <!-- Right Side: Cage Area (48%) -->
+            <div class="w-[48%] h-full relative z-10">
+              <!-- Open Turf Mode Text (When all cages retracted) -->
+              <Transition name="fade">
+                <div v-if="activeMode === 'open-turf'" class="absolute inset-0 flex flex-col items-center justify-center">
+                  <div class="text-white font-display font-bold text-lg">Open Turf</div>
+                  <div class="text-turf text-sm mt-1">Cages Retracted</div>
+                </div>
+              </Transition>
+
+              <!-- Team Practice Mode Text (When cages 3/4 retracted) -->
+              <Transition name="fade">
+                <div v-if="activeMode === 'team'" class="absolute left-0 w-1/2 h-[91.66%] flex flex-col items-center justify-center bg-turf/20 border border-white/5 border-dashed">
+                  <div class="text-center p-2">
+                    <div class="text-xl mb-1">🏃</div>
+                    <div class="text-white text-xs font-semibold">Agility / Fielding</div>
                   </div>
                 </div>
-                <div class="flex-1 border-r-2 border-white/10 flex items-center justify-center bg-cage/5">
-                  <div class="text-center">
-                    <div class="text-2xl mb-1">⚾</div>
-                    <div class="text-xs font-semibold text-white/80">Cage 2<br /><span class="text-cage text-[10px]">Hitting Station</span></div>
+              </Transition>
+
+              <!-- Cages Container (55' tall = 91.66% height) -->
+              <div class="absolute top-0 right-0 w-full h-[91.66%] flex">
+                <TransitionGroup name="cage">
+                  <!-- Cage 4 (Left-most) -->
+                  <div v-if="activeMode === 'cages' || activeMode === 'two-cage'" key="cage4" class="w-1/4 h-full border-r-2 border-l-2 border-b-2 border-cage/30 bg-cage/10 flex items-center justify-center">
+                    <div class="text-center -rotate-90 origin-center">
+                      <div class="text-xl mb-1">⚾</div>
+                      <div class="text-xs font-semibold text-white/80 whitespace-nowrap">Cage 4</div>
+                      <div class="text-[8px] text-cage mt-1 whitespace-nowrap">55' × 12'</div>
+                    </div>
                   </div>
-                </div>
-                <div class="flex-[2] flex items-center justify-center bg-turf/10">
-                  <div class="text-center">
-                    <div class="text-3xl mb-1">🏃</div>
-                    <div class="text-white font-display font-semibold">Open Practice Area</div>
-                    <div class="text-turf text-xs mt-1">Fielding · Agility · Warm-ups</div>
+                  <!-- Cage 3 -->
+                  <div v-if="activeMode === 'cages' || activeMode === 'two-cage'" key="cage3" class="w-1/4 h-full border-r-2 border-b-2 border-cage/30 bg-cage/10 flex items-center justify-center">
+                    <div class="text-center -rotate-90 origin-center">
+                      <div class="text-xl mb-1">⚾</div>
+                      <div class="text-xs font-semibold text-white/80 whitespace-nowrap">Cage 3</div>
+                      <div class="text-[8px] text-cage mt-1 whitespace-nowrap">55' × 12'</div>
+                    </div>
                   </div>
-                </div>
+                  <!-- Cage 2 -->
+                  <div v-if="activeMode !== 'open-turf'" key="cage2" class="w-1/4 h-full border-r-2 border-l-2 border-b-2 border-cage/30 bg-cage/10 flex items-center justify-center" :class="{'border-l-2': activeMode === 'team'}">
+                    <div class="text-center -rotate-90 origin-center">
+                      <div class="text-xl mb-1">⚾</div>
+                      <div class="text-xs font-semibold text-white/80 whitespace-nowrap">Cage 2</div>
+                      <div class="text-[8px] text-cage mt-1 whitespace-nowrap">55' × 12'</div>
+                    </div>
+                  </div>
+                  <!-- Cage 1 (Right-most) -->
+                  <div v-if="activeMode !== 'open-turf'" key="cage1" class="w-1/4 h-full border-r-2 border-b-2 border-cage/30 bg-cage/10 flex items-center justify-center">
+                    <div class="text-center -rotate-90 origin-center">
+                      <div class="text-xl mb-1">⚾</div>
+                      <div class="text-xs font-semibold text-white/80 whitespace-nowrap">Cage 1</div>
+                      <div class="text-[8px] text-cage mt-1 whitespace-nowrap">55' × 12'</div>
+                    </div>
+                  </div>
+                </TransitionGroup>
               </div>
-            </Transition>
+            </div>
 
             <!-- Dimension Labels -->
-            <div class="absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px] text-white/40 font-mono">100'</div>
-            <div class="absolute top-1/2 -translate-y-1/2 left-2 text-[10px] text-white/40 font-mono writing-vertical" style="writing-mode: vertical-rl; transform: rotate(180deg) translateY(50%);">60'</div>
+            <div class="absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] text-white/40 font-mono">100' Width</div>
+            <div class="absolute top-1/2 -translate-y-1/2 left-1 text-[10px] text-white/40 font-mono writing-vertical" style="writing-mode: vertical-rl; transform: rotate(180deg) translateY(50%);">60' Depth</div>
           </div>
 
           <!-- Legend -->
           <div class="flex flex-wrap justify-center gap-6 mt-6 text-sm">
             <div class="flex items-center gap-2">
               <div class="w-3 h-3 rounded bg-cage/30 border border-cage/50"></div>
-              <span class="text-gray-400">Batting Cage</span>
+              <span class="text-gray-400">Batting Cage (55' × 12')</span>
             </div>
             <div class="flex items-center gap-2">
               <div class="w-3 h-3 rounded bg-turf/20 border border-turf/40"></div>
@@ -124,32 +137,11 @@
 const activeMode = ref('cages')
 
 const modes = [
-  { id: 'cages', label: '4 Cages Active' },
-  { id: 'two-cage', label: '2 Cages + Turf' },
-  { id: 'team', label: 'Team Practice' },
+  { id: 'cages', label: 'All 4 Cages Active' },
+  { id: 'two-cage', label: 'Cages + Large Turf' },
+  { id: 'team', label: 'Team Setup (2 Cages)' },
   { id: 'open-turf', label: 'Full Open Turf' },
 ]
-
-const getCageClass = (index: number) => {
-  if (activeMode.value === 'cages') return 'bg-cage/10 border-cage/30'
-  if (activeMode.value === 'two-cage') {
-    return index <= 2 ? 'bg-cage/10 border-cage/30' : 'bg-turf/10 border-turf/20'
-  }
-  return 'bg-white/5 border-white/10'
-}
-
-const getCageStyle = (index: number) => {
-  if (activeMode.value === 'two-cage' && index > 2) {
-    return { flex: index === 3 ? '1' : '1' }
-  }
-  return {}
-}
-
-const isCageActive = (index: number) => {
-  if (activeMode.value === 'cages') return true
-  if (activeMode.value === 'two-cage') return index <= 2
-  return false
-}
 </script>
 
 <style scoped>
