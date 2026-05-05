@@ -2,6 +2,10 @@
   <div>
     <!-- Hero -->
     <section class="relative py-20 md:py-28 bg-hero-gradient overflow-hidden">
+      <div class="absolute inset-0">
+        <img src="/images/Training_Yard_Facility_Coaching.jpg" alt="" class="w-full h-full object-cover object-center" />
+      </div>
+      <div class="absolute inset-0 bg-dark/70"></div>
       <div class="section-container relative">
         <nav class="flex items-center gap-2 text-sm text-gray-400 mb-6" aria-label="Breadcrumb">
           <NuxtLink to="/" class="hover:text-white transition-colors">Home</NuxtLink>

@@ -84,9 +84,13 @@
             <span class="text-gray-500">Date</span>
             <span class="text-white font-medium">{{ monthName }} {{ selectedDay }}, {{ currentYear }}</span>
           </div>
-          <div class="flex justify-between">
+          <div class="flex justify-between mb-3">
             <span class="text-gray-500">Time</span>
-            <span class="text-white font-medium">{{ selectedSlot?.time }}</span>
+            <span class="text-white font-medium">{{ selectedSlot?.time }} (1 Hour)</span>
+          </div>
+          <div class="flex justify-between items-center border-t border-white/10 pt-3 mt-3">
+            <span class="text-gray-400 font-bold">Total Due</span>
+            <span class="text-white font-display font-bold text-2xl">${{ selectedResourcePrice }}.00</span>
           </div>
         </div>
 
@@ -97,8 +101,8 @@
         <div class="flex gap-3">
           <button class="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-white/10 hover:bg-white/20 transition-colors" @click="showModal = false" :disabled="bookingInProgress">Cancel</button>
           <button class="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-red-gradient hover:shadow-glow-red transition-all disabled:opacity-50" @click="confirmBooking" :disabled="!user || bookingInProgress">
-            <span v-if="bookingInProgress">Booking...</span>
-            <span v-else>Confirm</span>
+            <span v-if="bookingInProgress">Redirecting to Stripe...</span>
+            <span v-else>Proceed to Checkout</span>
           </button>
         </div>
       </div>
@@ -109,7 +113,7 @@
 <script setup lang="ts">
 const user = useSupabaseUser()
 
-const selectedResource = ref('single-cage')
+const selectedResource = ref('cage-1')
 const currentMonth = ref(new Date().getMonth())
 const currentYear = ref(new Date().getFullYear())
 const selectedDay = ref<number | null>(null)
@@ -122,11 +126,15 @@ const bookingInProgress = ref(false)
 const bookingError = ref('')
 
 const resources = [
-  { id: 'single-cage', label: 'Single Cage' },
-  { id: 'two-cage', label: 'Two Cages' },
-  { id: 'half-turf', label: 'Half Turf' },
-  { id: 'full-turf', label: 'Full Turf' },
+  { id: 'cage-1', label: 'Cage 1', price: 30 },
+  { id: 'cage-2', label: 'Cage 2', price: 30 },
+  { id: 'cage-3', label: 'Cage 3', price: 30 },
+  { id: 'cage-4', label: 'Cage 4', price: 30 },
+  { id: 'half-turf', label: 'Half Turf', price: 60 },
+  { id: 'full-turf', label: 'Full Turf', price: 100 },
 ]
+
+const selectedResourcePrice = computed(() => resources.find(r => r.id === selectedResource.value)?.price || 0)
 
 const selectedResourceLabel = computed(() => resources.find(r => r.id === selectedResource.value)?.label)
 

@@ -49,7 +49,7 @@ export function getLocalBusinessSchema() {
         closes: '20:00',
       },
     ],
-    image: 'https://trainingyarddsm.com/images/hero-facility.png',
+    image: 'https://trainingyarddsm.com/images/Training_Yard_Facility_homepage.jpg',
     logo: 'https://trainingyarddsm.com/images/logo.jpg',
     sameAs: [],
     hasOfferCatalog: {

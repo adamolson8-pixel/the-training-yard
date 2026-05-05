@@ -2,6 +2,10 @@
   <div>
     <!-- Hero -->
     <section class="relative py-20 md:py-28 bg-hero-gradient overflow-hidden">
+      <div class="absolute inset-0">
+        <img src="/images/Training_Yard_Facility_Softball.jpg" alt="" class="w-full h-full object-cover object-center" />
+      </div>
+      <div class="absolute inset-0 bg-dark/70"></div>
       <div class="section-container relative">
         <nav class="flex items-center gap-2 text-sm text-gray-400 mb-6" aria-label="Breadcrumb">
           <NuxtLink to="/" class="hover:text-white transition-colors">Home</NuxtLink>
@@ -27,7 +31,7 @@
             </div>
           </div>
           <div class="rounded-2xl overflow-hidden">
-            <img src="/images/hero-facility.png" alt="Inside The Training Yard facility" class="w-full h-full object-cover" />
+            <img src="/images/Training_Yard_Facility_homepage.jpg" alt="Inside The Training Yard facility" class="w-full h-full object-cover" />
           </div>
         </div>
       </div>
@@ -88,7 +92,7 @@
             <div class="glass-card overflow-hidden aspect-[4/3]">
               <iframe
                 title="The Training Yard Location Map"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d47456.05844!2d-93.6250!3d41.5868!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x87ee99a4c45a1e4d%3A0xb16d08cf8b3b8c79!2sDes%20Moines%2C%20IA!5e0!3m2!1sen!2sus!4v1"
+                src="https://maps.google.com/maps?q=2519%20NW%2066th%20Ave,%20Des%20Moines,%20IA%2050313&t=&z=15&ie=UTF8&iwloc=&output=embed"
                 class="w-full h-full border-0"
                 allowfullscreen
                 loading="lazy"

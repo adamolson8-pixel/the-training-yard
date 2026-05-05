@@ -6,7 +6,8 @@ export default defineEventHandler(async (event) => {
 
   // Ensure user is logged in
   const user = await serverSupabaseUser(event)
-  if (!user) {
+  const userId = user?.id || user?.sub
+  if (!user || !userId) {
     throw createError({ statusCode: 401, statusMessage: 'Unauthorized. Please log in to book.' })
   }
 
@@ -20,12 +21,13 @@ export default defineEventHandler(async (event) => {
   try {
     const supabase = await serverSupabaseClient(event)
 
-    // Check for overlaps
+    // Check for overlaps: existing.start < new.end AND existing.end > new.start
     const { data: existing, error: checkError } = await supabase
       .from('bookings')
       .select('id')
       .eq('resource_id', resource_id)
-      .eq('start_time', start_time)
+      .lt('start_time', finalEndTime)
+      .gt('end_time', start_time)
       .eq('status', 'confirmed')
 
     if (checkError) throw checkError
@@ -37,7 +39,7 @@ export default defineEventHandler(async (event) => {
     const { data: booking, error: insertError } = await supabase
       .from('bookings')
       .insert({
-        user_id: user.id,
+        user_id: userId,
         resource_id,
         start_time,
         end_time: finalEndTime,

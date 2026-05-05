@@ -3,7 +3,9 @@ import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server'
 export default defineEventHandler(async (event) => {
   // Ensure user is logged in
   const user = await serverSupabaseUser(event)
-  if (!user) {
+  
+  const userId = user?.id || user?.sub
+  if (!user || !userId) {
     throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
   }
 
@@ -18,7 +20,7 @@ export default defineEventHandler(async (event) => {
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
-      .eq('id', user.id)
+      .eq('id', userId)
       .single()
 
     const isAdmin = profile?.role === 'admin'
@@ -26,7 +28,7 @@ export default defineEventHandler(async (event) => {
     let query = supabase.from('bookings').select('*, profiles(email, full_name)').order('start_time', { ascending: false })
 
     if (!isAdmin) {
-      query = query.eq('user_id', user.id)
+      query = query.eq('user_id', userId)
     }
 
     const { data: bookings, error } = await query

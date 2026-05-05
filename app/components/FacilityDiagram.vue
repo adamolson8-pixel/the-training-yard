@@ -110,8 +110,8 @@
             </div>
 
             <!-- Dimension Labels -->
-            <div class="absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] text-white/40 font-mono">100' Width</div>
-            <div class="absolute top-1/2 -translate-y-1/2 left-1 text-[10px] text-white/40 font-mono writing-vertical" style="writing-mode: vertical-rl; transform: rotate(180deg) translateY(50%);">60' Depth</div>
+            <div class="absolute bottom-2 left-1/2 -translate-x-1/2 text-sm text-white font-bold font-mono bg-dark/80 px-3 py-1 rounded border border-white/20 shadow-lg z-30">100' Width</div>
+            <div class="absolute top-1/2 -translate-y-1/2 left-2 text-sm text-white font-bold font-mono bg-dark/80 px-1 py-3 rounded border border-white/20 shadow-lg z-30" style="writing-mode: vertical-rl; transform: rotate(180deg) translateY(50%);">60' Depth</div>
           </div>
 
           <!-- Legend -->

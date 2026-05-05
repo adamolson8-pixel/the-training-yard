@@ -2,10 +2,10 @@
   <div>
     <!-- Hero -->
     <section class="relative py-20 md:py-28 bg-hero-gradient overflow-hidden">
-      <div class="absolute inset-0 opacity-20">
-        <img src="/images/hero-facility.png" alt="" class="w-full h-full object-cover" />
+      <div class="absolute inset-0">
+        <img src="/images/Training_Yard_Facility_Tour.jpg" alt="" class="w-full h-full object-cover object-center" />
       </div>
-      <div class="absolute inset-0 bg-dark/80"></div>
+      <div class="absolute inset-0 bg-dark/70"></div>
       <div class="section-container relative">
         <nav class="flex items-center gap-2 text-sm text-gray-400 mb-6" aria-label="Breadcrumb">
           <NuxtLink to="/" class="hover:text-white transition-colors">Home</NuxtLink>
@@ -78,14 +78,14 @@
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl mx-auto">
           <div class="md:col-span-2 rounded-2xl overflow-hidden aspect-video">
-            <img src="/images/hero-facility.png" alt="The Training Yard full facility" class="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+            <img src="/images/Training_Yard_Facility_Tour.jpg" alt="The Training Yard full facility" class="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
           </div>
           <div class="space-y-4">
             <div class="rounded-2xl overflow-hidden aspect-[4/3]">
-              <img src="/images/baseball-training.png" alt="Batting cage training" class="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+              <img src="/images/Training_Yard_Facility_Action.jpg" alt="Batting cage training" class="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
             </div>
             <div class="rounded-2xl overflow-hidden aspect-[4/3]">
-              <img src="/images/soccer-agility.png" alt="Soccer and agility training" class="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+              <img src="/images/Training_Yard_Facility_Story.jpg" alt="Soccer and agility training" class="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
             </div>
           </div>
         </div>
@@ -145,28 +145,28 @@ const scenarios = [
   {
     title: 'Individual Batting Practice',
     description: 'Reserve a single cage for focused hitting reps. Use our machines or bring your own pitcher. Tees, balls, and L-screens provided.',
-    image: '/images/baseball-training.png',
+    image: '/images/Training_Yard_Facility_baseball.jpg',
     badge: 'Cages',
     badgeClass: 'badge-cage',
   },
   {
     title: 'Team Turf Practice',
     description: 'Retract all 4 cages and use the full 60\' × 100\' turf for team batting rotations, fielding drills, or full infield work.',
-    image: '/images/hero-facility.png',
+    image: '/images/Training_Yard_Facility_homepage.jpg',
     badge: 'Full Field',
     badgeClass: 'badge-turf',
   },
   {
     title: 'Soccer & Futsal Training',
     description: 'Full open turf supports small-sided soccer games, futsal practice, and team tactical drills on quality synthetic surface.',
-    image: '/images/soccer-agility.png',
+    image: '/images/Training_Yard_Facility_Soccer.png',
     badge: 'Open Turf',
     badgeClass: 'badge-turf',
   },
   {
     title: 'Agility & Conditioning',
     description: 'Set up ladder drills, cone patterns, shuttle runs, and SAQ circuits on the turf. Perfect for multi-sport athletes.',
-    image: '/images/soccer-agility.png',
+    image: '/images/Training_Yard_Facility_Story.jpg',
     badge: 'Speed Work',
     badgeClass: 'badge-primary',
   },

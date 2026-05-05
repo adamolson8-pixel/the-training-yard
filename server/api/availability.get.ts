@@ -1,4 +1,4 @@
-import { serverSupabaseClient } from '#supabase/server'
+import { serverSupabaseServiceRole } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
@@ -17,29 +17,41 @@ export default defineEventHandler(async (event) => {
   ]
 
   try {
-    const supabase = await serverSupabaseClient(event)
+    const supabase = serverSupabaseServiceRole(event)
     
-    // Fetch bookings for this date and resource
+    const dayStart = `${date}T00:00:00Z`
+    const dayEnd = `${date}T23:59:59Z`
+
+    // Fetch bookings that overlap with this date
     const { data: bookings, error } = await supabase
       .from('bookings')
       .select('start_time, end_time')
       .eq('resource_id', resourceId)
-      .gte('start_time', `${date}T00:00:00`)
-      .lt('start_time', `${date}T23:59:59`)
+      .lt('start_time', dayEnd)
+      .gt('end_time', dayStart)
       .eq('status', 'confirmed')
 
     if (error) throw error
 
-    // Map existing bookings to blocked slots
-    const blockedSlots = new Set()
-    bookings?.forEach(b => {
-      // Basic implementation: if start_time is 14:00, block it.
-      const startTimeStr = new Date(b.start_time).toISOString().substring(11, 16)
-      blockedSlots.add(startTimeStr)
-    })
-
-    // Return slots with availability
+    // Return slots with availability based on precise overlap
     const slots = allSlots.map(time => {
+      const slotStart = new Date(`${date}T${time}:00Z`).getTime()
+      // Each slot is 1 hour long
+      const slotEnd = slotStart + 60 * 60 * 1000 
+
+      let isBlocked = false
+      if (bookings) {
+        for (const b of bookings) {
+          const bStart = new Date(b.start_time).getTime()
+          const bEnd = new Date(b.end_time).getTime()
+          // Overlap condition: (Slot Start < Booking End) AND (Slot End > Booking Start)
+          if (slotStart < bEnd && slotEnd > bStart) {
+            isBlocked = true
+            break
+          }
+        }
+      }
+
       // simple formatting for frontend (e.g. "06:00" -> "6:00 AM")
       const [hour, minute] = time.split(':')
       const hourNum = parseInt(hour)
@@ -50,14 +62,14 @@ export default defineEventHandler(async (event) => {
       return {
         time: formattedTime,
         raw_time: `${date}T${time}:00Z`, // ISO format for easy booking
-        available: !blockedSlots.has(time)
+        available: !isBlocked
       }
     })
 
     return { slots }
   } catch (err: any) {
-    // Return mock slots if supabase fails (e.g. not configured yet)
-    console.error('Supabase error:', err.message)
+    console.error('Supabase availability error:', err.message)
+    // If it fails, return all slots as unavailable rather than random mock data
     const slots = allSlots.map(time => {
       const [hour, minute] = time.split(':')
       const hourNum = parseInt(hour)
@@ -66,9 +78,9 @@ export default defineEventHandler(async (event) => {
       return {
         time: `${displayHour}:${minute} ${period}`,
         raw_time: `${date}T${time}:00Z`,
-        available: Math.random() > 0.3
+        available: false
       }
     })
-    return { error: 'Failed to fetch availability. Showing mock data.', slots }
+    return { error: 'Failed to fetch availability.', slots }
   }
 })
