@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
   try {
     await transporter.sendMail({
       from: `"The Training Yard Website" <${config.smtpUser}>`, // Must match authenticated user
-      to: 'info@trainingyarddsm.com',
+      to: 'Adam@heartlandroofingandsiding.com',
       replyTo: email,
       subject: `New Inquiry from ${name} - ${interest || 'Website Contact'}`,
       html: htmlContent,
