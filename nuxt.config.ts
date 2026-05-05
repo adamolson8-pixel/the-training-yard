@@ -1,9 +1,14 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  nitro: {
+    preset: 'netlify',
+  },
+
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
 
   modules: [
+    '@netlify/nuxt',
     '@nuxtjs/tailwindcss',
     '@nuxtjs/google-fonts',
     '@nuxtjs/supabase',
