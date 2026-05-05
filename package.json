@@ -21,9 +21,7 @@
     "nodemailer": "^8.0.7",
     "nuxt": "^4.4.2",
     "vue": "^3.5.33",
-    "vue-router": "^5.0.6"
-  },
-  "devDependencies": {
+    "vue-router": "^5.0.6",
     "@types/nodemailer": "^8.0.0"
   }
 }

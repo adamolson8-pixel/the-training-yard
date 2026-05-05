@@ -44,7 +44,7 @@ export default defineEventHandler(async (event) => {
         start_time,
         end_time: finalEndTime,
         status: 'confirmed'
-      })
+      } as any)
       .select()
       .single()
 
