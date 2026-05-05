@@ -9,6 +9,13 @@ export default defineNuxtConfig({
     '@nuxtjs/supabase',
   ],
 
+  runtimeConfig: {
+    smtpHost: process.env.SMTP_HOST || 'smtp.zoho.com',
+    smtpPort: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 465,
+    smtpUser: process.env.SMTP_USER || 'info@trainingyarddsm.com',
+    smtpPass: process.env.SMTP_PASS || '',
+  },
+
   googleFonts: {
     families: {
       'Inter': [300, 400, 500, 600, 700, 800],
@@ -47,10 +54,6 @@ export default defineNuxtConfig({
         { rel: 'canonical', href: 'https://trainingyarddsm.com' },
       ],
     },
-  },
-
-  nitro: {
-    preset: 'static',
   },
 
   routeRules: {

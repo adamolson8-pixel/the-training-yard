@@ -126,12 +126,12 @@ const bookingInProgress = ref(false)
 const bookingError = ref('')
 
 const resources = [
-  { id: 'cage-1', label: 'Cage 1', price: 30 },
-  { id: 'cage-2', label: 'Cage 2', price: 30 },
-  { id: 'cage-3', label: 'Cage 3', price: 30 },
-  { id: 'cage-4', label: 'Cage 4', price: 30 },
-  { id: 'half-turf', label: 'Half Turf', price: 60 },
-  { id: 'full-turf', label: 'Full Turf', price: 100 },
+  { id: 'cage-1', label: 'Cage 1', price: 50 },
+  { id: 'cage-2', label: 'Cage 2', price: 50 },
+  { id: 'cage-3', label: 'Cage 3', price: 50 },
+  { id: 'cage-4', label: 'Cage 4', price: 50 },
+  { id: 'half-turf', label: 'Half Turf', price: 75 },
+  { id: 'full-turf', label: 'Full Turf', price: 225 },
 ]
 
 const selectedResourcePrice = computed(() => resources.find(r => r.id === selectedResource.value)?.price || 0)

@@ -80,8 +80,11 @@
                 <label for="contact-message" class="block text-sm text-gray-400 mb-1.5">Message *</label>
                 <textarea id="contact-message" v-model="form.message" required rows="4" class="input-field resize-none" placeholder="Tell us about your training needs..."></textarea>
               </div>
-              <button id="contact-submit" type="submit" class="btn-primary w-full" :disabled="formSubmitted">
-                {{ formSubmitted ? '✓ Message Sent!' : 'Send Message' }}
+              <div v-if="formError" class="text-red-500 text-sm p-3 bg-red-500/10 border border-red-500/20 rounded-md">
+                {{ formError }}
+              </div>
+              <button id="contact-submit" type="submit" class="btn-primary w-full" :disabled="formSubmitted || isSubmitting">
+                {{ isSubmitting ? 'Sending...' : formSubmitted ? '✓ Message Sent!' : 'Send Message' }}
               </button>
             </form>
           </div>
@@ -168,9 +171,26 @@ useJsonLd([
 
 const openRule = ref<number | null>(null)
 const formSubmitted = ref(false)
+const formError = ref('')
+const isSubmitting = ref(false)
 const form = reactive({ name: '', email: '', phone: '', interest: '', message: '' })
 
-const submitForm = () => { formSubmitted.value = true }
+const submitForm = async () => { 
+  isSubmitting.value = true
+  formError.value = ''
+  
+  try {
+    await $fetch('/api/contact', {
+      method: 'POST',
+      body: form
+    })
+    formSubmitted.value = true
+  } catch (error: any) {
+    formError.value = error.message || 'An error occurred while sending your message. Please try again.'
+  } finally {
+    isSubmitting.value = false
+  }
+}
 
 const rules = [
   { title: 'General Facility Rules', items: ['All participants must sign a waiver before using the facility.', 'Athletes under 14 must be accompanied by a parent or guardian.', 'No food or open beverages on the turf or in batting cages.', 'No metal cleats allowed on the synthetic turf — turf shoes or indoor shoes only.', 'All personal equipment must be removed after your session.', 'Respect other users — keep noise levels reasonable during shared sessions.'] },
