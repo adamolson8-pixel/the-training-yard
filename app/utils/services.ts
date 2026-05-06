@@ -12,6 +12,11 @@ export interface Service {
   teamNote?: string
 }
 
+export function formatPrice(cents: number): string {
+  const dollars = cents / 100
+  return '$' + (dollars % 1 === 0 ? dollars.toFixed(0) : dollars.toFixed(2))
+}
+
 export const SERVICES: Service[] = [
   {
     id: 'single_cage_30',
@@ -84,12 +89,3 @@ export const SERVICES: Service[] = [
     teamNote: 'Single practice $225/hr · Packages from $1,282 (6 hrs) to $4,050 (24 hrs)',
   },
 ]
-
-export function getServiceById(id: string): Service | undefined {
-  return SERVICES.find((s) => s.id === id)
-}
-
-export function formatPrice(cents: number): string {
-  const dollars = cents / 100
-  return dollars % 1 === 0 ? `$${dollars.toFixed(0)}` : `$${dollars.toFixed(2)}`
-}
