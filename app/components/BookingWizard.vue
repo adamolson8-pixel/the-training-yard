@@ -27,8 +27,8 @@
         >
           <span class="text-2xl">🌟</span>
           <div class="flex-1 min-w-0">
-            <p class="text-green-400 font-semibold text-sm leading-tight">Members save up to 25% on every session</p>
-            <p class="text-gray-400 text-xs mt-0.5">Individual $89/mo · Family $129/mo — member prices shown below</p>
+            <p class="text-green-400 font-semibold text-sm leading-tight">Members save 25% on all rentals</p>
+            <p class="text-gray-400 text-xs mt-0.5">Individual $89/mo · Family $129/mo — member prices shown on each card</p>
           </div>
           <span class="text-green-400 text-xs font-semibold whitespace-nowrap group-hover:underline">Learn more →</span>
         </a>
