@@ -43,6 +43,7 @@
               <h3 class="font-display font-bold text-xl text-white mb-1">{{ tier.name }}</h3>
               <p class="text-gray-400 text-sm mb-6">{{ tier.target }}</p>
               <div class="flex items-baseline gap-1 mb-6">
+                <span class="text-gray-400 text-lg mr-1" v-if="tier.isTeam">from</span>
                 <span class="font-display text-5xl font-bold text-white">${{ tier.price }}</span>
                 <span class="text-gray-400">/{{ tier.period }}</span>
               </div>
@@ -55,7 +56,7 @@
               </ul>
               <a
                 :href="tier.cta === 'Contact for Details' ? '/about' : '#book'"
-                :class="tier.popular ? 'btn-primary w-full text-center' : 'btn-secondary w-full text-center'"
+                :class="tier.popular || tier.cta === 'Join Now' ? 'btn-primary w-full text-center' : 'btn-secondary w-full text-center'"
                 @click.prevent="scrollToBook(tier)"
               >{{ tier.cta }}</a>
             </div>
@@ -143,12 +144,12 @@ useJsonLd([
 const openFaq = ref<number | null>(null)
 
 const tiers = [
-  { name: 'Individual Monthly', target: 'One athlete', price: '89', period: 'mo', popular: false, cta: 'Get Started',
+  { name: 'Individual Monthly', target: 'One athlete', price: '89', period: 'mo', popular: false, cta: 'Join Now',
     features: ['Daily 1-hour cage access included', 'One Half Turf session per week', 'Walk-On Access to unreserved turf', '25% off additional rentals', 'Parent/coach helpers are free'] },
   { name: 'Family Pass', target: 'Household members', price: '129', period: 'mo', popular: true, cta: 'Join Now',
     features: ['Shared daily 1-hour cage access', 'One Half Turf session per week', 'Walk-On Access to unreserved turf', '25% off additional rentals', 'Parent/coach helpers are free'] },
-  { name: 'Annual Team VIP', target: 'Club & travel teams', price: '2,700', period: 'yr', popular: false, cta: 'Contact for Details',
-    features: ['24 Hours Standard Practice Time', 'First-Priority Scheduling', '20% off additional practice hours', '10% Roster Discount for players', 'Use hours year-round'] },
+  { name: 'Team Rentals', target: 'Organized teams & clubs', price: '150', period: 'hr', popular: false, cta: 'Contact for Details', isTeam: true,
+    features: ['Standard Team (2 Cages + Half Turf): from $150/hr', 'Full Facility Buyout (4 Cages + Full Turf): from $225/hr', '6-hr, 12-hr & 24-hr bulk packages available', 'Priority advanced scheduling included', 'Annual Team VIP: $2,700/yr (24 hrs + perks)', '10% Roster Discount on player memberships'] },
 ]
 
 function scrollToBook(tier: { cta: string }) {
