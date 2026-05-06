@@ -57,7 +57,7 @@
                   <span>⏱ 60–120 min</span>
                   <span>👥 Up to {{ service.maxPlayers }}</span>
                 </div>
-                <span class="text-xs text-amber-400/80 font-medium">Contact us for packages →</span>
+                <NuxtLink to="/teams" class="text-xs text-amber-400/80 font-medium hover:text-amber-400">Contact us for packages →</NuxtLink>
               </div>
             </template>
 

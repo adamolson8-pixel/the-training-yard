@@ -68,7 +68,7 @@ export const SERVICES: Service[] = [
     maxPlayers: 20,
     emoji: '👥',
     isTeam: true,
-    teamNote: 'From $150/hr · Packages from $855 (6 hrs) to $2,700 (24 hrs)',
+    teamNote: 'Packages from $855 (6 hrs) to $2,700 (24 hrs) · VIP from $112.50/hr',
   },
   {
     id: 'full_buyout_60',
@@ -81,7 +81,7 @@ export const SERVICES: Service[] = [
     maxPlayers: 40,
     emoji: '🏆',
     isTeam: true,
-    teamNote: 'From $225/hr · Packages from $1,282 (6 hrs) to $4,050 (24 hrs)',
+    teamNote: 'Packages from $1,282 (6 hrs) to $4,050 (24 hrs) · VIP from $168.75/hr',
   },
 ]
 
