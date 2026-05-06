@@ -45,19 +45,36 @@
           >
             <div class="text-3xl mb-2">{{ service.emoji }}</div>
             <div class="font-bold text-white text-sm mb-1">{{ service.label }}</div>
-            <!-- Price row: regular + member side by side -->
-            <div class="flex items-baseline gap-2 mb-2">
-              <span class="text-amber-400 font-bold text-xl">{{ formatPrice(service.priceCents) }}</span>
-              <span class="text-gray-500 text-xs line-through"></span>
-              <span class="flex items-center gap-1 text-green-400 text-xs font-semibold">
-                <span>🌟</span>{{ formatPrice(service.memberPriceCents) }}
-              </span>
-            </div>
-            <div class="text-gray-400 text-xs mb-3">{{ service.description }}</div>
-            <div class="flex gap-3 text-xs text-gray-500">
-              <span>⏱ {{ service.durationMinutes }} min</span>
-              <span>👥 Up to {{ service.maxPlayers }}</span>
-            </div>
+            <!-- Team card: different pricing display -->
+            <template v-if="service.isTeam">
+              <div class="mb-2">
+                <span class="text-amber-400 font-bold text-xl">{{ formatPrice(service.priceCents) }}<span class="text-sm font-normal text-gray-400">/hr</span></span>
+              </div>
+              <div class="text-green-400 text-xs font-semibold mb-1">{{ service.teamNote }}</div>
+              <div class="text-gray-400 text-xs mb-3">{{ service.description }}</div>
+              <div class="flex flex-wrap gap-2 items-center">
+                <div class="flex gap-3 text-xs text-gray-500">
+                  <span>⏱ 60–120 min</span>
+                  <span>👥 Up to {{ service.maxPlayers }}</span>
+                </div>
+                <span class="text-xs text-amber-400/80 font-medium">Contact us for packages →</span>
+              </div>
+            </template>
+
+            <!-- Regular card: regular + member price -->
+            <template v-else>
+              <div class="flex items-baseline gap-2 mb-2">
+                <span class="text-amber-400 font-bold text-xl">{{ formatPrice(service.priceCents) }}</span>
+                <span class="flex items-center gap-1 text-green-400 text-xs font-semibold">
+                  <span>🌟</span> Member: {{ formatPrice(service.memberPriceCents) }}
+                </span>
+              </div>
+              <div class="text-gray-400 text-xs mb-3">{{ service.description }}</div>
+              <div class="flex gap-3 text-xs text-gray-500">
+                <span>⏱ {{ service.durationMinutes }} min</span>
+                <span>👥 Up to {{ service.maxPlayers }}</span>
+              </div>
+            </template>
           </button>
         </div>
         <div class="mt-8">
@@ -406,6 +423,17 @@ function formatBookingDate(dateStr: string): string {
 }
 .form-input option {
   @apply bg-gray-900 text-white;
+}
+
+/* Make the native date picker calendar icon visible on dark backgrounds */
+.form-input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.5);
+  opacity: 0.8;
+  cursor: pointer;
+  padding: 2px;
+}
+.form-input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
 }
 .btn-back {
   @apply border border-white/20 text-gray-300 font-medium px-5 py-2.5 rounded-lg hover:bg-white/5 transition-colors;

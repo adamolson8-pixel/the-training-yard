@@ -8,6 +8,8 @@ export interface Service {
   facilityType: 'cage' | 'turf' | 'team'
   maxPlayers: number
   emoji: string
+  isTeam?: boolean
+  teamNote?: string
 }
 
 export const SERVICES: Service[] = [
@@ -57,25 +59,29 @@ export const SERVICES: Service[] = [
   },
   {
     id: 'team_standard_60',
-    label: 'Team Standard – 60 min',
-    description: 'Dedicated team training space for organized team practices and skill work.',
+    label: 'Team Standard',
+    description: '2 cages + half turf. Ideal for organized practices and skill work. Book 60, 90, or 120-min blocks.',
     priceCents: 15000,
-    memberPriceCents: 11250,
+    memberPriceCents: 15000,
     durationMinutes: 60,
     facilityType: 'team',
     maxPlayers: 20,
     emoji: '👥',
+    isTeam: true,
+    teamNote: 'From $150/hr · Packages from $855 (6 hrs) to $2,700 (24 hrs)',
   },
   {
     id: 'full_buyout_60',
-    label: 'Full Buyout – 60 min',
-    description: 'Complete facility buyout. Your team gets the whole place — no sharing.',
+    label: 'Full Facility Buyout',
+    description: '4 cages + full turf. Your team owns the whole space — no sharing. Book 60, 90, or 120-min blocks.',
     priceCents: 22500,
-    memberPriceCents: 16875,
+    memberPriceCents: 22500,
     durationMinutes: 60,
     facilityType: 'team',
     maxPlayers: 40,
     emoji: '🏆',
+    isTeam: true,
+    teamNote: 'From $225/hr · Packages from $1,282 (6 hrs) to $4,050 (24 hrs)',
   },
 ]
 
