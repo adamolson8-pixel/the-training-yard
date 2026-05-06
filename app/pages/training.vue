@@ -16,18 +16,10 @@
         <p class="text-xl text-gray-300 max-w-2xl">
           From individual cage sessions to full-season team contracts. Choose the rental plan that matches your goals.
         </p>
-      </div>
-    </section>
-
-    <!-- Booking Calendar -->
-    <section class="section-spacing bg-dark">
-      <div class="section-container">
-        <div class="text-center mb-12">
-          <span class="badge-cage mb-4 inline-block">Book Online</span>
-          <h2 class="heading-lg text-white mb-4">Check Availability &amp; Book</h2>
-          <p class="text-gray-400 max-w-2xl mx-auto">Select a resource and date to see available time slots.</p>
+        <div class="mt-8 flex flex-wrap gap-4">
+          <a href="#pricing" class="btn-primary" @click.prevent="smoothScroll('#pricing')">View Plans</a>
+          <a href="#book" class="btn-secondary" @click.prevent="smoothScroll('#book')">Book Now</a>
         </div>
-        <BookingCalendar />
       </div>
     </section>
 
@@ -44,7 +36,10 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           <div v-for="tier in tiers" :key="tier.name" class="relative group">
             <div v-if="tier.popular" class="absolute -top-3 left-1/2 -translate-x-1/2 z-10 px-4 py-1 bg-red-gradient rounded-full text-xs font-bold text-white shadow-glow-red">Most Popular</div>
-            <div class="h-full flex flex-col p-8 rounded-2xl border transition-all duration-500 group-hover:-translate-y-2" :class="tier.popular ? 'bg-gradient-to-b from-primary/10 to-dark-card border-primary/30 shadow-glow-red' : 'glass-card border-white/10 hover:border-white/20'">
+            <div
+              class="h-full flex flex-col p-8 rounded-2xl border transition-all duration-500 group-hover:-translate-y-2"
+              :class="tier.popular ? 'bg-gradient-to-b from-primary/10 to-dark-card border-primary/30 shadow-glow-red' : 'glass-card border-white/10 hover:border-white/20'"
+            >
               <h3 class="font-display font-bold text-xl text-white mb-1">{{ tier.name }}</h3>
               <p class="text-gray-400 text-sm mb-6">{{ tier.target }}</p>
               <div class="flex items-baseline gap-1 mb-6">
@@ -58,7 +53,11 @@
                   <span class="text-gray-300">{{ f }}</span>
                 </li>
               </ul>
-              <NuxtLink to="/about" :class="tier.popular ? 'btn-primary w-full text-center' : 'btn-secondary w-full text-center'">{{ tier.cta }}</NuxtLink>
+              <a
+                :href="tier.cta === 'Contact for Details' ? '/about' : '#book'"
+                :class="tier.popular ? 'btn-primary w-full text-center' : 'btn-secondary w-full text-center'"
+                @click.prevent="scrollToBook(tier)"
+              >{{ tier.cta }}</a>
             </div>
           </div>
         </div>
@@ -73,10 +72,24 @@
             <div class="p-3"><div class="text-2xl font-bold text-white">$75</div><div class="text-xs text-gray-400">Half Turf · 60 min</div></div>
             <div class="p-3"><div class="text-2xl font-bold text-white">$225</div><div class="text-xs text-gray-400">Full Facility · 60 min</div></div>
           </div>
+          <a href="#book" class="btn-primary inline-block mt-6" @click.prevent="smoothScroll('#book')">Book a Session Now →</a>
         </div>
       </div>
     </section>
 
+    <!-- Online Booking Wizard -->
+    <section id="book" class="section-spacing bg-dark">
+      <div class="section-container">
+        <div class="text-center mb-12">
+          <span class="badge-cage mb-4 inline-block">Book Online</span>
+          <h2 class="heading-lg text-white mb-4">Book Your Session</h2>
+          <p class="text-gray-400 max-w-2xl mx-auto">Choose your service, pick a time, and pay securely online. Confirmation sent instantly.</p>
+        </div>
+        <div class="max-w-3xl mx-auto">
+          <BookingWizard />
+        </div>
+      </div>
+    </section>
 
     <!-- FAQ -->
     <section class="section-spacing bg-dark-card/30">
@@ -87,9 +100,16 @@
           </div>
           <div class="space-y-4">
             <div v-for="(item, i) in faqs" :key="i" class="glass-card overflow-hidden">
-              <button class="w-full flex items-center justify-between p-6 text-left hover:bg-white/5 transition-colors" @click="openFaq = openFaq === i ? null : i">
+              <button
+                class="w-full flex items-center justify-between p-6 text-left hover:bg-white/5 transition-colors"
+                @click="openFaq = openFaq === i ? null : i"
+              >
                 <h3 class="font-display font-semibold text-white pr-4 text-sm md:text-base">{{ item.q }}</h3>
-                <svg class="w-5 h-5 text-primary shrink-0 transition-transform duration-300" :class="{ 'rotate-180': openFaq === i }" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                <svg
+                  class="w-5 h-5 text-primary shrink-0 transition-transform duration-300"
+                  :class="{ 'rotate-180': openFaq === i }"
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                ><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
               </button>
               <div v-if="openFaq === i" class="px-6 pb-6 text-gray-400 text-sm leading-relaxed border-t border-white/5 pt-4">{{ item.a }}</div>
             </div>
@@ -123,14 +143,30 @@ useJsonLd([
 const openFaq = ref<number | null>(null)
 
 const tiers = [
-  { name: 'Individual Monthly', target: 'One athlete', price: '89', period: 'mo', popular: false, cta: 'Get Started', features: ['Daily 1-hour cage access included', 'One Half Turf session per week', 'Walk-On Access to unreserved turf', '25% off additional rentals', 'Parent/coach helpers are free'] },
-  { name: 'Family Pass', target: 'Household members', price: '129', period: 'mo', popular: true, cta: 'Join Now', features: ['Shared daily 1-hour cage access', 'One Half Turf session per week', 'Walk-On Access to unreserved turf', '25% off additional rentals', 'Parent/coach helpers are free'] },
-  { name: 'Annual Team VIP', target: 'Club & travel teams', price: '2,700', period: 'yr', popular: false, cta: 'Contact for Details', features: ['24 Hours Standard Practice Time', 'First-Priority Scheduling', '20% off additional practice hours', '10% Roster Discount for players', 'Use hours year-round'] },
+  { name: 'Individual Monthly', target: 'One athlete', price: '89', period: 'mo', popular: false, cta: 'Get Started',
+    features: ['Daily 1-hour cage access included', 'One Half Turf session per week', 'Walk-On Access to unreserved turf', '25% off additional rentals', 'Parent/coach helpers are free'] },
+  { name: 'Family Pass', target: 'Household members', price: '129', period: 'mo', popular: true, cta: 'Join Now',
+    features: ['Shared daily 1-hour cage access', 'One Half Turf session per week', 'Walk-On Access to unreserved turf', '25% off additional rentals', 'Parent/coach helpers are free'] },
+  { name: 'Annual Team VIP', target: 'Club & travel teams', price: '2,700', period: 'yr', popular: false, cta: 'Contact for Details',
+    features: ['24 Hours Standard Practice Time', 'First-Priority Scheduling', '20% off additional practice hours', '10% Roster Discount for players', 'Use hours year-round'] },
 ]
+
+function scrollToBook(tier: { cta: string }) {
+  if (tier.cta === 'Contact for Details') {
+    navigateTo('/about')
+    return
+  }
+  smoothScroll('#book')
+}
+
+function smoothScroll(hash: string) {
+  const el = document.querySelector(hash)
+  if (el) el.scrollIntoView({ behavior: 'smooth' })
+}
 
 const faqs = [
   { q: 'What is included with a cage rental?', a: 'Each cage rental includes access to an automated pitching machine, batting tee, bucket of baseballs or softballs, and an L-screen. Helmets are available to borrow.' },
-  { q: 'Do members get discounts or priority booking?', a: 'Yes. All membership tiers receive priority booking (48–72 hours in advance), 20% off peak cage rates, and member-only open gym sessions.' },
+  { q: 'Do members get discounts or priority booking?', a: 'Yes. All membership tiers receive priority booking (48-72 hours in advance), 20% off peak cage rates, and member-only open gym sessions.' },
   { q: 'Are outside instructors allowed?', a: 'Yes. They must sign our standard waiver and follow all facility guidelines.' },
   { q: 'What is the cancellation policy?', a: 'Cancellations 24+ hours in advance get a full refund. Same-day cancellations incur a 50% fee. Rescheduling is free with 12+ hours notice.' },
   { q: 'Can I freeze or cancel my membership?', a: 'Monthly memberships can be frozen for up to 30 days/year. Cancellations require 30 days written notice.' },

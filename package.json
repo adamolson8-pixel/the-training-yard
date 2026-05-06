@@ -19,9 +19,12 @@
     "@nuxtjs/google-fonts": "^3.2.0",
     "@nuxtjs/supabase": "^2.0.6",
     "@nuxtjs/tailwindcss": "^6.14.0",
+    "@pinia/nuxt": "^0.11.3",
     "@types/nodemailer": "^8.0.0",
     "nodemailer": "^8.0.7",
     "nuxt": "^4.4.2",
+    "pinia": "^3.0.4",
+    "stripe": "^22.1.0",
     "vue": "^3.5.33",
     "vue-router": "^5.0.6"
   }

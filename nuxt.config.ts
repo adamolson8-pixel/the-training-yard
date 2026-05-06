@@ -12,6 +12,7 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss',
     '@nuxtjs/google-fonts',
     '@nuxtjs/supabase',
+    '@pinia/nuxt',
   ],
 
   runtimeConfig: {
@@ -19,6 +20,12 @@ export default defineNuxtConfig({
     smtpPort: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 465,
     smtpUser: process.env.SMTP_USER || 'info@trainingyarddsm.com',
     smtpPass: process.env.SMTP_PASS || '',
+    stripeSecretKey: '',
+    stripeWebhookSecret: '',
+    public: {
+      stripePublishableKey: '',
+      siteUrl: '',
+    },
   },
 
   googleFonts: {
@@ -75,13 +82,15 @@ export default defineNuxtConfig({
     '/about': { prerender: true },
     '/login': { prerender: true },
     '/confirm': { prerender: true },
+    '/booking-success': { ssr: false },
+    '/admin/bookings': { ssr: false },
   },
 
   supabase: {
     redirectOptions: {
       login: '/login',
       callback: '/confirm',
-      exclude: ['/', '/about', '/facility', '/training', '/resources', '/resources/*', '/api/*'],
+      exclude: ['/', '/about', '/facility', '/training', '/resources', '/resources/*', '/api/*', '/booking-success', '/admin/*'],
     }
   }
 })
