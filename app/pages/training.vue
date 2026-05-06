@@ -19,6 +19,18 @@
       </div>
     </section>
 
+    <!-- Booking Calendar -->
+    <section class="section-spacing bg-dark">
+      <div class="section-container">
+        <div class="text-center mb-12">
+          <span class="badge-cage mb-4 inline-block">Book Online</span>
+          <h2 class="heading-lg text-white mb-4">Check Availability &amp; Book</h2>
+          <p class="text-gray-400 max-w-2xl mx-auto">Select a resource and date to see available time slots.</p>
+        </div>
+        <BookingCalendar />
+      </div>
+    </section>
+
     <!-- Pricing -->
     <section id="pricing" class="section-spacing bg-dark-card/30 relative overflow-hidden">
       <div class="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
@@ -65,17 +77,6 @@
       </div>
     </section>
 
-
-    <!-- Booking Wizard -->
-    <section id="booking" class="py-16 bg-gray-50">
-      <div class="max-w-4xl mx-auto px-4">
-        <div class="text-center mb-10">
-          <h2 class="text-3xl font-bold text-green-900 mb-3">Book Your Session</h2>
-          <p class="text-gray-600 max-w-xl mx-auto">Reserve your time at Training Yard DSM. Secure online booking — takes less than 2 minutes.</p>
-        </div>
-        <BookingWizard />
-      </div>
-    </section>
 
     <!-- FAQ -->
     <section class="section-spacing bg-dark-card/30">

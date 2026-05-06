@@ -201,10 +201,6 @@ const selectDay = async (day: number) => {
 
 const openBookingModal = (slot: any) => {
   if (!slot.available) return
-  if (!user.value) {
-    navigateTo('/login')
-    return
-  }
   selectedSlot.value = slot
   bookingError.value = ''
   showModal.value = true
