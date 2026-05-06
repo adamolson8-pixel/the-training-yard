@@ -1,86 +1,93 @@
-import { serverSupabaseServiceRole } from '#supabase/server'
-
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const date = query.date as string
-  const resourceId = query.resource_id as string
+  // resource_id / service_type filter is optional — we block by time slot regardless of service
+  const serviceType = query.resource_id as string | undefined
 
-  if (!date || !resourceId) {
-    throw createError({ statusCode: 400, statusMessage: 'Missing date or resource_id' })
+  if (!date) {
+    throw createError({ statusCode: 400, statusMessage: 'Missing date' })
   }
 
-  // Define full list of possible slots (e.g. 6AM to 9PM)
+  // Don't allow bookings in the past
+  const today = new Date()
+  const todayStr = today.toISOString().split('T')[0]
+  const isPast = date < todayStr
+
   const allSlots = [
     '06:00', '07:00', '08:00', '09:00', '10:00', '11:00',
     '12:00', '13:00', '14:00', '15:00', '16:00', '17:00',
-    '18:00', '19:00', '20:00', '21:00'
+    '18:00', '19:00', '20:00', '21:00',
   ]
 
-  try {
-    const supabase = serverSupabaseServiceRole(event)
-    
-    const dayStart = `${date}T00:00:00Z`
-    const dayEnd = `${date}T23:59:59Z`
+  const formatSlot = (time: string) => {
+    const [hour, minute] = time.split(':')
+    const h = parseInt(hour)
+    const period = h >= 12 ? 'PM' : 'AM'
+    const display = h % 12 || 12
+    return { time: `${display}:${minute} ${period}`, raw_time: `${date}T${time}:00` }
+  }
 
-    // Fetch bookings that overlap with this date
-    const { data: bookings, error } = await supabase
+  // Past date → all unavailable
+  if (isPast) {
+    return {
+      slots: allSlots.map(t => ({ ...formatSlot(t), available: false })),
+    }
+  }
+
+  try {
+    // Dynamic import to avoid SSR issues
+    const { createClient } = await import('@supabase/supabase-js')
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NUXT_PUBLIC_SUPABASE_URL || ''
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Missing Supabase credentials')
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
+    // Fetch confirmed bookings for this date (schema: booking_date DATE, booking_time TIME)
+    const qb = supabase
       .from('bookings')
-      .select('start_time, end_time')
-      .eq('resource_id', resourceId)
-      .lt('start_time', dayEnd)
-      .gt('end_time', dayStart)
-      .eq('status', 'confirmed')
+      .select('booking_time')
+      .eq('booking_date', date)
+      .in('status', ['confirmed', 'pending'])
+
+    const { data: bookings, error } = await qb
 
     if (error) throw error
 
-    // Return slots with availability based on precise overlap
-    const slots = allSlots.map(time => {
-      const slotStart = new Date(`${date}T${time}:00Z`).getTime()
-      // Each slot is 1 hour long
-      const slotEnd = slotStart + 60 * 60 * 1000 
-
-      let isBlocked = false
-      if (bookings) {
-        for (const b of bookings) {
-          const bStart = new Date(b.start_time).getTime()
-          const bEnd = new Date(b.end_time).getTime()
-          // Overlap condition: (Slot Start < Booking End) AND (Slot End > Booking Start)
-          if (slotStart < bEnd && slotEnd > bStart) {
-            isBlocked = true
-            break
-          }
-        }
+    // Build set of booked hour strings e.g. "09:00", "14:00"
+    const bookedTimes = new Set<string>()
+    for (const b of bookings ?? []) {
+      if (b.booking_time) {
+        // booking_time may come as "HH:MM:SS" or "HH:MM"
+        const hhmm = (b.booking_time as string).substring(0, 5)
+        bookedTimes.add(hhmm)
       }
+    }
 
-      // simple formatting for frontend (e.g. "06:00" -> "6:00 AM")
-      const [hour, minute] = time.split(':')
-      const hourNum = parseInt(hour)
-      const period = hourNum >= 12 ? 'PM' : 'AM'
-      const displayHour = hourNum % 12 || 12
-      const formattedTime = `${displayHour}:${minute} ${period}`
+    // For today, block past hours
+    const nowHour = today.getHours()
+    const isToday = date === todayStr
 
+    const slots = allSlots.map(time => {
+      const slotHour = parseInt(time.split(':')[0])
+      const pastHour = isToday && slotHour <= nowHour
+      const booked = bookedTimes.has(time)
       return {
-        time: formattedTime,
-        raw_time: `${date}T${time}:00Z`, // ISO format for easy booking
-        available: !isBlocked
+        ...formatSlot(time),
+        available: !booked && !pastHour,
       }
     })
 
     return { slots }
   } catch (err: any) {
-    console.error('Supabase availability error:', err.message)
-    // If it fails, return all slots as unavailable rather than random mock data
-    const slots = allSlots.map(time => {
-      const [hour, minute] = time.split(':')
-      const hourNum = parseInt(hour)
-      const period = hourNum >= 12 ? 'PM' : 'AM'
-      const displayHour = hourNum % 12 || 12
-      return {
-        time: `${displayHour}:${minute} ${period}`,
-        raw_time: `${date}T${time}:00Z`,
-        available: false
-      }
-    })
-    return { error: 'Failed to fetch availability.', slots }
+    console.error('Availability error:', err.message)
+    // On error, return all slots as AVAILABLE so we don't block real customers
+    // The booking step itself will validate properly
+    return {
+      slots: allSlots.map(t => ({ ...formatSlot(t), available: true })),
+    }
   }
 })

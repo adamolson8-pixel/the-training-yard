@@ -3,6 +3,7 @@ export interface Service {
   label: string
   description: string
   priceCents: number
+  memberPriceCents: number
   durationMinutes: number
   facilityType: 'cage' | 'turf' | 'team'
   maxPlayers: number
@@ -15,6 +16,7 @@ export const SERVICES: Service[] = [
     label: 'Single Cage – 30 min',
     description: 'One batting cage for up to 2 players. Great for a focused individual session.',
     priceCents: 3000,
+    memberPriceCents: 2200,
     durationMinutes: 30,
     facilityType: 'cage',
     maxPlayers: 2,
@@ -25,6 +27,7 @@ export const SERVICES: Service[] = [
     label: 'Single Cage – 60 min',
     description: 'One batting cage for up to 2 players. Double the reps, double the results.',
     priceCents: 5000,
+    memberPriceCents: 3750,
     durationMinutes: 60,
     facilityType: 'cage',
     maxPlayers: 2,
@@ -35,6 +38,7 @@ export const SERVICES: Service[] = [
     label: 'Half Turf – 60 min',
     description: 'Half of the synthetic turf field for small group training or practice.',
     priceCents: 7500,
+    memberPriceCents: 5500,
     durationMinutes: 60,
     facilityType: 'turf',
     maxPlayers: 15,
@@ -45,6 +49,7 @@ export const SERVICES: Service[] = [
     label: 'Full Facility – 60 min',
     description: 'Entire facility including all cages and full turf. Maximum space for your team.',
     priceCents: 22500,
+    memberPriceCents: 17000,
     durationMinutes: 60,
     facilityType: 'turf',
     maxPlayers: 40,
@@ -55,6 +60,7 @@ export const SERVICES: Service[] = [
     label: 'Team Standard – 60 min',
     description: 'Dedicated team training space for organized team practices and skill work.',
     priceCents: 15000,
+    memberPriceCents: 11500,
     durationMinutes: 60,
     facilityType: 'team',
     maxPlayers: 20,
@@ -65,6 +71,7 @@ export const SERVICES: Service[] = [
     label: 'Full Buyout – 60 min',
     description: 'Complete facility buyout. Your team gets the whole place — no sharing.',
     priceCents: 22500,
+    memberPriceCents: 17000,
     durationMinutes: 60,
     facilityType: 'team',
     maxPlayers: 40,

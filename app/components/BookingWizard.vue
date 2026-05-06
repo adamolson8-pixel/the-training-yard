@@ -18,7 +18,21 @@
       <!-- Step 1: Service Selection -->
       <div v-if="store.step === 1">
         <h2 class="text-2xl font-bold text-white mb-2">Choose Your Session</h2>
-        <p class="text-gray-400 mb-6">Pick the rental option that fits your training needs.</p>
+        <p class="text-gray-400 mb-4">Pick the rental option that fits your training needs.</p>
+
+        <!-- Membership upsell banner -->
+        <a
+          href="#membership"
+          class="flex items-center gap-3 p-3 mb-6 rounded-xl border border-green-500/40 bg-green-500/10 hover:bg-green-500/20 transition-colors group"
+        >
+          <span class="text-2xl">🌟</span>
+          <div class="flex-1 min-w-0">
+            <p class="text-green-400 font-semibold text-sm leading-tight">Members save up to 25% on every session</p>
+            <p class="text-gray-400 text-xs mt-0.5">Individual $89/mo · Family $129/mo — member prices shown below</p>
+          </div>
+          <span class="text-green-400 text-xs font-semibold whitespace-nowrap group-hover:underline">Learn more →</span>
+        </a>
+
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <button
             v-for="service in SERVICES"
@@ -31,7 +45,14 @@
           >
             <div class="text-3xl mb-2">{{ service.emoji }}</div>
             <div class="font-bold text-white text-sm mb-1">{{ service.label }}</div>
-            <div class="text-amber-400 font-bold text-xl mb-2">{{ formatPrice(service.priceCents) }}</div>
+            <!-- Price row: regular + member side by side -->
+            <div class="flex items-baseline gap-2 mb-2">
+              <span class="text-amber-400 font-bold text-xl">{{ formatPrice(service.priceCents) }}</span>
+              <span class="text-gray-500 text-xs line-through"></span>
+              <span class="flex items-center gap-1 text-green-400 text-xs font-semibold">
+                <span>🌟</span>{{ formatPrice(service.memberPriceCents) }}
+              </span>
+            </div>
             <div class="text-gray-400 text-xs mb-3">{{ service.description }}</div>
             <div class="flex gap-3 text-xs text-gray-500">
               <span>⏱ {{ service.durationMinutes }} min</span>
