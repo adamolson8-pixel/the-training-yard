@@ -31,13 +31,11 @@
             <p class="text-gray-400 text-xs mt-0.5">Individual $89/mo · Family $129/mo — member prices shown on each card</p>
           </div>
           <span class="text-green-400 text-xs font-semibold whitespace-nowrap group-hover:underline">Learn more →</span>
-        </a>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <!-- Regular booking cards (button → enters wizard flow) -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <template v-for="service in SERVICES" :key="service.id">
+            <!-- Allow selection if it's NOT a team service OR if they have hours for it -->
             <button
-              v-if="!service.isTeam"
+              v-if="!service.isTeam || (service.id === 'team_standard_60' && hasStandardHours) || (service.id === 'full_buyout_60' && hasBuyoutHours)"
               class="text-left p-4 rounded-xl border-2 transition-all focus:outline-none focus:ring-2 focus:ring-amber-500"
               :class="store.service?.id === service.id
                 ? 'border-amber-500 bg-amber-500/10'
@@ -46,9 +44,8 @@
             >
               <div class="text-3xl mb-2">{{ service.emoji }}</div>
               <div class="font-bold text-white text-sm mb-1">{{ service.label }}</div>
-              <!-- Regular card: non-member vs member price comparison -->
-              <div class="mb-3 space-y-1.5">
-                <!-- Non-member row -->
+              
+              <div class="mb-3 space-y-1.5" v-if="!service.isTeam">
                 <div class="flex items-center gap-2">
                   <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide bg-white/10 text-gray-400 uppercase">Non-Member</span>
                   <span class="flex items-baseline gap-0.5 text-gray-400">
@@ -56,74 +53,43 @@
                     <span class="text-xs font-normal">{{ getPriceUnit(service.durationMinutes) }}</span>
                   </span>
                 </div>
-                <!-- Member row -->
                 <div class="flex items-center gap-2">
                   <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide bg-green-500/20 text-green-400 uppercase">Member 🌟</span>
                   <span class="flex items-baseline gap-0.5 text-green-400">
                     <span class="text-xl font-bold">{{ formatPrice(service.memberPriceCents) }}</span>
                     <span class="text-xs font-normal text-green-500/80">{{ getPriceUnit(service.durationMinutes) }}</span>
                   </span>
-                  <span class="text-[10px] font-bold text-green-400 bg-green-500/15 border border-green-500/30 px-1.5 py-0.5 rounded-full">Save 25%</span>
                 </div>
               </div>
+              <div class="mb-3 space-y-1.5" v-else>
+                <div class="flex items-center gap-2">
+                  <span class="inline-block px-2 py-1 rounded text-xs font-bold tracking-wide bg-amber-500/20 text-amber-400 uppercase border border-amber-500/50">
+                    Redeem 1 Hour
+                  </span>
+                </div>
+                <div class="text-xs text-gray-400">
+                  You have {{ service.id === 'full_buyout_60' ? profileData?.team_buyout_hours : profileData?.team_standard_hours }} hours remaining.
+                </div>
+              </div>
+
               <div class="text-gray-400 text-xs mb-3">{{ service.description }}</div>
               <div class="flex gap-3 text-xs text-gray-500">
                 <span>⏱ {{ service.durationMinutes }} min</span>
                 <span>👥 Up to {{ service.maxPlayers }}</span>
               </div>
             </button>
-          </template>
 
-          <!-- Team package cards (NuxtLink → goes to /teams page) -->
-          <template v-for="service in SERVICES" :key="`team-${service.id}`">
+            <!-- Render the link to /teams ONLY if it's a team service AND they don't have hours -->
             <NuxtLink
-              v-if="service.isTeam"
+              v-else-if="service.isTeam"
               to="/teams"
               class="text-left p-4 rounded-xl border-2 border-white/10 bg-white/5 hover:border-amber-500/50 hover:bg-amber-500/5 transition-all block"
             >
               <div class="text-3xl mb-2">{{ service.emoji }}</div>
               <div class="font-bold text-white text-sm mb-1 flex items-center gap-2">
                 {{ service.label }}
-                <span class="text-[10px] font-bold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.5 rounded-full">View Packages →</span>
+                <span class="text-[10px] font-bold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.5 rounded-full">Buy Package →</span>
               </div>
-              <!-- Single practice rate comparison -->
-              <div class="mb-3 space-y-1.5">
-                <div class="text-[10px] font-bold tracking-widest text-gray-500 uppercase mb-1">Single Practice Rate</div>
-                <div class="flex items-center gap-2">
-                  <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide bg-white/10 text-gray-400 uppercase">Non-Member</span>
-                  <span class="flex items-baseline gap-0.5 text-gray-400">
-                    <span class="text-base font-semibold line-through">{{ formatPrice(service.priceCents) }}</span>
-                    <span class="text-xs font-normal">/hr</span>
-                  </span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide bg-green-500/20 text-green-400 uppercase">Member 🌟</span>
-                  <span class="flex items-baseline gap-0.5 text-green-400">
-                    <span class="text-xl font-bold">{{ formatPrice(service.memberPriceCents) }}</span>
-                    <span class="text-xs font-normal text-green-500/80">/hr</span>
-                  </span>
-                  <span class="text-[10px] font-bold text-green-400 bg-green-500/15 border border-green-500/30 px-1.5 py-0.5 rounded-full">Save 25%</span>
-                </div>
-              </div>
-
-              <!-- Package tiers — bigger hourly rate -->
-              <div v-if="service.packages?.length" class="mb-3">
-                <div class="text-[10px] font-bold tracking-widest text-gray-500 uppercase mb-1.5">Bulk Packages</div>
-                <div class="space-y-1">
-                  <div
-                    v-for="pkg in service.packages"
-                    :key="pkg.label"
-                    class="flex items-center justify-between rounded-lg px-2.5 py-1.5 bg-white/5 border border-white/10"
-                  >
-                    <span class="text-xs text-gray-300 font-semibold">{{ pkg.label }}</span>
-                    <span class="flex items-center gap-2">
-                      <span class="text-amber-400 font-bold text-sm">{{ formatPrice(pkg.priceCents) }}</span>
-                      <span class="text-gray-400 text-xs font-medium">{{ pkg.hourlyRate }}</span>
-                    </span>
-                  </div>
-                </div>
-              </div>
-
               <div class="text-gray-400 text-xs mb-3">{{ service.description }}</div>
               <div class="flex gap-3 text-xs text-gray-500">
                 <span>⏱ 60–120 min</span>
@@ -141,8 +107,7 @@
             Continue →
           </button>
         </div>
-        </div>
-
+      </div>
 
       <!-- Step 2: Date & Time -->
       <div v-if="store.step === 2">
@@ -381,7 +346,22 @@
 
         <div class="flex gap-3">
           <button class="btn-back" @click="store.prevStep()">← Back</button>
+          
           <button
+            v-if="store.service?.isTeam"
+            class="btn-primary flex-1 bg-green-500 hover:bg-green-400 border-green-500 text-black shadow-[0_0_20px_rgba(34,197,94,0.3)]"
+            :disabled="isCheckingOut"
+            @click="redeemHours"
+          >
+            <span v-if="isCheckingOut" class="flex items-center justify-center gap-2">
+              <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" /><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+              Confirming Booking...
+            </span>
+            <span v-else>Confirm & Deduct 1 Hour</span>
+          </button>
+
+          <button
+            v-else
             class="btn-primary flex-1"
             :disabled="isCheckingOut"
             @click="startCheckout"
@@ -393,7 +373,8 @@
             <span v-else>🔒 Secure Checkout — {{ formatPrice(store.service?.priceCents ?? 0) }}</span>
           </button>
         </div>
-        <p class="text-xs text-gray-500 mt-3 text-center">Payments processed securely by Stripe. You'll be redirected to complete payment.</p>
+        <p v-if="!store.service?.isTeam" class="text-xs text-gray-500 mt-3 text-center">Payments processed securely by Stripe. You'll be redirected to complete payment.</p>
+        <p v-else class="text-xs text-gray-500 mt-3 text-center">1 Hour will be deducted from your team's available balance.</p>
       </div>
     </div>
   </div>
@@ -407,6 +388,9 @@ import { useBookingStore } from '~/stores/booking'
 const store = useBookingStore()
 const user = useSupabaseUser()
 const profileData = ref<any>(null)
+
+const hasStandardHours = computed(() => (profileData.value?.team_standard_hours || 0) > 0)
+const hasBuyoutHours = computed(() => (profileData.value?.team_buyout_hours || 0) > 0)
 
 // If user is logged in, fetch their profile to get dependents and waiver status
 onMounted(async () => {
@@ -535,6 +519,39 @@ async function startCheckout() {
       },
     })
     window.location.href = res.url
+  } catch (err: unknown) {
+    const e = err as { data?: { message?: string } }
+    checkoutError.value = e?.data?.message || 'Something went wrong. Please try again.'
+    isCheckingOut.value = false
+  }
+}
+
+async function redeemHours() {
+  if (!store.service) return
+  isCheckingOut.value = true
+  checkoutError.value = ''
+  try {
+    const res = await $fetch<{ success: boolean; bookingId: string }>('/api/portal/redeem-hours', {
+      method: 'POST',
+      body: {
+        serviceId: store.service.id,
+        date: store.date,
+        time: store.time,
+        customerName: store.customerName,
+        customerEmail: store.customerEmail,
+        customerPhone: store.customerPhone,
+        playerName: store.playerName,
+        playerAge: store.playerAge,
+        sport: store.sport,
+        notes: store.notes,
+        waiverAccepted: store.waiverAccepted,
+        waiverSignerName: store.waiverSignerName,
+      },
+    })
+    
+    if (res.success) {
+      window.location.href = `/booking-success?session_id=redeemed_${res.bookingId}`
+    }
   } catch (err: unknown) {
     const e = err as { data?: { message?: string } }
     checkoutError.value = e?.data?.message || 'Something went wrong. Please try again.'

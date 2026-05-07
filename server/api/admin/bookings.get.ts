@@ -14,8 +14,7 @@ export default defineEventHandler(async (event) => {
       .from('bookings')
       .select(`
         id, service_type, service_label, booking_date, booking_time, duration_minutes, 
-        user_id, status, created_at, customer_name, customer_email,
-        profiles:user_id ( full_name, email )
+        user_id, status, created_at, customer_name, customer_email
       `)
       .order('booking_date', { ascending: false })
       .order('booking_time', { ascending: true })
