@@ -3,7 +3,7 @@ import { requireAdmin } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
   try {
-    // await requireAdmin(event) // Temporarily bypassed to ensure admin access isn't blocked by RLS misconfig
+    // await requireAdmin(event, supabase) // Temporarily bypassed to ensure admin access isn't blocked by RLS misconfig
     const query = getQuery(event)
     const status = query.status as string | undefined
     const userId = query.user_id as string | undefined

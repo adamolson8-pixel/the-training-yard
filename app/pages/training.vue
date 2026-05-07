@@ -81,7 +81,9 @@
           <p class="text-gray-400 max-w-2xl mx-auto">Choose your service, pick a time, and pay securely online. Confirmation sent instantly.</p>
         </div>
         <div class="max-w-3xl mx-auto">
-          <BookingWizard />
+          <ClientOnly>
+            <BookingWizard />
+          </ClientOnly>
         </div>
       </div>
     </section>

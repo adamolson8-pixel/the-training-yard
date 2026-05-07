@@ -1,19 +1,20 @@
-import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
+import { serverSupabaseUser } from '#supabase/server'
 import type { H3Event } from 'h3'
 
 /**
  * Verifies the current request is from an authenticated admin.
  * Throws 401 if not logged in, 403 if not admin.
  * Returns the user object on success.
+ * @param event The H3 event
+ * @param supabase The initialized serverSupabaseClient
  */
-export async function requireAdmin(event: H3Event) {
+export async function requireAdmin(event: H3Event, supabase: any) {
   const user = await serverSupabaseUser(event)
   if (!user) {
     throw createError({ statusCode: 401, statusMessage: 'Unauthorized.' })
   }
 
-  const supabase = await serverSupabaseClient(event)
-  const { data: profile, error } = await (supabase as any)
+  const { data: profile, error } = await supabase
     .from('profiles')
     .select('role')
     .eq('id', user.id)

@@ -3,6 +3,15 @@ export default defineNuxtConfig({
   nitro: {
     // Only use the Netlify preset in CI — prevents crash in local dev
     preset: process.env.NETLIFY ? 'netlify' : undefined,
+    rollupConfig: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('@nuxtjs/supabase')) {
+            return 'supabase'
+          }
+        }
+      }
+    }
   },
 
   compatibilityDate: '2025-07-15',
