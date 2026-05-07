@@ -31,7 +31,8 @@
             <p class="text-gray-400 text-xs mt-0.5">Individual $89/mo · Family $129/mo — member prices shown on each card</p>
           </div>
           <span class="text-green-400 text-xs font-semibold whitespace-nowrap group-hover:underline">Learn more →</span>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        </a>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <template v-for="service in SERVICES" :key="service.id">
             <!-- Allow selection if it's NOT a team service OR if they have hours for it -->
             <button
