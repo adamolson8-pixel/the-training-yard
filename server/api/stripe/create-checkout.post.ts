@@ -23,9 +23,15 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Invalid service ID.' })
   }
 
-  // --- Stripe ---
-  const stripe = new Stripe(config.stripeSecretKey)
-  const siteUrl = config.public?.siteUrl || process.env.SITE_URL || 'https://trainingyarddsm.com'
+  // --- Stripe (test vs live) ---
+  const isTestMode = config.stripeTestMode === 'true' || config.stripeTestMode === true || String(config.stripeTestMode) === 'true'
+  const stripeKey = isTestMode ? config.stripeTestSecretKey : config.stripeSecretKey
+  if (!stripeKey) {
+    throw createError({ statusCode: 500, message: `Stripe ${isTestMode ? 'test' : 'live'} secret key is not configured.` })
+  }
+  const stripe = new Stripe(stripeKey)
+  const origin = getRequestHeader(event, 'origin') || getRequestHeader(event, 'referer')?.split('/').slice(0,3).join('/')
+  const siteUrl = origin || config.public?.siteUrl || process.env.SITE_URL || 'https://trainingyarddsm.com'
 
   const expiresAt = Math.floor(Date.now() / 1000) + 30 * 60 // 30 minutes
 

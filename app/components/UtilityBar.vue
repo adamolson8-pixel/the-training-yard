@@ -37,15 +37,42 @@
             </svg>
             <span class="hidden sm:inline">515.802.1457</span>
           </a>
-          <NuxtLink
-            id="utility-book-now"
-            to="/training"
-            class="btn-primary !px-4 !py-1.5 !text-sm animate-pulse-glow"
-          >
-            Book Now / Member Login
-          </NuxtLink>
+          <template v-if="user">
+            <NuxtLink
+              to="/portal/dashboard"
+              class="text-gray-300 hover:text-white transition-colors text-sm font-semibold flex items-center gap-2"
+            >
+              <span>Hello, {{ displayName }}</span>
+              <div class="w-7 h-7 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs border border-primary/30">
+                {{ displayName.charAt(0).toUpperCase() }}
+              </div>
+            </NuxtLink>
+          </template>
+          <template v-else>
+            <NuxtLink
+              to="/login"
+              class="text-gray-300 hover:text-white transition-colors text-sm font-semibold mr-4"
+            >
+              Member Log In
+            </NuxtLink>
+            <NuxtLink
+              to="/login?signup=true"
+              class="text-gray-300 hover:text-white transition-colors text-sm font-semibold"
+            >
+              Create an Account
+            </NuxtLink>
+          </template>
         </div>
       </div>
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+const user = useSupabaseUser()
+
+const displayName = computed(() => {
+  if (!user.value) return ''
+  return user.value.user_metadata?.full_name?.split(' ')[0] || 'User'
+})
+</script>

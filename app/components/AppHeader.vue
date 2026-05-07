@@ -23,6 +23,7 @@
           >
             {{ item.label }}
           </NuxtLink>
+
           <NuxtLink
             id="nav-book-now-desktop"
             to="/training"
@@ -74,13 +75,39 @@
           >
             {{ item.label }}
           </NuxtLink>
-          <div class="pt-2 px-4">
+
+          <div class="pt-2 px-4 space-y-2">
+            <template v-if="user">
+              <NuxtLink
+                to="/portal/dashboard"
+                class="block w-full px-4 py-3 text-center text-gray-300 border border-white/10 hover:bg-white/5 rounded-xl font-medium transition-colors"
+                @click="mobileMenuOpen = false"
+              >
+                Hello, {{ displayName }} (Dashboard)
+              </NuxtLink>
+            </template>
+            <template v-else>
+              <NuxtLink
+                to="/login"
+                class="block w-full px-4 py-3 text-center text-gray-300 border border-white/10 hover:bg-white/5 rounded-xl font-medium transition-colors"
+                @click="mobileMenuOpen = false"
+              >
+                Member Log In
+              </NuxtLink>
+              <NuxtLink
+                to="/login?signup=true"
+                class="block w-full px-4 py-3 text-center text-gray-300 border border-white/10 hover:bg-white/5 rounded-xl font-medium transition-colors"
+                @click="mobileMenuOpen = false"
+              >
+                Create an Account
+              </NuxtLink>
+            </template>
             <NuxtLink
               to="/training"
-              class="btn-primary w-full text-center"
+              class="btn-primary w-full text-center flex justify-center !mt-4"
               @click="mobileMenuOpen = false"
             >
-              Book Now / Member Login
+              Book Now
             </NuxtLink>
           </div>
         </nav>
@@ -90,6 +117,13 @@
 </template>
 
 <script setup lang="ts">
+const user = useSupabaseUser()
+
+const displayName = computed(() => {
+  if (!user.value) return ''
+  return user.value.user_metadata?.full_name?.split(' ')[0] || 'User'
+})
+
 const mobileMenuOpen = ref(false)
 
 const navItems = [

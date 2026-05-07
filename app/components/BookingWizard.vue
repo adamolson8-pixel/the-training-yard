@@ -34,48 +34,103 @@
         </a>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <button
-            v-for="service in SERVICES"
-            :key="service.id"
-            class="text-left p-4 rounded-xl border-2 transition-all focus:outline-none focus:ring-2 focus:ring-amber-500"
-            :class="store.service?.id === service.id
-              ? 'border-amber-500 bg-amber-500/10'
-              : 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10'"
-            @click="store.setService(service)"
-          >
-            <div class="text-3xl mb-2">{{ service.emoji }}</div>
-            <div class="font-bold text-white text-sm mb-1">{{ service.label }}</div>
-            <!-- Team card: different pricing display -->
-            <template v-if="service.isTeam">
-              <div class="mb-2">
-                <span class="text-amber-400 font-bold text-xl">{{ formatPrice(service.priceCents) }}<span class="text-sm font-normal text-gray-400">/hr</span></span>
-              </div>
-              <div class="text-green-400 text-xs font-semibold mb-1">{{ service.teamNote }}</div>
-              <div class="text-gray-400 text-xs mb-3">{{ service.description }}</div>
-              <div class="flex flex-wrap gap-2 items-center">
-                <div class="flex gap-3 text-xs text-gray-500">
-                  <span>⏱ 60–120 min</span>
-                  <span>👥 Up to {{ service.maxPlayers }}</span>
+          <!-- Regular booking cards (button → enters wizard flow) -->
+          <template v-for="service in SERVICES" :key="service.id">
+            <button
+              v-if="!service.isTeam"
+              class="text-left p-4 rounded-xl border-2 transition-all focus:outline-none focus:ring-2 focus:ring-amber-500"
+              :class="store.service?.id === service.id
+                ? 'border-amber-500 bg-amber-500/10'
+                : 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10'"
+              @click="store.setService(service)"
+            >
+              <div class="text-3xl mb-2">{{ service.emoji }}</div>
+              <div class="font-bold text-white text-sm mb-1">{{ service.label }}</div>
+              <!-- Regular card: non-member vs member price comparison -->
+              <div class="mb-3 space-y-1.5">
+                <!-- Non-member row -->
+                <div class="flex items-center gap-2">
+                  <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide bg-white/10 text-gray-400 uppercase">Non-Member</span>
+                  <span class="flex items-baseline gap-0.5 text-gray-400">
+                    <span class="text-base font-semibold line-through">{{ formatPrice(service.priceCents) }}</span>
+                    <span class="text-xs font-normal">{{ getPriceUnit(service.durationMinutes) }}</span>
+                  </span>
                 </div>
-                <NuxtLink to="/teams" class="text-xs text-amber-400/80 font-medium hover:text-amber-400">Contact us for packages →</NuxtLink>
-              </div>
-            </template>
-
-            <!-- Regular card: regular + member price -->
-            <template v-else>
-              <div class="flex items-baseline gap-2 mb-2">
-                <span class="text-amber-400 font-bold text-xl">{{ formatPrice(service.priceCents) }}</span>
-                <span class="flex items-center gap-1 text-green-400 text-xs font-semibold">
-                  <span>🌟</span> Member: {{ formatPrice(service.memberPriceCents) }}
-                </span>
+                <!-- Member row -->
+                <div class="flex items-center gap-2">
+                  <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide bg-green-500/20 text-green-400 uppercase">Member 🌟</span>
+                  <span class="flex items-baseline gap-0.5 text-green-400">
+                    <span class="text-xl font-bold">{{ formatPrice(service.memberPriceCents) }}</span>
+                    <span class="text-xs font-normal text-green-500/80">{{ getPriceUnit(service.durationMinutes) }}</span>
+                  </span>
+                  <span class="text-[10px] font-bold text-green-400 bg-green-500/15 border border-green-500/30 px-1.5 py-0.5 rounded-full">Save 25%</span>
+                </div>
               </div>
               <div class="text-gray-400 text-xs mb-3">{{ service.description }}</div>
               <div class="flex gap-3 text-xs text-gray-500">
                 <span>⏱ {{ service.durationMinutes }} min</span>
                 <span>👥 Up to {{ service.maxPlayers }}</span>
               </div>
-            </template>
-          </button>
+            </button>
+          </template>
+
+          <!-- Team package cards (NuxtLink → goes to /teams page) -->
+          <template v-for="service in SERVICES" :key="`team-${service.id}`">
+            <NuxtLink
+              v-if="service.isTeam"
+              to="/teams"
+              class="text-left p-4 rounded-xl border-2 border-white/10 bg-white/5 hover:border-amber-500/50 hover:bg-amber-500/5 transition-all block"
+            >
+              <div class="text-3xl mb-2">{{ service.emoji }}</div>
+              <div class="font-bold text-white text-sm mb-1 flex items-center gap-2">
+                {{ service.label }}
+                <span class="text-[10px] font-bold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.5 rounded-full">View Packages →</span>
+              </div>
+              <!-- Single practice rate comparison -->
+              <div class="mb-3 space-y-1.5">
+                <div class="text-[10px] font-bold tracking-widest text-gray-500 uppercase mb-1">Single Practice Rate</div>
+                <div class="flex items-center gap-2">
+                  <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide bg-white/10 text-gray-400 uppercase">Non-Member</span>
+                  <span class="flex items-baseline gap-0.5 text-gray-400">
+                    <span class="text-base font-semibold line-through">{{ formatPrice(service.priceCents) }}</span>
+                    <span class="text-xs font-normal">/hr</span>
+                  </span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide bg-green-500/20 text-green-400 uppercase">Member 🌟</span>
+                  <span class="flex items-baseline gap-0.5 text-green-400">
+                    <span class="text-xl font-bold">{{ formatPrice(service.memberPriceCents) }}</span>
+                    <span class="text-xs font-normal text-green-500/80">/hr</span>
+                  </span>
+                  <span class="text-[10px] font-bold text-green-400 bg-green-500/15 border border-green-500/30 px-1.5 py-0.5 rounded-full">Save 25%</span>
+                </div>
+              </div>
+
+              <!-- Package tiers — bigger hourly rate -->
+              <div v-if="service.packages?.length" class="mb-3">
+                <div class="text-[10px] font-bold tracking-widest text-gray-500 uppercase mb-1.5">Bulk Packages</div>
+                <div class="space-y-1">
+                  <div
+                    v-for="pkg in service.packages"
+                    :key="pkg.label"
+                    class="flex items-center justify-between rounded-lg px-2.5 py-1.5 bg-white/5 border border-white/10"
+                  >
+                    <span class="text-xs text-gray-300 font-semibold">{{ pkg.label }}</span>
+                    <span class="flex items-center gap-2">
+                      <span class="text-amber-400 font-bold text-sm">{{ formatPrice(pkg.priceCents) }}</span>
+                      <span class="text-gray-400 text-xs font-medium">{{ pkg.hourlyRate }}</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="text-gray-400 text-xs mb-3">{{ service.description }}</div>
+              <div class="flex gap-3 text-xs text-gray-500">
+                <span>⏱ 60–120 min</span>
+                <span>👥 Up to {{ service.maxPlayers }}</span>
+              </div>
+            </NuxtLink>
+          </template>
         </div>
         <div class="mt-8">
           <button
@@ -86,7 +141,8 @@
             Continue →
           </button>
         </div>
-      </div>
+        </div>
+
 
       <!-- Step 2: Date & Time -->
       <div v-if="store.step === 2">
@@ -160,8 +216,19 @@
               <input v-model="form.customerPhone" type="tel" required class="form-input" placeholder="(515) 555-0100" />
             </div>
             <div>
-              <label class="form-label">Player Name</label>
-              <input v-model="form.playerName" type="text" class="form-input" placeholder="If different from above" />
+              <label class="form-label">Player Name <span class="text-xs text-gray-500 font-normal">(Who is training?)</span></label>
+              <template v-if="profileData">
+                <select v-model="form.playerName" class="form-input" @change="onPlayerSelect">
+                  <option value="">Select a covered participant...</option>
+                  <option v-for="opt in playerOptions" :key="opt.name" :value="opt.name">
+                    {{ opt.name }} {{ opt.relation ? `(${opt.relation})` : '(Self)' }}
+                  </option>
+                </select>
+                <p class="text-xs text-gray-500 mt-1">
+                  Need to book for someone else? <NuxtLink to="/portal/profile" class="text-amber-400 hover:underline" target="_blank">Add them to your dependents</NuxtLink>.
+                </p>
+              </template>
+              <input v-else v-model="form.playerName" type="text" class="form-input" placeholder="If different from above" />
             </div>
             <div>
               <label class="form-label">Player Age</label>
@@ -198,7 +265,26 @@
         <h2 class="text-2xl font-bold text-white mb-2">Liability Waiver</h2>
         <p class="text-gray-400 mb-4">Please read and sign the waiver before proceeding.</p>
 
-        <div class="border border-white/10 rounded-xl p-5 h-64 overflow-y-auto text-sm text-gray-300 leading-relaxed mb-6 bg-white/5">
+        <div v-if="profileData && profileData.waiver_signed" class="border border-green-500/30 bg-green-500/5 rounded-xl p-6 mb-6 text-center">
+          <div class="text-4xl mb-3">✅</div>
+          <h3 class="text-green-400 font-bold text-lg mb-1">Global Waiver Active</h3>
+          <p class="text-gray-400 text-sm">
+            Your account's liability waiver is signed and active. It covers you and all dependents listed on your account.
+          </p>
+        </div>
+
+        <div v-else-if="profileData && !profileData.waiver_signed" class="border border-red-500/30 bg-red-500/5 rounded-xl p-6 mb-6 text-center">
+          <div class="text-4xl mb-3">⚠️</div>
+          <h3 class="text-red-400 font-bold text-lg mb-1">Account Waiver Required</h3>
+          <p class="text-gray-400 text-sm mb-4">
+            You must sign your global account waiver before you can complete this booking.
+          </p>
+          <NuxtLink to="/portal/waiver" class="btn-primary inline-block text-sm py-2" target="_blank">
+            Sign Waiver in Portal →
+          </NuxtLink>
+        </div>
+
+        <div v-else class="border border-white/10 rounded-xl p-5 h-64 overflow-y-auto text-sm text-gray-300 leading-relaxed mb-6 bg-white/5">
           <p class="font-bold text-white mb-3">TRAINING YARD DSM — LIABILITY WAIVER & RELEASE</p>
 
           <p class="font-semibold text-gray-200 mb-1">1. ASSUMPTION OF RISK</p>
@@ -222,7 +308,7 @@
           <p class="text-gray-500 text-xs mt-4">By signing below, I acknowledge that I have read this waiver, understand its contents, and agree to be bound by its terms.</p>
         </div>
 
-        <div class="space-y-4">
+        <div v-if="!profileData" class="space-y-4">
           <div>
             <label class="form-label">Signature (Type Full Name) <span class="text-red-400">*</span></label>
             <input
@@ -245,7 +331,7 @@
           <button class="btn-back" @click="store.prevStep()">← Back</button>
           <button
             class="btn-primary flex-1"
-            :disabled="!waiverChecked || !waiverName.trim()"
+            :disabled="profileData ? !profileData.waiver_signed : (!waiverChecked || !waiverName.trim())"
             @click="submitWaiver"
           >
             Continue →
@@ -319,6 +405,49 @@ import { isOpenDay, getAvailableTimeSlots } from '~/utils/timeSlots'
 import { useBookingStore } from '~/stores/booking'
 
 const store = useBookingStore()
+const user = useSupabaseUser()
+const profileData = ref<any>(null)
+
+// If user is logged in, fetch their profile to get dependents and waiver status
+onMounted(async () => {
+  if (user.value) {
+    try {
+      const { data } = await $fetch<any>('/api/portal/me')
+      if (data) {
+        profileData.value = data
+        if (!store.customerName) store.setCustomerInfo({ ...form, customerName: data.full_name || '' })
+        if (!store.customerEmail) store.setCustomerInfo({ ...form, customerEmail: data.email || '' })
+        if (!store.customerPhone) store.setCustomerInfo({ ...form, customerPhone: data.phone || '' })
+        
+        // Auto-fill form state
+        form.customerName = data.full_name || ''
+        form.customerEmail = data.email || ''
+        form.customerPhone = data.phone || ''
+      }
+    } catch (e) {
+      console.error('Failed to fetch profile', e)
+    }
+  }
+})
+
+const playerOptions = computed(() => {
+  if (!profileData.value) return []
+  const opts = []
+  if (profileData.value.full_name) {
+    opts.push({ name: profileData.value.full_name, relation: '', age: '' })
+  }
+  if (profileData.value.dependents && Array.isArray(profileData.value.dependents)) {
+    opts.push(...profileData.value.dependents)
+  }
+  return opts
+})
+
+function onPlayerSelect() {
+  const selected = playerOptions.value.find(o => o.name === form.playerName)
+  if (selected && selected.age) {
+    form.playerAge = parseInt(selected.age)
+  }
+}
 
 const stepLabels = ['Select Service', 'Date & Time', 'Your Info', 'Sign Waiver', 'Review & Pay']
 
@@ -368,6 +497,13 @@ function submitCustomerInfo() {
 const waiverName = ref(store.waiverSignerName)
 const waiverChecked = ref(store.waiverAccepted)
 function submitWaiver() {
+  if (profileData.value) {
+    if (!profileData.value.waiver_signed) return
+    store.setWaiver(true, profileData.value.full_name)
+    store.nextStep()
+    return
+  }
+  
   if (!waiverChecked.value || !waiverName.value.trim()) return
   store.setWaiver(true, waiverName.value.trim())
   store.nextStep()
@@ -410,6 +546,10 @@ function formatBookingDate(dateStr: string): string {
   if (!dateStr) return ''
   const d = new Date(dateStr + 'T12:00:00')
   return d.toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' })
+}
+
+function getPriceUnit(durationMinutes: number): string {
+  return durationMinutes === 30 ? '/half hr' : '/hr'
 }
 </script>
 

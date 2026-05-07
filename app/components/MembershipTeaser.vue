@@ -52,7 +52,7 @@
 
             <NuxtLink
               :id="`membership-cta-${tier.name.toLowerCase().replace(/\s/g, '-')}`"
-              to="/training"
+              :to="tier.cta === 'Join Now' ? '/login?signup=true' : '/training'"
               :class="tier.popular ? 'btn-primary w-full text-center' : 'btn-secondary w-full text-center'"
             >
               {{ tier.cta }}

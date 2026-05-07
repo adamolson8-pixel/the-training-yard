@@ -69,18 +69,6 @@
           </div>
         </div>
 
-        <!-- Walk-in rates -->
-        <div class="max-w-3xl mx-auto mt-12 glass-card p-6 text-center">
-          <h3 class="font-display font-semibold text-white mb-2">Walk-In &amp; One-Time Rates</h3>
-          <p class="text-gray-400 text-sm mb-4">No membership needed for single sessions.</p>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            <div class="p-3"><div class="text-2xl font-bold text-white">$30</div><div class="text-xs text-gray-400">Single Cage · 30 min</div></div>
-            <div class="p-3"><div class="text-2xl font-bold text-white">$50</div><div class="text-xs text-gray-400">Single Cage · 60 min</div></div>
-            <div class="p-3"><div class="text-2xl font-bold text-white">$75</div><div class="text-xs text-gray-400">Half Turf · 60 min</div></div>
-            <div class="p-3"><div class="text-2xl font-bold text-white">$225</div><div class="text-xs text-gray-400">Full Facility · 60 min</div></div>
-          </div>
-          <a href="#book" class="btn-primary inline-block mt-6" @click.prevent="smoothScroll('#book')">Book a Session Now →</a>
-        </div>
       </div>
     </section>
 
@@ -161,6 +149,10 @@ const tiers = [
 function scrollToBook(tier: { cta: string }) {
   if (tier.cta === 'Contact for Details') {
     navigateTo('/about')
+    return
+  }
+  if (tier.cta === 'Join Now') {
+    navigateTo('/login?signup=true')
     return
   }
   smoothScroll('#book')

@@ -18,7 +18,7 @@
       </div>
 
       <!-- Filters -->
-      <div class="bg-white rounded-xl shadow-sm p-4 mb-6 flex items-center gap-4">
+      <div class="bg-white rounded-xl shadow-sm p-4 mb-6 flex flex-wrap items-center gap-4">
         <label class="text-sm font-semibold text-gray-700">Status:</label>
         <select
           v-model="statusFilter"
@@ -30,7 +30,14 @@
           <option value="confirmed">Confirmed</option>
           <option value="cancelled">Cancelled</option>
         </select>
-        <span class="text-gray-400 text-sm ml-auto">{{ bookings?.length ?? 0 }} bookings</span>
+        <label class="text-sm font-semibold text-gray-700">From:</label>
+        <input type="date" v-model="dateFrom" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none" style="color-scheme:light" />
+        <label class="text-sm font-semibold text-gray-700">To:</label>
+        <input type="date" v-model="dateTo" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none" style="color-scheme:light" />
+        <span class="text-gray-400 text-sm ml-auto">{{ filtered?.length ?? 0 }} bookings</span>
+        <button @click="exportCSV" class="flex items-center gap-1.5 text-sm font-semibold border border-gray-200 bg-white hover:bg-gray-50 px-3 py-1.5 rounded-lg shadow-sm">
+          ⬇ CSV
+        </button>
       </div>
 
       <!-- Error -->
@@ -57,11 +64,12 @@
               <tr v-if="pending">
                 <td colspan="7" class="text-center py-12 text-gray-400">Loading...</td>
               </tr>
-              <tr v-else-if="!bookings?.length">
+              <tr v-else-if="!filtered?.length">
                 <td colspan="7" class="text-center py-12 text-gray-400">No bookings found.</td>
               </tr>
               <tr
-                v-for="booking in bookings"
+                v-for="booking in filtered"
+
                 :key="booking.id"
                 class="border-b border-gray-100 hover:bg-gray-50 transition-colors"
               >
@@ -119,20 +127,47 @@
 
 <script setup lang="ts">
 definePageMeta({
-  layout: false,
+  layout: 'admin',
+  middleware: ['admin'],
 })
 
+
 useHead({
-  title: 'Bookings Admin | Training Yard DSM',
+  title: 'Bookings — Admin',
 })
 
 const statusFilter = ref('all')
+const dateFrom = ref('')
+const dateTo = ref('')
 const cancelling = ref<string | null>(null)
 
 const { data: bookings, pending, error, refresh } = await useFetch<any[]>('/api/admin/bookings', {
   query: computed(() => ({ status: statusFilter.value })),
   server: false,
 })
+
+const filtered = computed(() => {
+  let list = bookings.value ?? []
+  if (dateFrom.value) list = list.filter((b: any) => b.booking_date >= dateFrom.value)
+  if (dateTo.value) list = list.filter((b: any) => b.booking_date <= dateTo.value)
+  return list
+})
+
+function exportCSV() {
+  const rows = [
+    ['Date', 'Time', 'Service', 'Customer', 'Email', 'Phone', 'Player', 'Amount', 'Status'],
+    ...(filtered.value ?? []).map((b: any) => [
+      b.booking_date, b.booking_time, b.service_label,
+      b.customer_name, b.customer_email, b.customer_phone,
+      b.player_name || '', ((b.amount_cents || 0) / 100).toFixed(2), b.status,
+    ])
+  ]
+  const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n')
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }))
+  a.download = `bookings-${new Date().toISOString().split('T')[0]}.csv`
+  a.click()
+}
 
 async function cancelBooking(id: string) {
   if (!confirm('Cancel this booking?')) return

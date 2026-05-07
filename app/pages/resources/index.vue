@@ -124,8 +124,32 @@ const activeCategory = ref('all')
 const leadEmail = ref('')
 const leadSubmitted = ref(false)
 
-const submitLeadMagnet = () => {
-  if (leadEmail.value) leadSubmitted.value = true
+const submitLeadMagnet = async () => {
+  if (leadEmail.value) {
+    try {
+      // Save the lead to the database and notify admin
+      await $fetch('/api/leads', {
+        method: 'POST',
+        body: {
+          email: leadEmail.value,
+          resource: 'Pre-Season Indoor Practice Template',
+          source: 'Resources Page'
+        }
+      })
+    } catch (e) {
+      console.error('Failed to save lead', e)
+    }
+
+    leadSubmitted.value = true
+    
+    // Trigger download of the practice template
+    const link = document.createElement('a')
+    link.href = '/documents/Pre-Season-Indoor-Practice-Template.html'
+    link.download = 'Pre-Season-Indoor-Practice-Template.html'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
 }
 
 const categories = [

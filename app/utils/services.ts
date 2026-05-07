@@ -1,3 +1,9 @@
+export interface ServicePackage {
+  label: string   // e.g. '6 hrs'
+  priceCents: number
+  hourlyRate?: string  // e.g. '$142.50/hr'
+}
+
 export interface Service {
   id: string
   label: string
@@ -9,12 +15,21 @@ export interface Service {
   maxPlayers: number
   emoji: string
   isTeam?: boolean
+  singlePriceCents?: number   // single-practice hourly rate in cents
   teamNote?: string
+  packages?: ServicePackage[]
 }
 
 export function formatPrice(cents: number): string {
   const dollars = cents / 100
-  return '$' + (dollars % 1 === 0 ? dollars.toFixed(0) : dollars.toFixed(2))
+  const formatted = dollars % 1 === 0
+    ? dollars.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+    : dollars.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  return '$' + formatted
+}
+
+export function getServiceById(id: string): Service | undefined {
+  return SERVICES.find(s => s.id === id)
 }
 
 export const SERVICES: Service[] = [
@@ -65,27 +80,39 @@ export const SERVICES: Service[] = [
   {
     id: 'team_standard_60',
     label: 'Team Standard',
-    description: '2 cages + half turf. Ideal for organized practices and skill work. Book 60, 90, or 120-min blocks.',
-    priceCents: 11250,
+    description: "60'×50' half turf (open field) + 2 batting cages available. Ideal for organized practices, skill work, and small team training.",
+    priceCents: 15000,
     memberPriceCents: 11250,
     durationMinutes: 60,
     facilityType: 'team',
     maxPlayers: 20,
     emoji: '👥',
     isTeam: true,
+    singlePriceCents: 15000,
     teamNote: 'Single practice $150/hr · Packages from $855 (6 hrs) to $2,700 (24 hrs)',
+    packages: [
+      { label: '6 hrs', priceCents: 85500, hourlyRate: '$142.50/hr' },
+      { label: '12 hrs', priceCents: 162000, hourlyRate: '$135/hr' },
+      { label: '24 hrs', priceCents: 270000, hourlyRate: '$112.50/hr' },
+    ],
   },
   {
     id: 'full_buyout_60',
     label: 'Full Facility Buyout',
-    description: '4 cages + full turf. Your team owns the whole space — no sharing. Book 60, 90, or 120-min blocks.',
-    priceCents: 16875,
+    description: "Full 60'×100' facility — all 4 batting cages open + complete turf field. Your team owns the whole space, no sharing.",
+    priceCents: 22500,
     memberPriceCents: 16875,
     durationMinutes: 60,
     facilityType: 'team',
     maxPlayers: 40,
     emoji: '🏆',
     isTeam: true,
+    singlePriceCents: 22500,
     teamNote: 'Single practice $225/hr · Packages from $1,282 (6 hrs) to $4,050 (24 hrs)',
+    packages: [
+      { label: '6 hrs', priceCents: 128250, hourlyRate: '$213.75/hr' },
+      { label: '12 hrs', priceCents: 243000, hourlyRate: '$202.50/hr' },
+      { label: '24 hrs', priceCents: 405000, hourlyRate: '$168.75/hr' },
+    ],
   },
 ]

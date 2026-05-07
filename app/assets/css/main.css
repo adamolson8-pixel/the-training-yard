@@ -137,6 +137,20 @@
   .link-underline:hover::after {
     @apply w-full;
   }
+
+  /* Custom scrollbar class for specific elements */
+  .custom-scrollbar::-webkit-scrollbar {
+    @apply w-2;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-black/20 rounded-lg;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-white/20 rounded-lg;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-white/30;
+  }
 }
 
 @layer utilities {

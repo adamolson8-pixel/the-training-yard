@@ -14,15 +14,17 @@
     <section class="py-12 px-4">
       <div class="max-w-5xl mx-auto space-y-10">
 
-        <!-- Standard Team -->
+        <!-- ═══ Standard Team ═══ -->
         <div class="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+          <!-- Header -->
           <div class="px-6 py-5 border-b border-white/10 flex items-center gap-3">
             <span class="text-2xl">👥</span>
-            <div>
+            <div class="flex-1">
               <h2 class="text-xl font-bold text-white">Standard Team</h2>
-              <p class="text-gray-400 text-sm">2 Batting Cages + Half Turf (50'×60') · Up to 20 athletes</p>
+              <p class="text-gray-400 text-sm">2 Batting Cages + Half Turf (60'×50') · Up to 20 athletes</p>
             </div>
           </div>
+          <!-- Table -->
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
               <thead>
@@ -34,30 +36,62 @@
                 </tr>
               </thead>
               <tbody>
+                <!-- Regular rows -->
                 <tr v-for="row in standardTeam" :key="row.label" class="border-b border-white/5 hover:bg-white/5 transition-colors">
                   <td class="px-6 py-4 font-medium text-white">{{ row.label }}</td>
                   <td class="px-6 py-4 text-right text-amber-400 font-bold">{{ row.price }}</td>
                   <td class="px-6 py-4 text-right text-gray-300">{{ row.rate }}</td>
                   <td class="px-6 py-4 text-right">
-                    <span v-if="row.savings" class="text-green-400 font-semibold">{{ row.savings }}</span>
-                    <span v-else class="text-gray-500">—</span>
+                    <button class="btn-primary text-xs py-1.5 px-3 whitespace-nowrap" @click="buyPackage(row, 'standard')">
+                      {{ loading === row.label ? 'Redirecting...' : 'Buy Package' }}
+                    </button>
+                  </td>
+                </tr>
+                <!-- VIP row — visually highlighted -->
+                <tr class="bg-green-500/8 border-t-2 border-green-500/30">
+                  <td class="px-6 py-4">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="font-bold text-white">Annual VIP — 24 hrs</span>
+                      <span class="text-[10px] font-bold bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-0.5 rounded-full">⭐ VIP</span>
+                      <span class="text-[10px] font-bold bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-0.5 rounded-full">Best Value</span>
+                    </div>
+                    <div class="text-gray-400 text-xs mt-0.5">Year-round access · First-priority scheduling · 20% off extra hrs · 10% roster discount</div>
+                  </td>
+                  <td class="px-6 py-4 text-right">
+                    <div class="text-green-400 font-bold text-base">$2,700<span class="text-xs font-normal text-gray-400">/yr</span></div>
+                  </td>
+                  <td class="px-6 py-4 text-right">
+                    <div class="text-green-400 font-semibold">$112.50/hr</div>
+                    <div class="text-gray-500 text-xs line-through">$150/hr</div>
+                  </td>
+                  <td class="px-6 py-4 text-right">
+                    <button class="btn-primary bg-green-600 hover:bg-green-500 text-white border-none text-xs py-1.5 px-3 whitespace-nowrap" @click="buyPackage({ label: 'Standard VIP – 24 hrs', priceCents: 270000, hours: 24 }, 'standard')">
+                      {{ loading === 'standard-vip' ? 'Redirecting...' : 'Buy VIP →' }}
+                    </button>
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
+          <!-- CTA footer -->
+          <div class="px-6 py-4 border-t border-white/10 bg-white/3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <p class="text-gray-400 text-xs">Book in 60, 90, or 120-min blocks. Pitching machines included upon availability.</p>
+            <a href="#inquiry" class="btn-primary whitespace-nowrap text-sm" @click.prevent="setPackageAndScroll('Standard Team VIP – 24-Hour Annual ($2,700/yr)')">Get Standard VIP →</a>
+          </div>
         </div>
 
-        <!-- Full Facility Buyout -->
+        <!-- ═══ Full Facility Buyout ═══ -->
         <div class="rounded-2xl border border-amber-500/30 bg-amber-500/5 overflow-hidden">
+          <!-- Header -->
           <div class="px-6 py-5 border-b border-amber-500/20 flex items-center gap-3">
-            <span class="text-2xl">🏟️</span>
-            <div>
+            <span class="text-2xl">🏆</span>
+            <div class="flex-1">
               <h2 class="text-xl font-bold text-white">Full Facility Buyout</h2>
-              <p class="text-gray-400 text-sm">4 Batting Cages + Full Turf (100'×60') · Up to 40 athletes · No sharing</p>
+              <p class="text-gray-400 text-sm">4 Batting Cages + Full Turf (60'×100') · Up to 40 athletes · No sharing</p>
             </div>
-            <span class="ml-auto text-xs bg-amber-500 text-black font-bold px-3 py-1 rounded-full">Premium</span>
+            <span class="text-xs bg-amber-500 text-black font-bold px-3 py-1 rounded-full whitespace-nowrap">Premium</span>
           </div>
+          <!-- Table -->
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
               <thead>
@@ -69,29 +103,48 @@
                 </tr>
               </thead>
               <tbody>
+                <!-- Regular rows -->
                 <tr v-for="row in fullBuyout" :key="row.label" class="border-b border-white/5 hover:bg-white/5 transition-colors">
                   <td class="px-6 py-4 font-medium text-white">{{ row.label }}</td>
                   <td class="px-6 py-4 text-right text-amber-400 font-bold">{{ row.price }}</td>
                   <td class="px-6 py-4 text-right text-gray-300">{{ row.rate }}</td>
                   <td class="px-6 py-4 text-right">
-                    <span v-if="row.savings" class="text-green-400 font-semibold">{{ row.savings }}</span>
-                    <span v-else class="text-gray-500">—</span>
+                    <button class="btn-primary text-xs py-1.5 px-3 whitespace-nowrap" @click="buyPackage(row, 'buyout')">
+                      {{ loading === row.label ? 'Redirecting...' : 'Buy Package' }}
+                    </button>
+                  </td>
+                </tr>
+                <!-- VIP row — visually highlighted -->
+                <tr class="bg-amber-500/8 border-t-2 border-amber-500/30">
+                  <td class="px-6 py-4">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="font-bold text-white">Annual VIP — 24 hrs</span>
+                      <span class="text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full">⭐ VIP</span>
+                      <span class="text-[10px] font-bold bg-amber-500 text-black px-2 py-0.5 rounded-full">Best Value</span>
+                    </div>
+                    <div class="text-gray-400 text-xs mt-0.5">Year-round access · First-priority, no-sharing guaranteed · 20% off extra hrs · 10% roster discount</div>
+                  </td>
+                  <td class="px-6 py-4 text-right">
+                    <div class="text-amber-400 font-bold text-base">$4,050<span class="text-xs font-normal text-gray-400">/yr</span></div>
+                  </td>
+                  <td class="px-6 py-4 text-right">
+                    <div class="text-amber-400 font-semibold">$168.75/hr</div>
+                    <div class="text-gray-500 text-xs line-through">$225/hr</div>
+                  </td>
+                  <td class="px-6 py-4 text-right">
+                    <button class="btn-primary text-xs py-1.5 px-3 whitespace-nowrap" @click="buyPackage({ label: 'Full Facility VIP – 24 hrs', priceCents: 405000, hours: 24 }, 'buyout')">
+                      {{ loading === 'buyout-vip' ? 'Redirecting...' : 'Buy VIP →' }}
+                    </button>
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
-        </div>
-
-        <!-- Annual VIP callout -->
-        <div class="rounded-2xl border border-green-500/30 bg-green-500/5 p-6 flex flex-col md:flex-row items-start md:items-center gap-4">
-          <div class="text-3xl">⭐</div>
-          <div class="flex-1">
-            <h3 class="text-lg font-bold text-white mb-1">Annual Team VIP — $2,700/yr</h3>
-            <p class="text-gray-400 text-sm">24 hours of Standard Team time, usable year-round. First-priority scheduling, 20% off additional hours, and 10% roster discount on player memberships.</p>
-            <p class="text-green-400 text-sm font-semibold mt-1">Effective rate: $112.50/hr — lowest available</p>
+          <!-- CTA footer -->
+          <div class="px-6 py-4 border-t border-amber-500/20 bg-amber-500/3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <p class="text-gray-400 text-xs">Book in 60, 90, or 120-min blocks. Full facility — all cages open, no sharing ever.</p>
+            <a href="#inquiry" class="btn-primary whitespace-nowrap text-sm" @click.prevent="setPackageAndScroll('Full Facility VIP – 24-Hour Annual ($4,050/yr)')">Get Full Facility VIP →</a>
           </div>
-          <a href="#inquiry" class="btn-primary whitespace-nowrap">Get VIP Info</a>
         </div>
 
         <!-- Notes -->
@@ -104,7 +157,9 @@
       </div>
     </section>
 
-    <!-- Inquiry Form -->
+
+
+
     <section id="inquiry" class="py-16 px-4">
       <div class="max-w-2xl mx-auto">
         <div class="text-center mb-10">
@@ -151,15 +206,18 @@
             <label class="block text-sm font-medium text-gray-300 mb-1">Package Interest</label>
             <select v-model="form.packageInterest" class="form-input">
               <option value="">Not sure yet</option>
-              <option value="Standard Team – Single Practice ($150/hr)">Standard Team – Single Practice ($150/hr)</option>
-              <option value="Standard Team – 6-Hour Package ($855)">Standard Team – 6-Hour Package ($855)</option>
-              <option value="Standard Team – 12-Hour Package ($1,530)">Standard Team – 12-Hour Package ($1,530)</option>
-              <option value="Standard Team – 24-Hour Package ($2,700)">Standard Team – 24-Hour Package ($2,700)</option>
-              <option value="Full Facility Buyout – Single Practice ($225/hr)">Full Facility Buyout – Single Practice ($225/hr)</option>
-              <option value="Full Facility Buyout – 6-Hour Package ($1,282.50)">Full Facility Buyout – 6-Hour Package ($1,282.50)</option>
-              <option value="Full Facility Buyout – 12-Hour Package ($2,295)">Full Facility Buyout – 12-Hour Package ($2,295)</option>
-              <option value="Full Facility Buyout – 24-Hour Package ($4,050)">Full Facility Buyout – 24-Hour Package ($4,050)</option>
-              <option value="Annual Team VIP ($2,700/yr)">Annual Team VIP ($2,700/yr)</option>
+              <optgroup label="Standard Team (2 Cages + Half Turf)">
+                <option value="Standard Team – Single Practice ($150/hr)">Single Practice ($150/hr)</option>
+                <option value="Standard Team – 6-Hour Package ($855)">6-Hour Package ($855)</option>
+                <option value="Standard Team – 12-Hour Package ($1,530)">12-Hour Package ($1,530)</option>
+                <option value="Standard Team VIP – 24-Hour Annual ($2,700/yr)">⭐ VIP – 24-Hour Annual ($2,700/yr)</option>
+              </optgroup>
+              <optgroup label="Full Facility Buyout (4 Cages + Full Turf)">
+                <option value="Full Facility Buyout – Single Practice ($225/hr)">Single Practice ($225/hr)</option>
+                <option value="Full Facility Buyout – 6-Hour Package ($1,282.50)">6-Hour Package ($1,282.50)</option>
+                <option value="Full Facility Buyout – 12-Hour Package ($2,295)">12-Hour Package ($2,295)</option>
+                <option value="Full Facility VIP – 24-Hour Annual ($4,050/yr)">⭐ VIP – 24-Hour Annual ($4,050/yr)</option>
+              </optgroup>
             </select>
           </div>
 
@@ -190,19 +248,53 @@
 <script setup lang="ts">
 useHead({ title: 'Team Rentals & Packages – The Training Yard' })
 
+const user = useSupabaseUser()
+const loading = ref<string | null>(null)
+
 const standardTeam = [
-  { label: 'Single Practice (1 hr)', price: '$150', rate: '$150/hr', savings: null },
-  { label: '6-Hour Package (5% off)', price: '$855', rate: '$142.50/hr', savings: 'Save $45' },
-  { label: '12-Hour Package (15% off)', price: '$1,530', rate: '$127.50/hr', savings: 'Save $270' },
-  { label: '24-Hour Package (25% off)', price: '$2,700', rate: '$112.50/hr', savings: 'Save $900' },
+  { label: 'Single Practice (1 hr)', price: '$150', rate: '$150/hr', priceCents: 15000, hours: 1 },
+  { label: '6-Hour Package', price: '$855', rate: '$142.50/hr', priceCents: 85500, hours: 6 },
+  { label: '12-Hour Package', price: '$1,530', rate: '$127.50/hr', priceCents: 153000, hours: 12 },
 ]
 
 const fullBuyout = [
-  { label: 'Single Practice (1 hr)', price: '$225', rate: '$225/hr', savings: null },
-  { label: '6-Hour Package (5% off)', price: '$1,282.50', rate: '$213.75/hr', savings: 'Save $67.50' },
-  { label: '12-Hour Package (15% off)', price: '$2,295', rate: '$191.25/hr', savings: 'Save $405' },
-  { label: '24-Hour Package (25% off)', price: '$4,050', rate: '$168.75/hr', savings: 'Save $1,350' },
+  { label: 'Single Practice (1 hr)', price: '$225', rate: '$225/hr', priceCents: 22500, hours: 1 },
+  { label: '6-Hour Package', price: '$1,282.50', rate: '$213.75/hr', priceCents: 128250, hours: 6 },
+  { label: '12-Hour Package', price: '$2,295', rate: '$191.25/hr', priceCents: 229500, hours: 12 },
 ]
+
+async function buyPackage(pkg: any, type: 'standard' | 'buyout') {
+  if (!user.value) {
+    alert('Please log in or create an account to purchase a team package.')
+    navigateTo('/login?redirect=/teams')
+    return
+  }
+
+  loading.value = pkg.label === 'Standard VIP – 24 hrs' ? 'standard-vip' : pkg.label === 'Full Facility VIP – 24 hrs' ? 'buyout-vip' : pkg.label
+  try {
+    const { url } = await $fetch<{ url: string }>('/api/stripe/create-team-checkout', {
+      method: 'POST',
+      body: {
+        packageId: `${type}_${pkg.hours}`,
+        packageName: `${pkg.label} (${type === 'standard' ? 'Standard Team' : 'Full Buyout'})`,
+        priceCents: pkg.priceCents,
+        hoursToAdd: pkg.hours,
+        packageType: type,
+      }
+    })
+    window.location.href = url
+  } catch (e: any) {
+    alert(e?.data?.message || 'Failed to start checkout. Please try again.')
+  } finally {
+    loading.value = null
+  }
+}
+
+function setPackageAndScroll(pkg: string) {
+  form.packageInterest = pkg
+  const el = document.getElementById('inquiry')
+  if (el) el.scrollIntoView({ behavior: 'smooth' })
+}
 
 const form = reactive({
   name: '',

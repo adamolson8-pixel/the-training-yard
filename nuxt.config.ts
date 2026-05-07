@@ -1,7 +1,8 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   nitro: {
-    preset: 'netlify',
+    // Only use the Netlify preset in CI — prevents crash in local dev
+    preset: process.env.NETLIFY ? 'netlify' : undefined,
   },
 
   compatibilityDate: '2025-07-15',
@@ -20,12 +21,27 @@ export default defineNuxtConfig({
     smtpPort: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 465,
     smtpUser: process.env.SMTP_USER || 'info@trainingyarddsm.com',
     smtpPass: process.env.SMTP_PASS || '',
+    // Stripe — live
     stripeSecretKey: '',
     stripeWebhookSecret: '',
+    // Stripe — test
+    stripeTestSecretKey: '',
+    stripeTestWebhookSecret: '',
+    stripeTestMode: '',           // mapped from NUXT_STRIPE_TEST_MODE env var
+    // Email
+    resendApiKey: '',             // NUXT_RESEND_API_KEY
+    adminEmail: '',               // NUXT_ADMIN_EMAIL — defaults to adam@trainingyarddsm.com
+    cronSecret: '',               // NUXT_CRON_SECRET — protects /api/cron/reminders
+
+
     public: {
       stripePublishableKey: '',
+      stripeTestPublishableKey: '',
+      stripeTestMode: '',           // Set NUXT_PUBLIC_STRIPE_TEST_MODE in .env for UI display
       siteUrl: '',
+      zohoSignUrl: '',    // Set NUXT_PUBLIC_ZOHO_SIGN_URL in .env when ready
     },
+
   },
 
   googleFonts: {
@@ -84,13 +100,17 @@ export default defineNuxtConfig({
     '/confirm': { prerender: true },
     '/booking-success': { ssr: false },
     '/admin/bookings': { ssr: false },
+    '/admin/schedule': { ssr: false },
+    '/portal/**': { ssr: false },
+    '/admin/**': { ssr: false },
   },
 
   supabase: {
     redirectOptions: {
       login: '/login',
       callback: '/confirm',
-      exclude: ['/', '/about', '/facility', '/training', '/resources', '/resources/*', '/api/*', '/booking-success', '/admin/*'],
+      // Public routes that do NOT require authentication
+      exclude: ['/', '/about', '/facility', '/training', '/teams', '/resources', '/resources/*', '/api/*', '/booking-success'],
     }
   }
 })

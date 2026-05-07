@@ -4,11 +4,23 @@
     
     <div class="relative glass-card p-8 md:p-12 max-w-md w-full mx-4">
       <div class="text-center mb-8">
-        <h1 class="heading-lg text-white mb-2">Welcome Back</h1>
-        <p class="text-gray-400">Log in to manage your bookings and memberships.</p>
+        <h1 class="heading-lg text-white mb-2">{{ isSignUp ? 'Create an Account' : 'Welcome Back' }}</h1>
+        <p class="text-gray-400">{{ isSignUp ? 'Join The Training Yard to manage bookings.' : 'Log in to manage your bookings and memberships.' }}</p>
       </div>
 
       <form @submit.prevent="handleLogin" class="space-y-6">
+        <div v-if="isSignUp">
+          <label for="fullName" class="block text-sm font-medium text-gray-300 mb-2">Full Name</label>
+          <input
+            id="fullName"
+            v-model="fullName"
+            type="text"
+            :required="isSignUp"
+            class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+            placeholder="John Doe"
+          >
+        </div>
+
         <div>
           <label for="email" class="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
           <input
@@ -22,7 +34,7 @@
         </div>
 
         <div>
-          <label for="password" class="block text-sm font-medium text-gray-300 mb-2">Password</label>
+          <label for="password" class="block text-sm font-medium text-gray-300 mb-2">{{ isSignUp ? 'Create a Password' : 'Password' }}</label>
           <input
             id="password"
             v-model="password"
@@ -63,17 +75,49 @@
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 
+const route = useRoute()
+
+const fullName = ref('')
 const email = ref('')
 const password = ref('')
-const isSignUp = ref(false)
+const isSignUp = ref(route.query.signup === 'true')
 const loading = ref(false)
 const errorMsg = ref('')
 const successMsg = ref('')
 
-// If user is already logged in, redirect them
-watchEffect(() => {
-  if (user.value) {
-    navigateTo('/admin/schedule')
+// React to URL changes if the user clicks between Log In and Sign Up in the header
+// without leaving the page (since the component doesn't remount)
+watch(() => route.query.signup, (newVal) => {
+  if (newVal === 'true') {
+    isSignUp.value = true
+  } else if (newVal === undefined || newVal === 'false') {
+    isSignUp.value = false
+  }
+})
+
+// Role-based redirect on login
+watchEffect(async () => {
+  if (!user.value) return
+
+  try {
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.value.id)
+      .single()
+
+    if (error) {
+      console.error("Failed to fetch role in login watchEffect:", error)
+      return
+    }
+
+    if (profile?.role === 'admin') {
+      navigateTo('/admin/schedule')
+    } else if (profile?.role === 'customer') {
+      navigateTo('/portal/dashboard')
+    }
+  } catch (err) {
+    console.error("Exception in watchEffect:", err)
   }
 })
 
@@ -87,6 +131,11 @@ const handleLogin = async () => {
       const { error } = await supabase.auth.signUp({
         email: email.value,
         password: password.value,
+        options: {
+          data: {
+            full_name: fullName.value
+          }
+        }
       })
       if (error) throw error
       successMsg.value = 'Check your email for the confirmation link!'

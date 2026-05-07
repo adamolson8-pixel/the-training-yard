@@ -1,16 +1,16 @@
 <template>
-  <div class="min-h-screen bg-gray-50 pt-32 pb-20">
-    <div class="section-container">
-      <div class="flex justify-between items-center mb-8">
+  <div class="p-6 md:p-8 bg-gray-50 min-h-full">
+    <div class="max-w-full">
+      <div class="flex justify-between items-center mb-6">
         <div>
           <h1 class="heading-md text-gray-900 mb-2">Schedule Management</h1>
           <p class="text-gray-600">View and manage all facility reservations.</p>
         </div>
-        <div class="flex gap-4">
-          <button v-if="isAdmin" @click="showBlockModal = true" class="btn-primary py-2 px-4 shadow-md">Block Time</button>
-          <button @click="logout" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-xl transition-colors">Log Out</button>
+        <div class="flex gap-3">
+          <button v-if="isAdmin" @click="showBlockModal = true" class="btn-primary py-2 px-4 shadow-md">+ Block Time</button>
         </div>
       </div>
+
 
       <div v-if="loading" class="text-center py-12 text-gray-400">
         <div class="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
@@ -201,17 +201,12 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 
-// Protect route
+// Protect route — admin only
 definePageMeta({
-  middleware: [
-    function (to, from) {
-      const user = useSupabaseUser()
-      if (!user.value) {
-        return navigateTo('/login')
-      }
-    }
-  ]
+  layout: 'admin',
+  middleware: ['admin'],
 })
+
 
 const user = useSupabaseUser()
 const supabase = useSupabaseClient()
