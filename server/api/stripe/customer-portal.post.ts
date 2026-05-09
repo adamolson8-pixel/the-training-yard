@@ -18,7 +18,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'No Stripe customer found for this account.' })
   }
 
-  const isTestMode = config.stripeTestMode === 'true' || config.stripeTestMode === true || String(config.stripeTestMode) === 'true'
+  // Stripe setup
+  const isTestMode = String(config.stripeTestMode) === 'true'
   const stripeKey = isTestMode ? config.stripeTestSecretKey : config.stripeSecretKey
   const stripe = new Stripe(stripeKey)
 

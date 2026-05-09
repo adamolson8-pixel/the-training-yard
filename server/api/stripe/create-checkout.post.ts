@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // --- Stripe (test vs live) ---
-  const isTestMode = config.stripeTestMode === 'true' || config.stripeTestMode === true || String(config.stripeTestMode) === 'true'
+  const isTestMode = String(config.stripeTestMode) === 'true'
   const stripeKey = isTestMode ? config.stripeTestSecretKey : config.stripeSecretKey
   if (!stripeKey) {
     throw createError({ statusCode: 500, message: `Stripe ${isTestMode ? 'test' : 'live'} secret key is not configured.` })

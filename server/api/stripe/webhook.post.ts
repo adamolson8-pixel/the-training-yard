@@ -4,7 +4,7 @@ import { sendBookingConfirmation, sendAdminNotification } from '../../utils/emai
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
-  const isTestMode = config.stripeTestMode === 'true' || config.stripeTestMode === true || String(config.stripeTestMode) === 'true'
+  const isTestMode = String(config.stripeTestMode) === 'true'
   const stripeKey = isTestMode ? config.stripeTestSecretKey : config.stripeSecretKey
   const webhookSecret = isTestMode ? config.stripeTestWebhookSecret : config.stripeWebhookSecret
   const stripe = new Stripe(stripeKey)
@@ -98,13 +98,13 @@ export default defineEventHandler(async (event) => {
   if (stripeEvent.type === 'invoice.payment_succeeded') {
     const invoice = stripeEvent.data.object as Stripe.Invoice
     const customerId = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id
-    const subscriptionId = typeof invoice.subscription === 'string' ? invoice.subscription : (invoice.subscription as any)?.id
+    const subscriptionId = typeof (invoice as any).subscription === 'string' ? (invoice as any).subscription : (invoice as any).subscription?.id
 
     if (!customerId || !subscriptionId) return { received: true }
 
     // Fetch subscription to get current period end
     const subscription = await stripe.subscriptions.retrieve(subscriptionId)
-    const periodEnd = new Date(subscription.current_period_end * 1000).toISOString()
+    const periodEnd = new Date((subscription as any).current_period_end * 1000).toISOString()
 
     await (supabase as any)
       .from('profiles')
@@ -120,7 +120,7 @@ export default defineEventHandler(async (event) => {
   if (stripeEvent.type === 'customer.subscription.updated') {
     const subscription = stripeEvent.data.object as Stripe.Subscription
     const customerId = typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id
-    const periodEnd = new Date(subscription.current_period_end * 1000).toISOString()
+    const periodEnd = new Date((subscription as any).current_period_end * 1000).toISOString()
 
     // Map Stripe status to our status
     const statusMap: Record<string, string> = {

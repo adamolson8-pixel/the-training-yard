@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'session_id is required.' })
   }
 
-  const isTestMode = config.stripeTestMode === 'true' || config.stripeTestMode === true || String(config.stripeTestMode) === 'true'
+  const isTestMode = String(config.stripeTestMode) === 'true'
   const stripeKey = isTestMode ? config.stripeTestSecretKey : config.stripeSecretKey
   const stripe = new Stripe(stripeKey)
 
