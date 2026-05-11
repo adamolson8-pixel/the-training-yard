@@ -3,11 +3,11 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "nuxt build",
+    "build": "nuxt cleanup && nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "node scripts/patch-pinia.js && nuxt prepare"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.20",
