@@ -38,7 +38,7 @@ export default defineEventHandler(async (event) => {
     // Dynamic import to avoid SSR issues
     const { createClient } = await import('@supabase/supabase-js')
     const supabaseUrl = process.env.SUPABASE_URL || process.env.NUXT_PUBLIC_SUPABASE_URL || ''
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+    const supabaseKey = process.env.NUXT_SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 
     if (!supabaseUrl || !supabaseKey) {
       throw new Error('Missing Supabase credentials')
