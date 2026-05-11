@@ -1,4 +1,4 @@
-import { serverSupabaseClient } from '#supabase/server'
+import { serverSupabaseServiceRole } from '#supabase/server'
 import { requireAdmin } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
     const status = query.status as string | undefined
     const userId = query.user_id as string | undefined
 
-    const supabase = await serverSupabaseClient(event)
+    const supabase = await serverSupabaseServiceRole(event)
 
     let req = (supabase as any)
       .from('bookings')

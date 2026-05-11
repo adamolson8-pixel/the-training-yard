@@ -1,4 +1,4 @@
-import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
+import { serverSupabaseUser, serverSupabaseServiceRole } from '#supabase/server'
 import { getServiceById } from '../../../app/utils/services'
 
 export default defineEventHandler(async (event) => {
@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Invalid team service.' })
   }
 
-  const supabase = await serverSupabaseClient(event)
+  const supabase = await serverSupabaseServiceRole(event)
 
   // 1. Fetch user's profile to verify hours
   const { data: profile, error: profileErr } = await (supabase as any)

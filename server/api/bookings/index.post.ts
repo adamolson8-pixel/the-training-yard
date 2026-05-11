@@ -1,4 +1,4 @@
-import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server'
+import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
   const finalEndTime = end_time || new Date(new Date(start_time).getTime() + 60 * 60 * 1000).toISOString()
 
   try {
-    const supabase = await serverSupabaseClient(event)
+    const supabase = await serverSupabaseServiceRole(event)
 
     // Check for overlaps: existing.start < new.end AND existing.end > new.start
     const { data: existing, error: checkError } = await supabase

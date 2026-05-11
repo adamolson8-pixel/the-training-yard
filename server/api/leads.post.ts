@@ -1,4 +1,4 @@
-import { serverSupabaseClient } from '#supabase/server'
+import { serverSupabaseServiceRole } from '#supabase/server'
 import { sendEmail } from '../utils/email'
 
 export default defineEventHandler(async (event) => {
@@ -53,7 +53,7 @@ export default defineEventHandler(async (event) => {
   try {
     // If the leads table exists, this will insert it. 
     // If not, it will fail gracefully so the user still gets their download.
-    const supabase = await serverSupabaseClient(event)
+    const supabase = await serverSupabaseServiceRole(event)
     await supabase.from('leads').insert({
       email,
       resource_downloaded: resource || 'Unknown',
