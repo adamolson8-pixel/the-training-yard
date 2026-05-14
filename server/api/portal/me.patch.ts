@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
   const supabase = serverSupabaseServiceRole(event)
 
   // Whitelist — never let users update role, membership, stripe IDs, etc.
-  const updates: Record<string, string> = {}
+  const updates: Record<string, any> = {}
   for (const field of ALLOWED_FIELDS) {
     if (body[field] !== undefined) {
       updates[field] = body[field]
@@ -30,7 +30,8 @@ export default defineEventHandler(async (event) => {
     .single()
 
   if (error) {
-    throw createError({ statusCode: 500, statusMessage: 'Failed to update profile.' })
+    console.error('me.patch: Supabase update error:', JSON.stringify(error))
+    throw createError({ statusCode: 500, statusMessage: `Failed to update profile: ${error.message}` })
   }
 
   return data

@@ -22,7 +22,7 @@
         <label class="text-sm font-semibold text-gray-700">Status:</label>
         <select
           v-model="statusFilter"
-          class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-700"
+          class="text-gray-900 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-700"
           @change="refresh()"
         >
           <option value="all">All</option>
@@ -31,9 +31,9 @@
           <option value="cancelled">Cancelled</option>
         </select>
         <label class="text-sm font-semibold text-gray-700">From:</label>
-        <input type="date" v-model="dateFrom" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none" style="color-scheme:light" />
+        <input type="date" v-model="dateFrom" class="text-gray-900 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none" style="color-scheme:light" />
         <label class="text-sm font-semibold text-gray-700">To:</label>
-        <input type="date" v-model="dateTo" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none" style="color-scheme:light" />
+        <input type="date" v-model="dateTo" class="text-gray-900 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none" style="color-scheme:light" />
         <span class="text-gray-400 text-sm ml-auto">{{ filtered?.length ?? 0 }} bookings</span>
         <button @click="exportCSV" class="flex items-center gap-1.5 text-sm font-semibold border border-gray-200 bg-white hover:bg-gray-50 px-3 py-1.5 rounded-lg shadow-sm">
           ⬇ CSV
@@ -147,7 +147,7 @@ const { data: bookings, pending, error, refresh } = await useFetch<any[]>('/api/
 })
 
 const filtered = computed(() => {
-  let list = bookings.value ?? []
+  let list = (bookings.value as any)?.bookings ?? []
   if (dateFrom.value) list = list.filter((b: any) => b.booking_date >= dateFrom.value)
   if (dateTo.value) list = list.filter((b: any) => b.booking_date <= dateTo.value)
   return list

@@ -12,10 +12,7 @@ export default defineEventHandler(async (event) => {
 
     let req = (supabase as any)
       .from('bookings')
-      .select(`
-        id, service_type, service_label, booking_date, booking_time, duration_minutes, 
-        user_id, status, created_at, customer_name, customer_email
-      `)
+      .select('*')
       .order('booking_date', { ascending: false })
       .order('booking_time', { ascending: true })
 
@@ -33,7 +30,23 @@ export default defineEventHandler(async (event) => {
     }
 
     const mappedBookings = data.map((b: any) => {
-      const startObj = new Date(`${b.booking_date}T${b.booking_time}:00Z`)
+      let timeStr = b.booking_time || '12:00'
+      const match = timeStr.match(/^(\d+):(\d+)\s*(AM|PM)$/i)
+      if (match) {
+        let hour = parseInt(match[1])
+        const minute = match[2]
+        const ampm = match[3].toUpperCase()
+        if (ampm === 'PM' && hour !== 12) hour += 12
+        if (ampm === 'AM' && hour === 12) hour = 0
+        timeStr = `${String(hour).padStart(2, '0')}:${minute}`
+      } else if (timeStr.length === 5) {
+        // Already 24h (HH:mm)
+      } else {
+        // Fallback or bad format, attempt to fix if missing leading zero
+        if (timeStr.indexOf(':') === 1) timeStr = '0' + timeStr
+      }
+
+      const startObj = new Date(`${b.booking_date}T${timeStr}:00Z`)
       const endObj = new Date(startObj.getTime() + (b.duration_minutes || 60) * 60000)
 
       let resourceId = 'cage-1'
@@ -46,12 +59,10 @@ export default defineEventHandler(async (event) => {
       }
 
       return {
-        id: b.id,
+        ...b,
         resource_id: resourceId,
         start_time: startObj.toISOString(),
         end_time: endObj.toISOString(),
-        user_id: b.user_id,
-        status: b.status,
         profiles: b.profiles || { full_name: b.customer_name, email: b.customer_email }
       }
     })

@@ -42,7 +42,7 @@ export default defineEventHandler(async (event) => {
       package_type: packageType, // 'standard' or 'buyout'
       hours_to_add: hoursToAdd.toString(),
     },
-    success_url: `${baseUrl}?booking_success=true`,
+    success_url: `${baseUrl}/team-success`,
     cancel_url: `${baseUrl}/teams`,
   })
 

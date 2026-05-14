@@ -61,8 +61,17 @@ export default defineEventHandler(async (event) => {
     const bookedTimes = new Set<string>()
     for (const b of bookings ?? []) {
       if (b.booking_time) {
-        // booking_time may come as "HH:MM:SS" or "HH:MM"
-        const hhmm = (b.booking_time as string).substring(0, 5)
+        let timeStr = b.booking_time as string
+        const match = timeStr.match(/^(\d+):(\d+)\s*(AM|PM)$/i)
+        if (match) {
+          let hour = parseInt(match[1])
+          const minute = match[2]
+          const ampm = match[3].toUpperCase()
+          if (ampm === 'PM' && hour !== 12) hour += 12
+          if (ampm === 'AM' && hour === 12) hour = 0
+          timeStr = `${String(hour).padStart(2, '0')}:${minute}`
+        }
+        const hhmm = timeStr.substring(0, 5)
         bookedTimes.add(hhmm)
       }
     }

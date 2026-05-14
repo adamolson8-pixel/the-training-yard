@@ -29,34 +29,84 @@ export default defineEventHandler(async (event) => {
   if (stripeEvent.type === 'checkout.session.completed') {
     const session = stripeEvent.data.object as Stripe.Checkout.Session
 
-    const { data: booking, error: updateError } = await (supabase as any)
-      .from('bookings')
-      .update({
-        status: 'confirmed',
-        payment_status: 'paid',
-        stripe_payment_intent_id: typeof session.payment_intent === 'string' ? session.payment_intent : null,
-        confirmed_at: new Date().toISOString(),
-      })
-      .eq('stripe_session_id', session.id)
-      .select()
-      .single()
+    console.log('Webhook: checkout.session.completed for session', session.id)
 
-    if (updateError) {
-      console.error('Failed to update booking:', updateError)
-    } else if (booking) {
-      // Log to payments table
-      await (supabase as any).from('payments').insert({
-        user_id: booking.user_id,
-        booking_id: booking.id,
-        amount_cents: session.amount_total,
-        stripe_payment_intent_id: typeof session.payment_intent === 'string' ? session.payment_intent : null,
-        status: 'paid',
-      })
+    // ─── Membership subscription checkout ────────────────────────────────
+    if (session.metadata?.type === 'membership' && session.mode === 'subscription') {
+      const userId = session.metadata.supabase_user_id
+      const membershipType = session.metadata.membership_type
+      const subscriptionId = typeof session.subscription === 'string'
+        ? session.subscription
+        : (session.subscription as any)?.id
 
-      await Promise.allSettled([
-        sendBookingConfirmation(booking),
-        sendAdminNotification(booking),
-      ])
+      console.log('Webhook: Membership checkout completed for user', userId, 'type:', membershipType)
+
+      if (userId && membershipType) {
+        // Fetch subscription to get period end
+        let periodEnd: string | null = null
+        if (subscriptionId) {
+          try {
+            const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+            periodEnd = new Date((subscription as any).current_period_end * 1000).toISOString()
+          } catch (e) {
+            console.error('Webhook: failed to retrieve subscription details:', e)
+          }
+        }
+
+        const updates: Record<string, any> = {
+          membership_type: membershipType,
+          membership_status: 'active',
+          membership_start: new Date().toISOString(),
+          stripe_subscription_id: subscriptionId || null,
+        }
+        if (periodEnd) updates.membership_expires = periodEnd
+
+        // stripe_customer_id should already be set by create-membership-checkout,
+        // but set it here too in case
+        const customerId = typeof session.customer === 'string' ? session.customer : (session.customer as any)?.id
+        if (customerId) updates.stripe_customer_id = customerId
+
+        await (supabase as any)
+          .from('profiles')
+          .update(updates)
+          .eq('id', userId)
+
+        console.log('Webhook: Profile updated with membership:', membershipType)
+      }
+    }
+
+    // ─── Regular booking payment ─────────────────────────────────────────
+    if (session.mode === 'payment') {
+      const { data: booking, error: updateError } = await (supabase as any)
+        .from('bookings')
+        .update({
+          status: 'confirmed',
+          confirmed_at: new Date().toISOString(),
+        })
+        .eq('stripe_session_id', session.id)
+        .select()
+        .single()
+
+      if (updateError) {
+        console.error('Webhook: Failed to update booking:', updateError)
+      } else if (booking) {
+        console.log('Webhook: Booking confirmed successfully:', booking.id)
+        // Log to payments table (best-effort, don't crash if payments table schema differs)
+        try {
+          await (supabase as any).from('payments').insert({
+            booking_id: booking.id,
+            amount_cents: session.amount_total,
+            status: 'paid',
+          })
+        } catch (paymentErr) {
+          console.error('Webhook: payments insert failed (non-fatal):', paymentErr)
+        }
+
+        await Promise.allSettled([
+          sendBookingConfirmation(booking),
+          sendAdminNotification(booking),
+        ])
+      }
     }
   }
 

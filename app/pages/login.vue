@@ -76,6 +76,7 @@ const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 
 const route = useRoute()
+const router = useRouter()
 
 const fullName = ref('')
 const email = ref('')
@@ -106,18 +107,25 @@ watchEffect(async () => {
       .eq('id', user.value.id)
       .single()
 
+    let redirectPath = route.query.redirect as string
+    if (redirectPath && redirectPath.startsWith('/login')) {
+      redirectPath = ''
+    }
+    
     if (error) {
       console.error("Failed to fetch role in login watchEffect:", error)
+      router.push(redirectPath || '/portal/dashboard')
       return
     }
 
     if (profile?.role === 'admin') {
-      navigateTo('/admin/schedule')
-    } else if (profile?.role === 'customer') {
-      navigateTo('/portal/dashboard')
+      router.push(redirectPath || '/admin/schedule')
+    } else {
+      router.push(redirectPath || '/portal/dashboard')
     }
   } catch (err) {
     console.error("Exception in watchEffect:", err)
+    router.push(route.query.redirect as string || '/portal/dashboard')
   }
 })
 

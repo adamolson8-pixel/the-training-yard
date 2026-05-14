@@ -52,10 +52,10 @@
               <div v-if="b.duration_minutes" class="text-gray-500 text-xs mt-0.5">{{ b.duration_minutes }} min session</div>
             </div>
             <div class="text-right shrink-0">
-              <div class="text-amber-400 font-bold">${{ (b.amount_cents / 100).toFixed(0) }}</div>
+              <div class="text-amber-400 font-bold">${{ b.amount_cents ? (b.amount_cents / 100).toFixed(0) : '—' }}</div>
               <div class="mt-1">
-                <span class="text-xs font-semibold px-2 py-0.5 rounded-full" :class="paymentBadge(b.payment_status)">
-                  {{ b.payment_status || 'pending' }}
+                <span class="text-xs font-semibold px-2 py-0.5 rounded-full" :class="paymentBadge(b.status)">
+                  {{ b.status || 'pending' }}
                 </span>
               </div>
             </div>
@@ -95,8 +95,8 @@
             <div class="text-gray-500 text-xs">{{ formatDate(b.booking_date) }} · {{ b.duration_minutes }} min</div>
           </div>
           <div class="text-right shrink-0">
-            <div class="text-gray-300 text-sm font-semibold">${{ (b.amount_cents / 100).toFixed(0) }}</div>
-            <span class="text-xs px-1.5 py-0.5 rounded-full" :class="paymentBadge(b.payment_status)">{{ b.payment_status || '—' }}</span>
+            <div class="text-gray-300 text-sm font-semibold">${{ b.amount_cents ? (b.amount_cents / 100).toFixed(0) : '—' }}</div>
+            <span class="text-xs px-1.5 py-0.5 rounded-full" :class="paymentBadge(b.status)">{{ b.status || '—' }}</span>
           </div>
           <NuxtLink to="/portal/book" class="text-xs text-amber-400/70 hover:text-amber-400 font-medium whitespace-nowrap transition-colors ml-2">
             Rebook →
@@ -136,13 +136,32 @@ const tab = ref<'upcoming' | 'past'>('upcoming')
 const cancelling = ref<string | null>(null)
 const cancelTarget = ref<any>(null)
 
-const { data, pending, refresh } = await useFetch<{ upcoming: any[], past: any[] }>('/api/portal/bookings')
+const { data, pending, refresh } = await useFetch<{ upcoming: any[], past: any[] }>('/api/portal/bookings', {
+  server: false, // Only fetch on client-side where auth cookies are guaranteed
+})
 const upcoming = computed(() => data.value?.upcoming ?? [])
 const past = computed(() => data.value?.past ?? [])
 
+// Helper: parse "1:00 PM" style booking times into a real Date
+function parseBookingDateTime(date: string, time: string): Date {
+  if (!date || !time) return new Date(0)
+  if (time.includes('AM') || time.includes('PM')) {
+    const match = time.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i)
+    if (match) {
+      let hours = parseInt(match[1])
+      const minutes = parseInt(match[2])
+      const period = match[3].toUpperCase()
+      if (period === 'PM' && hours !== 12) hours += 12
+      if (period === 'AM' && hours === 12) hours = 0
+      return new Date(`${date}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`)
+    }
+  }
+  return new Date(`${date}T${time}`)
+}
+
 const isCancelFullRefund = computed(() => {
   if (!cancelTarget.value) return false
-  const dt = new Date(`${cancelTarget.value.booking_date}T${cancelTarget.value.booking_time}`)
+  const dt = parseBookingDateTime(cancelTarget.value.booking_date, cancelTarget.value.booking_time)
   return (dt.getTime() - Date.now()) >= 24 * 60 * 60 * 1000
 })
 
@@ -166,15 +185,16 @@ async function confirmCancel() {
 
 function cancelPolicy(date: string, time: string): string {
   if (!date || !time) return ''
-  const dt = new Date(`${date}T${time}`)
+  const dt = parseBookingDateTime(date, time)
   const hrs = (dt.getTime() - Date.now()) / (1000 * 60 * 60)
   return hrs >= 24 ? 'Full refund available (24+ hrs away)' : 'Less than 24 hrs — 50% fee applies'
 }
 
 function paymentBadge(status: string) {
-  if (status === 'paid') return 'bg-green-500/20 text-green-400 border border-green-500/30'
+  if (status === 'confirmed' || status === 'paid') return 'bg-green-500/20 text-green-400 border border-green-500/30'
+  if (status === 'pending') return 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+  if (status === 'cancelled') return 'bg-red-500/20 text-red-400 border border-red-500/30'
   if (status === 'refunded') return 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-  if (status === 'partially_refunded') return 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
   return 'bg-white/10 text-gray-400'
 }
 
@@ -190,6 +210,9 @@ function formatDay(d: string) {
 }
 function formatTime(t: string) {
   if (!t) return ''
+  // Time may already be in "1:00 PM" format from the DB
+  if (t.includes('AM') || t.includes('PM')) return t
+  // Fallback: 24-hour format "13:00"
   const [h, m] = t.split(':')
   const hour = parseInt(h)
   return `${hour % 12 || 12}:${m} ${hour >= 12 ? 'PM' : 'AM'}`

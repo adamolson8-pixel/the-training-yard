@@ -140,10 +140,10 @@ useJsonLd([
 const openFaq = ref<number | null>(null)
 
 const tiers = [
-  { name: 'Individual Monthly', target: 'One athlete', price: '89', period: 'mo', popular: false, cta: 'Join Now',
-    features: ['Daily 1-hour cage access included', 'One Half Turf session per week', 'Walk-On Access to unreserved turf', '25% off additional rentals', 'Parent/coach helpers are free'] },
+  { name: 'Individual', target: 'One athlete', price: '89', period: 'mo', popular: false, cta: 'Join Now',
+    features: ['Daily 1-hour cage access included', 'One Half Turf session per week', 'Walk-On Access to unreserved turf', '25% off additional rentals', 'Parent/coach helpers are free', 'Annual Billing: $890/yr (Save $178)'] },
   { name: 'Family Pass', target: 'Household members', price: '129', period: 'mo', popular: true, cta: 'Join Now',
-    features: ['Shared daily 1-hour cage access', 'One Half Turf session per week', 'Walk-On Access to unreserved turf', '25% off additional rentals', 'Parent/coach helpers are free'] },
+    features: ['Shared daily 1-hour cage access', 'One Half Turf session per week', 'Walk-On Access to unreserved turf', '25% off additional rentals', 'Parent/coach helpers are free', 'Annual Billing: $1,290/yr (Save $258)'] },
   { name: 'Team Rentals', target: 'Organized teams & clubs', price: '112.50', period: 'hr', popular: false, cta: 'Contact for Details', isTeam: true,
     features: ['Standard Team (2 Cages + Half Turf): from $150/hr', 'Full Facility Buyout (4 Cages + Full Turf): from $225/hr', '6-hr, 12-hr & 24-hr bulk packages available', 'Priority advanced scheduling included', 'Annual Team VIP: $2,700/yr (24 hrs + perks)', '10% Roster Discount on player memberships'] },
 ]
@@ -154,7 +154,12 @@ function scrollToBook(tier: { cta: string }) {
     return
   }
   if (tier.cta === 'Join Now') {
-    navigateTo('/login?signup=true')
+    const user = useSupabaseUser()
+    if (user.value) {
+      navigateTo('/portal/membership')
+    } else {
+      navigateTo('/login?signup=true&redirect=/portal/membership')
+    }
     return
   }
   smoothScroll('#book')
@@ -167,7 +172,8 @@ function smoothScroll(hash: string) {
 
 const faqs = [
   { q: 'What is included with a cage rental?', a: 'Each cage rental includes access to an automated pitching machine, batting tee, bucket of baseballs or softballs, and an L-screen. Helmets are available to borrow.' },
-  { q: 'Do members get discounts or priority booking?', a: 'Yes. All membership tiers receive priority booking (48-72 hours in advance), 20% off peak cage rates, and member-only open gym sessions.' },
+  { q: 'Do members get discounts or priority booking?', a: 'Yes. All membership tiers receive priority booking (up to 14 days in advance), 25% off all additional rentals, and Walk-On Access to unreserved turf.' },
+  { q: 'Can non-members or guests train with me?', a: 'Yes. There is a $15 fee for any non-member guest actively training or hitting with an active member.' },
   { q: 'Are outside instructors allowed?', a: 'Yes. They must sign our standard waiver and follow all facility guidelines.' },
   { q: 'What is the cancellation policy?', a: 'Cancellations 24+ hours in advance get a full refund. Same-day cancellations incur a 50% fee. Rescheduling is free with 12+ hours notice.' },
   { q: 'Can I freeze or cancel my membership?', a: 'Monthly memberships can be frozen for up to 30 days/year. Cancellations require 30 days written notice.' },

@@ -19,8 +19,7 @@ export default defineEventHandler(async (event) => {
     .select(`
       id, amount_cents, status, stripe_payment_intent_id, stripe_refund_id,
       refund_amount_cents, notes, created_at, booking_id, user_id,
-      bookings ( service_label, booking_date, booking_time ),
-      profiles ( full_name, email )
+      bookings ( service_label, booking_date, booking_time, customer_name, customer_email )
     `, { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(from, to)

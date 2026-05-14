@@ -99,6 +99,7 @@ export default defineNuxtConfig({
     '/login': { prerender: true },
     '/confirm': { prerender: true },
     '/booking-success': { ssr: false },
+    '/team-success': { ssr: false },
     '/admin/bookings': { ssr: false },
     '/admin/schedule': { ssr: false },
     '/portal/**': { ssr: false },
@@ -110,7 +111,7 @@ export default defineNuxtConfig({
       login: '/login',
       callback: '/confirm',
       // Public routes that do NOT require authentication
-      exclude: ['/', '/about', '/facility', '/training', '/teams', '/resources', '/resources/*', '/api/*', '/booking-success'],
+      exclude: ['/', '/about', '/facility', '/training', '/teams', '/resources', '/resources/*', '/api/*', '/booking-success', '/team-success'],
     }
   }
 })

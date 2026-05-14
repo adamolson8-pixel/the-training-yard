@@ -15,7 +15,7 @@
       <div class="flex items-center gap-2">
         <label class="text-xs font-bold text-gray-500">Status</label>
         <select v-model="filterStatus" @change="page = 1; fetchPayments()"
-          class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400">
+          class="text-gray-900 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400">
           <option value="all">All</option>
           <option value="paid">Paid</option>
           <option value="refunded">Refunded</option>
@@ -25,11 +25,11 @@
       </div>
       <div class="flex items-center gap-2">
         <label class="text-xs font-bold text-gray-500">From</label>
-        <input type="date" v-model="filterFrom" @change="page = 1; fetchPayments()" class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none" style="color-scheme:light" />
+        <input type="date" v-model="filterFrom" @change="page = 1; fetchPayments()" class="text-gray-900 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none" style="color-scheme:light" />
       </div>
       <div class="flex items-center gap-2">
         <label class="text-xs font-bold text-gray-500">To</label>
-        <input type="date" v-model="filterTo" @change="page = 1; fetchPayments()" class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none" style="color-scheme:light" />
+        <input type="date" v-model="filterTo" @change="page = 1; fetchPayments()" class="text-gray-900 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none" style="color-scheme:light" />
       </div>
       <button @click="filterStatus = 'all'; filterFrom = ''; filterTo = ''; page = 1; fetchPayments()"
         class="text-xs text-gray-400 hover:text-gray-600">Reset</button>
@@ -57,8 +57,8 @@
             <tr v-for="p in payments" :key="p.id" class="hover:bg-gray-50">
               <td class="px-4 py-3 text-gray-600 whitespace-nowrap">{{ fmtDate(p.created_at) }}</td>
               <td class="px-4 py-3">
-                <div class="font-medium text-gray-800">{{ p.profiles?.full_name || '—' }}</div>
-                <div class="text-gray-400 text-xs">{{ p.profiles?.email }}</div>
+                <div class="font-medium text-gray-800">{{ p.bookings?.customer_name || '—' }}</div>
+                <div class="text-gray-400 text-xs">{{ p.bookings?.customer_email }}</div>
               </td>
               <td class="px-4 py-3 text-gray-700">{{ p.bookings?.service_label || '—' }}</td>
               <td class="px-4 py-3 text-right font-bold" :class="p.amount_cents < 0 ? 'text-red-500' : 'text-amber-600'">
@@ -98,7 +98,7 @@
     <div v-if="refundTarget" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
       <div class="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full">
         <h3 class="font-bold text-gray-900 text-lg mb-2">Issue Refund</h3>
-        <p class="text-gray-500 text-sm mb-1">Customer: <strong class="text-gray-800">{{ refundTarget.profiles?.full_name || refundTarget.profiles?.email }}</strong></p>
+        <p class="text-gray-500 text-sm mb-1">Customer: <strong class="text-gray-800">{{ refundTarget.bookings?.customer_name || refundTarget.bookings?.customer_email }}</strong></p>
         <p class="text-gray-500 text-sm mb-4">Original amount: <strong class="text-gray-800">${{ (refundTarget.amount_cents / 100).toFixed(2) }}</strong></p>
         <div class="mb-4">
           <label class="block text-xs font-bold text-gray-500 mb-1">Refund Amount (leave blank for full refund)</label>
@@ -142,12 +142,19 @@ const totalRevenue = computed(() =>
 
 async function fetchPayments() {
   pending.value = true
-  const data = await $fetch<any>('/api/admin/payments', {
-    query: { page: page.value, limit: 50, status: filterStatus.value, date_from: filterFrom.value, date_to: filterTo.value }
-  })
-  payments.value = data.payments || []
-  total.value = data.total || 0
-  pending.value = false
+  try {
+    const data = await $fetch<any>('/api/admin/payments', {
+      query: { page: page.value, limit: 50, status: filterStatus.value, date_from: filterFrom.value, date_to: filterTo.value }
+    })
+    payments.value = data.payments || []
+    total.value = data.total || 0
+  } catch (error) {
+    console.error("Failed to fetch payments:", error)
+    payments.value = []
+    total.value = 0
+  } finally {
+    pending.value = false
+  }
 }
 fetchPayments()
 

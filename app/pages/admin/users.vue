@@ -6,6 +6,9 @@
         <h1 class="text-2xl font-bold text-gray-900">Users</h1>
         <p class="text-gray-500 text-sm mt-0.5">{{ total }} registered accounts</p>
       </div>
+      <div>
+        <button @click="showAddModal = true" class="btn-primary py-2 px-4 shadow-md">+ Add User</button>
+      </div>
     </div>
 
     <!-- Search -->
@@ -169,6 +172,47 @@
         </div>
       </div>
     </Teleport>
+
+    <!-- Add User Modal -->
+    <div v-if="showAddModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm">
+      <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 md:p-8 max-w-md w-full relative">
+        <h3 class="font-display text-2xl font-bold text-gray-900 mb-2">Add New User</h3>
+        <p class="text-sm text-gray-500 mb-6">Create an account manually. They can log in immediately.</p>
+        
+        <form @submit.prevent="submitUser" class="space-y-4">
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-1">Full Name</label>
+            <input type="text" v-model="addForm.full_name" required class="w-full border border-gray-200 rounded-xl px-4 py-2 focus:ring-primary focus:border-primary">
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-1">Email</label>
+            <input type="email" v-model="addForm.email" required class="w-full border border-gray-200 rounded-xl px-4 py-2 focus:ring-primary focus:border-primary">
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-1">Password</label>
+            <input type="text" v-model="addForm.password" required class="w-full border border-gray-200 rounded-xl px-4 py-2 focus:ring-primary focus:border-primary">
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-1">Phone</label>
+            <input type="text" v-model="addForm.phone" class="w-full border border-gray-200 rounded-xl px-4 py-2 focus:ring-primary focus:border-primary">
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-1">Role</label>
+            <select v-model="addForm.role" class="w-full border border-gray-200 rounded-xl px-4 py-2 focus:ring-primary focus:border-primary">
+              <option value="customer">Customer</option>
+              <option value="admin">Administrator</option>
+            </select>
+          </div>
+          <div v-if="addError" class="text-sm text-red-600 font-bold bg-red-50 p-2 rounded-lg border border-red-100">{{ addError }}</div>
+          <div class="flex gap-3 pt-4 border-t border-gray-100">
+            <button type="button" @click="showAddModal = false" class="flex-1 py-3 px-4 rounded-xl font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors">Cancel</button>
+            <button type="submit" :disabled="addSaving" class="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-primary hover:bg-red-600 transition-colors">
+              {{ addSaving ? 'Saving...' : 'Create User' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -187,6 +231,35 @@ const drawerRole = ref('')
 const drawerBookings = ref<any[]>([])
 const drawerBookingsPending = ref(false)
 const waiverSaving = ref(false)
+
+const showAddModal = ref(false)
+const addSaving = ref(false)
+const addError = ref('')
+const addForm = ref({
+  full_name: '',
+  email: '',
+  password: '',
+  phone: '',
+  role: 'customer'
+})
+
+async function submitUser() {
+  addSaving.value = true
+  addError.value = ''
+  try {
+    await $fetch('/api/admin/users/create', {
+      method: 'POST',
+      body: addForm.value
+    })
+    showAddModal.value = false
+    addForm.value = { full_name: '', email: '', password: '', phone: '', role: 'customer' }
+    fetchUsers()
+  } catch (e: any) {
+    addError.value = e.data?.statusMessage || e.message || 'Failed to create user.'
+  } finally {
+    addSaving.value = false
+  }
+}
 
 async function fetchUsers() {
   pending.value = true

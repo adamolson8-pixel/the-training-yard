@@ -40,7 +40,10 @@
                 <tr v-for="row in standardTeam" :key="row.label" class="border-b border-white/5 hover:bg-white/5 transition-colors">
                   <td class="px-6 py-4 font-medium text-white">{{ row.label }}</td>
                   <td class="px-6 py-4 text-right text-amber-400 font-bold">{{ row.price }}</td>
-                  <td class="px-6 py-4 text-right text-gray-300">{{ row.rate }}</td>
+                  <td class="px-6 py-4 text-right text-gray-300">
+                    <div>{{ row.rate }}</div>
+                    <div v-if="row.comparisonRate" class="text-gray-500 text-xs line-through">{{ row.comparisonRate }}</div>
+                  </td>
                   <td class="px-6 py-4 text-right">
                     <button class="btn-primary text-xs py-1.5 px-3 whitespace-nowrap" @click="buyPackage(row, 'standard')">
                       {{ loading === row.label ? 'Redirecting...' : 'Buy Package' }}
@@ -107,7 +110,10 @@
                 <tr v-for="row in fullBuyout" :key="row.label" class="border-b border-white/5 hover:bg-white/5 transition-colors">
                   <td class="px-6 py-4 font-medium text-white">{{ row.label }}</td>
                   <td class="px-6 py-4 text-right text-amber-400 font-bold">{{ row.price }}</td>
-                  <td class="px-6 py-4 text-right text-gray-300">{{ row.rate }}</td>
+                  <td class="px-6 py-4 text-right text-gray-300">
+                    <div>{{ row.rate }}</div>
+                    <div v-if="row.comparisonRate" class="text-gray-500 text-xs line-through">{{ row.comparisonRate }}</div>
+                  </td>
                   <td class="px-6 py-4 text-right">
                     <button class="btn-primary text-xs py-1.5 px-3 whitespace-nowrap" @click="buyPackage(row, 'buyout')">
                       {{ loading === row.label ? 'Redirecting...' : 'Buy Package' }}
@@ -253,14 +259,14 @@ const loading = ref<string | null>(null)
 
 const standardTeam = [
   { label: 'Single Practice (1 hr)', price: '$150', rate: '$150/hr', priceCents: 15000, hours: 1 },
-  { label: '6-Hour Package', price: '$855', rate: '$142.50/hr', priceCents: 85500, hours: 6 },
-  { label: '12-Hour Package', price: '$1,530', rate: '$127.50/hr', priceCents: 153000, hours: 12 },
+  { label: '6-Hour Package', price: '$855', rate: '$142.50/hr', comparisonRate: '$150/hr', priceCents: 85500, hours: 6 },
+  { label: '12-Hour Package', price: '$1,530', rate: '$127.50/hr', comparisonRate: '$150/hr', priceCents: 153000, hours: 12 },
 ]
 
 const fullBuyout = [
   { label: 'Single Practice (1 hr)', price: '$225', rate: '$225/hr', priceCents: 22500, hours: 1 },
-  { label: '6-Hour Package', price: '$1,282.50', rate: '$213.75/hr', priceCents: 128250, hours: 6 },
-  { label: '12-Hour Package', price: '$2,295', rate: '$191.25/hr', priceCents: 229500, hours: 12 },
+  { label: '6-Hour Package', price: '$1,282.50', rate: '$213.75/hr', comparisonRate: '$225/hr', priceCents: 128250, hours: 6 },
+  { label: '12-Hour Package', price: '$2,295', rate: '$191.25/hr', comparisonRate: '$225/hr', priceCents: 229500, hours: 12 },
 ]
 
 async function buyPackage(pkg: any, type: 'standard' | 'buyout') {
@@ -282,7 +288,7 @@ async function buyPackage(pkg: any, type: 'standard' | 'buyout') {
         packageType: type,
       }
     })
-    window.location.href = url
+    window.open(url, '_blank')
   } catch (e: any) {
     alert(e?.data?.message || 'Failed to start checkout. Please try again.')
   } finally {
@@ -324,3 +330,10 @@ async function submitInquiry() {
   }
 }
 </script>
+
+<style scoped>
+select option, select optgroup {
+  background-color: #111827;
+  color: white;
+}
+</style>

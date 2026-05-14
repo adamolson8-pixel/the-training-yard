@@ -21,6 +21,16 @@
         Your liability waiver is on file. You're cleared to train at The Training Yard. If you need a copy, contact us at
         <a href="mailto:adam@trainingyarddsm.com" class="text-amber-400 hover:underline">adam@trainingyarddsm.com</a>.
       </p>
+      <div v-if="justSigned" class="mt-4 pt-4 border-t border-green-500/20">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">🎉</span>
+          <div>
+            <div class="text-green-400 font-bold text-sm">You're all set!</div>
+            <p class="text-gray-400 text-xs mt-0.5">Your waiver has been recorded. You're cleared to book and train.</p>
+          </div>
+        </div>
+        <NuxtLink to="/portal/dashboard" class="btn-primary inline-block text-sm mt-3">Go to Dashboard →</NuxtLink>
+      </div>
     </div>
 
     <!-- Not Signed State -->
@@ -140,7 +150,10 @@ definePageMeta({ layout: 'portal', middleware: ['customer'] })
 useHead({ title: 'Waiver — Training Yard' })
 
 const config = useRuntimeConfig()
+const route = useRoute()
 const { data: profile, refresh } = await useFetch<any>('/api/portal/me')
+
+const justSigned = computed(() => route.query.signed === 'true' && profile.value?.waiver_signed)
 
 // Replace with your actual Zoho Sign document signing URL when ready
 // Set NUXT_PUBLIC_ZOHO_SIGN_URL in your .env file
@@ -160,11 +173,14 @@ async function submitManualWaiver() {
       method: 'PATCH',
       body: { waiver_signed: true, waiver_signed_at: new Date().toISOString() },
     })
-    // Note: waiver_signed must be added to ALLOWED_FIELDS in me.patch.ts if using this path
-    await refresh()
+    // Redirect to dashboard with success indicator
+    await navigateTo('/portal/waiver?signed=true')
+    // Force a full page reload so layout sidebar picks up the new waiver status
+    if (import.meta.client) {
+      window.location.href = '/portal/waiver?signed=true'
+    }
   } catch (e: any) {
     submitError.value = e?.data?.statusMessage || 'Failed to save. Please try again.'
-  } finally {
     submitting.value = false
   }
 }

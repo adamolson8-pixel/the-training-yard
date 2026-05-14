@@ -72,9 +72,12 @@
                   </td>
                   <td v-for="res in filteredResources" :key="res.id" class="p-2 border-r border-gray-100 relative h-[72px] group hover:bg-gray-50 transition-colors" @click="!getBooking(res.id, hour) ? openBlockModalFor(res.id, hour) : null">
                     <!-- If booked -->
-                    <div v-if="getBooking(res.id, hour)" class="absolute inset-1 rounded-lg p-2 text-xs flex flex-col justify-center overflow-hidden cursor-pointer shadow-sm" :class="getBooking(res.id, hour).user_id === user?.id ? 'bg-green-100 border border-green-300 text-green-800' : 'bg-red-50 border border-red-200 text-red-800'" @click.stop="cancelBooking(getBooking(res.id, hour).id)">
-                       <span class="font-bold truncate text-[11px] sm:text-xs">{{ getBooking(res.id, hour).user_id === user?.id ? 'ADMIN BLOCK' : (getBooking(res.id, hour).profiles?.full_name || 'Customer Booking') }}</span>
-                       <span class="opacity-70 truncate text-[10px]">Click to Cancel</span>
+                    <div v-if="getBooking(res.id, hour)" class="absolute inset-1 rounded-lg p-2 text-xs flex flex-col justify-center overflow-hidden cursor-pointer shadow-sm" 
+                         :class="getBooking(res.id, hour).user_id === user?.id ? 'bg-green-100 border border-green-300 text-green-800' : (getBooking(res.id, hour).status === 'pending' ? 'bg-gray-200 border border-gray-300 text-gray-800' : 'bg-red-50 border border-red-200 text-red-800')" 
+                         @click.stop="selectedBooking = getBooking(res.id, hour); showDetailsModal = true">
+                       <span class="font-bold truncate text-[11px] sm:text-xs">
+                          {{ getBooking(res.id, hour).user_id === user?.id ? 'ADMIN BLOCK' : (getBooking(res.id, hour).status === 'pending' ? '(PENDING) ' : '') + (getBooking(res.id, hour).profiles?.full_name || getBooking(res.id, hour).customer_name || 'Customer') }}
+                       </span>
                     </div>
                     <!-- If empty -->
                     <div v-else class="w-full h-full flex items-center justify-center transition-all cursor-pointer" :class="calendarShowMode === 'openings' ? 'bg-blue-50 hover:bg-blue-100 opacity-100 border border-blue-200 rounded-lg absolute inset-1' : 'opacity-0 group-hover:opacity-100'">
@@ -189,8 +192,52 @@
           </button>
         </div>
       </div>
-    </div>
+  </div>
 
+    <!-- Booking Details Modal -->
+    <div v-if="showDetailsModal && selectedBooking" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm">
+      <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 md:p-8 max-w-md w-full relative">
+        <button @click="showDetailsModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <h3 class="font-display text-2xl font-bold text-gray-900 mb-1">Booking Details</h3>
+        <p class="text-sm font-bold px-2 py-0.5 rounded-full inline-block mb-6" :class="selectedBooking.status === 'confirmed' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'">
+          Status: {{ selectedBooking.status.toUpperCase() }}
+        </p>
+        
+        <div class="space-y-4 mb-8">
+          <div>
+            <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Resource</div>
+            <div class="font-bold text-gray-900 capitalize">{{ selectedBooking.resource_id.replace('-', ' ') }}</div>
+          </div>
+          <div>
+            <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Time</div>
+            <div class="text-gray-900 font-medium">{{ formatDate(selectedBooking.start_time) }}</div>
+            <div class="text-gray-600">{{ formatTime(selectedBooking.start_time) }} - {{ formatTime(selectedBooking.end_time) }}</div>
+          </div>
+          <div v-if="selectedBooking.user_id !== user?.id">
+            <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Customer</div>
+            <div class="font-bold text-gray-900">{{ selectedBooking.profiles?.full_name || selectedBooking.customer_name || 'Customer' }}</div>
+            <div class="text-gray-600 text-sm">{{ selectedBooking.profiles?.email || selectedBooking.customer_email || 'No email provided' }}</div>
+          </div>
+          <div v-if="selectedBooking.user_id === user?.id">
+            <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Type</div>
+            <div class="font-bold text-green-600">Admin Block</div>
+          </div>
+        </div>
+
+        <div class="flex gap-3 pt-4 border-t border-gray-100">
+          <button class="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-gray-900 hover:bg-gray-800 transition-colors" @click="showDetailsModal = false">Close</button>
+          <button v-if="isAdmin" class="py-3 px-4 rounded-xl font-bold text-red-600 bg-red-50 hover:bg-red-100 transition-colors flex items-center gap-2" @click="cancelBooking(selectedBooking.id); showDetailsModal = false">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -250,19 +297,31 @@ const calendarEvents = computed(() => {
   if (calendarShowMode.value === 'bookings') {
     return bookings.value
       .filter(b => selectedResourceFilter.value === 'all' || b.resource_id === selectedResourceFilter.value)
-      .filter(b => b.status === 'confirmed')
+      .filter(b => b.status === 'confirmed' || b.status === 'pending')
       .map(b => {
         const resourceName = b.resource_id.replace('-', ' ').toUpperCase();
-        const statusTitle = b.user_id === user.value?.id ? 'ADMIN BLOCK' : (b.profiles?.full_name || 'Customer');
+        let statusTitle = b.user_id === user.value?.id ? 'ADMIN BLOCK' : (b.profiles?.full_name || b.customer_name || 'Customer');
+        if (b.status === 'pending') statusTitle = `(PENDING) ${statusTitle}`
         
+        let bgColor = '#dc2626' // red for confirmed customer
+        let classNames = ['is-customer']
+        
+        if (b.user_id === user.value?.id) {
+          bgColor = '#16a34a' // green for admin
+          classNames = ['is-admin']
+        } else if (b.status === 'pending') {
+          bgColor = '#9ca3af' // gray for pending
+          classNames = ['is-pending']
+        }
+
         return {
           id: b.id,
           title: `${resourceName}: ${statusTitle}`,
           start: b.start_time,
           end: b.end_time,
-          backgroundColor: b.user_id === user.value?.id ? '#16a34a' : '#dc2626', 
-          borderColor: b.user_id === user.value?.id ? '#16a34a' : '#dc2626',
-          classNames: b.user_id === user.value?.id ? ['is-admin'] : ['is-customer'],
+          backgroundColor: bgColor, 
+          borderColor: bgColor,
+          classNames: classNames,
           extendedProps: { booking: b }
         }
       })
@@ -291,7 +350,7 @@ const calendarEvents = computed(() => {
         
         resourcesToProcess.forEach(res => {
           const isBooked = bookings.value.some(b => {
-            if (b.status !== 'confirmed' || b.resource_id !== res.id) return false
+            if ((b.status !== 'confirmed' && b.status !== 'pending') || b.resource_id !== res.id) return false
             const bStart = new Date(b.start_time).getTime()
             const bEnd = new Date(b.end_time).getTime()
             return slotStart.getTime() < bEnd && slotEnd.getTime() > bStart
@@ -371,7 +430,9 @@ const handleEventClick = (info: any) => {
     }
     showBlockModal.value = true
   } else {
-    cancelBooking(info.event.id)
+    // Open Booking Details Modal instead of immediately prompting for delete
+    selectedBooking.value = info.event.extendedProps.booking
+    showDetailsModal.value = true
   }
 }
 
@@ -381,7 +442,8 @@ const calendarOptions = computed(() => ({
   timeZone: 'UTC',
   views: {
     dayGridMonth: {
-      eventDisplay: 'block' // Forces solid color blocks in month view only!
+      eventDisplay: 'block', // Forces solid color blocks in month view only!
+      dayMaxEvents: 3 // Only show 3 events per day, hide the rest behind "+X more"
     }
   },
   headerToolbar: {
@@ -399,6 +461,10 @@ const calendarOptions = computed(() => ({
   expandRows: true
 }))
 
+// Booking Details Modal State
+const showDetailsModal = ref(false)
+const selectedBooking = ref<any>(null)
+
 // Block Time Modal State
 const showBlockModal = ref(false)
 const blockInProgress = ref(false)
@@ -410,6 +476,8 @@ const blockForm = ref({
   endDate: '',
   endTime: '21:00'
 })
+
+
 
 const fetchBookings = async () => {
   try {
@@ -452,7 +520,7 @@ const getBooking = (resourceId: string, hourStr: string) => {
   const cellEnd = cellStart + 60 * 60 * 1000 // 1 hour slot
   
   return bookings.value.find(b => {
-    if (b.resource_id !== resourceId || b.status !== 'confirmed') return false
+    if (b.resource_id !== resourceId || (b.status !== 'confirmed' && b.status !== 'pending')) return false
     const bStart = new Date(b.start_time).getTime()
     const bEnd = new Date(b.end_time).getTime()
     // Overlap math
@@ -602,5 +670,10 @@ const logout = async () => {
 .fc-daygrid-event.is-open {
   background-color: #3b82f6 !important;
   border-color: #3b82f6 !important;
+}
+
+.fc-daygrid-event.is-pending {
+  background-color: #9ca3af !important;
+  border-color: #9ca3af !important;
 }
 </style>

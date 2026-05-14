@@ -74,6 +74,9 @@ export default defineEventHandler(async (event) => {
 
   // --- Insert pending booking in Supabase ---
   const supabase = serverSupabaseServiceRole(event)
+  const { serverSupabaseUser } = await import('#supabase/server')
+  const user = await serverSupabaseUser(event).catch(() => null)
+
   const { error: dbError } = await (supabase as any).from('bookings').insert({
     service_type: service.id,
     service_label: service.label,
@@ -87,7 +90,6 @@ export default defineEventHandler(async (event) => {
     player_age: body.playerAge ? parseInt(body.playerAge) : null,
     sport: body.sport || null,
     waiver_accepted: true,
-    waiver_accepted_at: new Date().toISOString(),
     waiver_signer_name: body.waiverSignerName || null,
     stripe_session_id: session.id,
     amount_cents: service.priceCents,
@@ -96,8 +98,22 @@ export default defineEventHandler(async (event) => {
   })
 
   if (dbError) {
-    console.error('Supabase insert error:', dbError)
-    // Don't block checkout — log and continue
+    console.error('Supabase insert error:', JSON.stringify(dbError))
+    console.error('Insert payload was:', JSON.stringify({
+      service_type: service.id,
+      service_label: service.label,
+      duration_minutes: service.durationMinutes,
+      booking_date: body.date,
+      booking_time: body.time,
+      customer_name: body.customerName,
+      customer_email: body.customerEmail,
+      customer_phone: body.customerPhone,
+      stripe_session_id: session.id,
+      amount_cents: service.priceCents,
+      status: 'pending',
+    }))
+  } else {
+    console.log('Booking inserted successfully for session:', session.id)
   }
 
   return { url: session.url }

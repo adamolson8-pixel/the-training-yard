@@ -30,7 +30,17 @@ export default defineEventHandler(async (event) => {
   }
 
   // Determine cancellation fee logic (24 hr rule)
-  const bookingDateTime = new Date(`${booking.booking_date}T${booking.booking_time}`)
+  let timeStr = booking.booking_time || '12:00'
+  const match = timeStr.match(/^(\d+):(\d+)\s*(AM|PM)$/i)
+  if (match) {
+    let hour = parseInt(match[1])
+    const minute = match[2]
+    const ampm = match[3].toUpperCase()
+    if (ampm === 'PM' && hour !== 12) hour += 12
+    if (ampm === 'AM' && hour === 12) hour = 0
+    timeStr = `${String(hour).padStart(2, '0')}:${minute}:00`
+  }
+  const bookingDateTime = new Date(`${booking.booking_date}T${timeStr}`)
   const hoursUntilBooking = (bookingDateTime.getTime() - Date.now()) / (1000 * 60 * 60)
   const isFullRefund = hoursUntilBooking >= 24
 

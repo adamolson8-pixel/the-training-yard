@@ -20,23 +20,11 @@
         <h2 class="text-2xl font-bold text-white mb-2">Choose Your Session</h2>
         <p class="text-gray-400 mb-4">Pick the rental option that fits your training needs.</p>
 
-        <!-- Membership upsell banner -->
-        <a
-          href="#membership"
-          class="flex items-center gap-3 p-3 mb-6 rounded-xl border border-green-500/40 bg-green-500/10 hover:bg-green-500/20 transition-colors group"
-        >
-          <span class="text-2xl">🌟</span>
-          <div class="flex-1 min-w-0">
-            <p class="text-green-400 font-semibold text-sm leading-tight">Members save 25% on all rentals</p>
-            <p class="text-gray-400 text-xs mt-0.5">Individual $89/mo · Family $129/mo — member prices shown on each card</p>
-          </div>
-          <span class="text-green-400 text-xs font-semibold whitespace-nowrap group-hover:underline">Learn more →</span>
-        </a>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <template v-for="service in SERVICES" :key="service.id">
-            <!-- Allow selection if it's NOT a team service OR if they have hours for it -->
+
+        <h3 class="text-lg font-bold text-white mb-3 mt-4">Individual & Family</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+          <template v-for="service in SERVICES.filter(s => !s.isTeam)" :key="service.id">
             <button
-              v-if="!service.isTeam || (service.id === 'team_standard_60' && hasStandardHours) || (service.id === 'full_buyout_60' && hasBuyoutHours)"
               class="text-left p-4 rounded-xl border-2 transition-all focus:outline-none focus:ring-2 focus:ring-amber-500"
               :class="store.service?.id === service.id
                 ? 'border-amber-500 bg-amber-500/10'
@@ -46,7 +34,7 @@
               <div class="text-3xl mb-2">{{ service.emoji }}</div>
               <div class="font-bold text-white text-sm mb-1">{{ service.label }}</div>
               
-              <div class="mb-3 space-y-1.5" v-if="!service.isTeam">
+              <div class="mb-3 space-y-1.5">
                 <div class="flex items-center gap-2">
                   <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide bg-white/10 text-gray-400 uppercase">Non-Member</span>
                   <span class="flex items-baseline gap-0.5 text-gray-400">
@@ -62,7 +50,32 @@
                   </span>
                 </div>
               </div>
-              <div class="mb-3 space-y-1.5" v-else>
+
+              <div class="text-gray-400 text-xs mb-3">{{ service.description }}</div>
+              <div class="flex gap-3 text-xs text-gray-500">
+                <span>⏱ {{ service.durationMinutes }} min</span>
+                <span>👥 Up to {{ service.maxPlayers }}</span>
+              </div>
+            </button>
+          </template>
+        </div>
+
+        <h3 class="text-lg font-bold text-white mb-3">Team Rentals & Packages</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <template v-for="service in SERVICES.filter(s => s.isTeam)" :key="service.id">
+            <!-- Allow selection if they have hours for it -->
+            <button
+              v-if="(service.id === 'team_standard_60' && hasStandardHours) || (service.id === 'full_buyout_60' && hasBuyoutHours)"
+              class="text-left p-4 rounded-xl border-2 transition-all focus:outline-none focus:ring-2 focus:ring-amber-500"
+              :class="store.service?.id === service.id
+                ? 'border-amber-500 bg-amber-500/10'
+                : 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10'"
+              @click="store.setService(service)"
+            >
+              <div class="text-3xl mb-2">{{ service.emoji }}</div>
+              <div class="font-bold text-white text-sm mb-1">{{ service.label }}</div>
+              
+              <div class="mb-3 space-y-1.5">
                 <div class="flex items-center gap-2">
                   <span class="inline-block px-2 py-1 rounded text-xs font-bold tracking-wide bg-amber-500/20 text-amber-400 uppercase border border-amber-500/50">
                     Redeem 1 Hour
@@ -80,18 +93,19 @@
               </div>
             </button>
 
-            <!-- Render the link to /teams ONLY if it's a team service AND they don't have hours -->
+            <!-- Render the link to /teams ONLY if they don't have hours -->
             <NuxtLink
-              v-else-if="service.isTeam"
+              v-else
               to="/teams"
               class="text-left p-4 rounded-xl border-2 border-white/10 bg-white/5 hover:border-amber-500/50 hover:bg-amber-500/5 transition-all block"
             >
               <div class="text-3xl mb-2">{{ service.emoji }}</div>
               <div class="font-bold text-white text-sm mb-1 flex items-center gap-2">
                 {{ service.label }}
-                <span class="text-[10px] font-bold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.5 rounded-full">Buy Package →</span>
+                <span class="text-[10px] font-bold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.5 rounded-full">See Package Options →</span>
               </div>
               <div class="text-gray-400 text-xs mb-3">{{ service.description }}</div>
+              <div class="text-amber-400 text-xs mb-3 font-medium">{{ service.teamNote }}</div>
               <div class="flex gap-3 text-xs text-gray-500">
                 <span>⏱ 60–120 min</span>
                 <span>👥 Up to {{ service.maxPlayers }}</span>
@@ -99,15 +113,7 @@
             </NuxtLink>
           </template>
         </div>
-        <div class="mt-8">
-          <button
-            class="btn-primary w-full"
-            :disabled="!store.service"
-            @click="store.nextStep()"
-          >
-            Continue →
-          </button>
-        </div>
+
       </div>
 
       <!-- Step 2: Date & Time -->
@@ -393,27 +399,45 @@ const profileData = ref<any>(null)
 const hasStandardHours = computed(() => (profileData.value?.team_standard_hours || 0) > 0)
 const hasBuyoutHours = computed(() => (profileData.value?.team_buyout_hours || 0) > 0)
 
-// If user is logged in, fetch their profile to get dependents and waiver status
-onMounted(async () => {
-  if (user.value) {
-    try {
-      const { data } = await $fetch<any>('/api/portal/me')
-      if (data) {
-        profileData.value = data
-        if (!store.customerName) store.setCustomerInfo({ ...form, customerName: data.full_name || '' })
-        if (!store.customerEmail) store.setCustomerInfo({ ...form, customerEmail: data.email || '' })
-        if (!store.customerPhone) store.setCustomerInfo({ ...form, customerPhone: data.phone || '' })
-        
-        // Auto-fill form state
-        form.customerName = data.full_name || ''
-        form.customerEmail = data.email || ''
-        form.customerPhone = data.phone || ''
-      }
-    } catch (e) {
-      console.error('Failed to fetch profile', e)
+// Step 3 (form data)
+const form = reactive({
+  customerName: store.customerName,
+  customerEmail: store.customerEmail,
+  customerPhone: store.customerPhone,
+  playerName: store.playerName,
+  playerAge: store.playerAge,
+  sport: store.sport,
+  notes: store.notes,
+})
+function submitCustomerInfo() {
+  if (!form.customerName || !form.customerEmail || !form.customerPhone) return
+  store.setCustomerInfo(form)
+  store.nextStep()
+}
+
+const { data: profileResponse, error: profileError } = await useFetch<any>('/api/portal/me', {
+  headers: useRequestHeaders(['cookie']),
+  immediate: true
+})
+
+watch(profileResponse, (newVal) => {
+  if (newVal) {
+    const data = newVal
+    profileData.value = data
+    if (!store.customerName) {
+      store.setCustomerInfo({ ...form, customerName: data.full_name || '' })
+      form.customerName = data.full_name || ''
+    }
+    if (!store.customerEmail) {
+      store.setCustomerInfo({ ...form, customerEmail: data.email || '' })
+      form.customerEmail = data.email || ''
+    }
+    if (!store.customerPhone) {
+      store.setCustomerInfo({ ...form, customerPhone: data.phone || '' })
+      form.customerPhone = data.phone || ''
     }
   }
-})
+}, { immediate: true })
 
 const playerOptions = computed(() => {
   if (!profileData.value) return []
@@ -462,22 +486,6 @@ function confirmDateTime() {
   store.nextStep()
 }
 
-// Step 3
-const form = reactive({
-  customerName: store.customerName,
-  customerEmail: store.customerEmail,
-  customerPhone: store.customerPhone,
-  playerName: store.playerName,
-  playerAge: store.playerAge,
-  sport: store.sport,
-  notes: store.notes,
-})
-function submitCustomerInfo() {
-  if (!form.customerName || !form.customerEmail || !form.customerPhone) return
-  store.setCustomerInfo(form)
-  store.nextStep()
-}
-
 // Step 4
 const waiverName = ref(store.waiverSignerName)
 const waiverChecked = ref(store.waiverAccepted)
@@ -519,7 +527,7 @@ async function startCheckout() {
         waiverSignerName: store.waiverSignerName,
       },
     })
-    window.location.href = res.url
+    window.open(res.url, '_blank')
   } catch (err: unknown) {
     const e = err as { data?: { message?: string } }
     checkoutError.value = e?.data?.message || 'Something went wrong. Please try again.'

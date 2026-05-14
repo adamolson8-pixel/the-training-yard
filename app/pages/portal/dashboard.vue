@@ -155,8 +155,8 @@ useHead({ title: 'Dashboard — My Training Yard' })
 const user = useSupabaseUser()
 const supabase = useSupabaseClient()
 
-const { data: profile } = await useFetch('/api/portal/me')
-const { data: bookingsData } = await useFetch<{ upcoming: any[], past: any[] }>('/api/portal/bookings')
+const { data: profile } = await useFetch('/api/portal/me', { server: false })
+const { data: bookingsData } = await useFetch<{ upcoming: any[], past: any[] }>('/api/portal/bookings', { server: false })
 
 const upcomingBookings = computed(() => bookingsData.value?.upcoming ?? [])
 const upcomingCount = computed(() => upcomingBookings.value.length)
