@@ -136,6 +136,44 @@
               </dl>
             </section>
 
+            <!-- Team Packages -->
+            <section class="bg-amber-50 p-4 rounded-xl border border-amber-100">
+              <div class="flex items-center justify-between mb-3">
+                <div class="text-xs font-bold uppercase tracking-widest text-amber-600">Team Package Hours</div>
+                <button v-if="!editingHours" @click="editingHours = true" class="text-xs font-bold text-amber-700 hover:text-amber-800">Edit</button>
+              </div>
+              
+              <div v-if="!editingHours" class="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <div class="text-gray-500 text-xs font-semibold">Standard</div>
+                  <div class="font-bold text-gray-900 text-lg">{{ drawer.team_standard_hours || 0 }}</div>
+                </div>
+                <div>
+                  <div class="text-gray-500 text-xs font-semibold">Buyout</div>
+                  <div class="font-bold text-gray-900 text-lg">{{ drawer.team_buyout_hours || 0 }}</div>
+                </div>
+              </div>
+              
+              <div v-else class="space-y-3">
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Standard</label>
+                    <input type="number" min="0" v-model.number="editHoursForm.standard" class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-amber-500 focus:border-amber-500">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Buyout</label>
+                    <input type="number" min="0" v-model.number="editHoursForm.buyout" class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-amber-500 focus:border-amber-500">
+                  </div>
+                </div>
+                <div class="flex gap-2 justify-end mt-2">
+                  <button @click="editingHours = false" class="text-xs font-bold px-3 py-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">Cancel</button>
+                  <button @click="saveHours" :disabled="hoursSaving" class="text-xs font-bold px-3 py-1.5 bg-amber-500 text-white hover:bg-amber-600 rounded-lg transition-colors shadow-sm disabled:opacity-50">
+                    {{ hoursSaving ? 'Saving...' : 'Save' }}
+                  </button>
+                </div>
+              </div>
+            </section>
+
             <!-- Booking History -->
             <section>
               <div class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Booking History</div>
@@ -232,6 +270,10 @@ const drawerBookings = ref<any[]>([])
 const drawerBookingsPending = ref(false)
 const waiverSaving = ref(false)
 
+const editingHours = ref(false)
+const hoursSaving = ref(false)
+const editHoursForm = ref({ standard: 0, buyout: 0 })
+
 const showAddModal = ref(false)
 const addSaving = ref(false)
 const addError = ref('')
@@ -242,6 +284,34 @@ const addForm = ref({
   phone: '',
   role: 'customer'
 })
+
+async function saveHours() {
+  if (!drawer.value) return
+  hoursSaving.value = true
+  try {
+    await $fetch(`/api/admin/users/${drawer.value.id}/hours`, {
+      method: 'PATCH',
+      body: {
+        team_standard_hours: editHoursForm.value.standard,
+        team_buyout_hours: editHoursForm.value.buyout
+      }
+    })
+    drawer.value.team_standard_hours = editHoursForm.value.standard
+    drawer.value.team_buyout_hours = editHoursForm.value.buyout
+    editingHours.value = false
+    
+    // Also update the main list if needed
+    const u = users.value.find(x => x.id === drawer.value.id)
+    if (u) {
+      u.team_standard_hours = editHoursForm.value.standard
+      u.team_buyout_hours = editHoursForm.value.buyout
+    }
+  } catch (e: any) {
+    alert(e.data?.message || 'Failed to update hours')
+  } finally {
+    hoursSaving.value = false
+  }
+}
 
 async function submitUser() {
   addSaving.value = true
@@ -282,6 +352,13 @@ async function openDrawer(u: any) {
   drawer.value = { ...u }
   drawerRole.value = u.role
   drawerBookings.value = []
+  
+  editingHours.value = false
+  editHoursForm.value = {
+    standard: u.team_standard_hours || 0,
+    buyout: u.team_buyout_hours || 0
+  }
+
   drawerBookingsPending.value = true
   const data = await $fetch<any>('/api/admin/bookings', { query: { user_id: u.id } })
   drawerBookings.value = Array.isArray(data) ? data : []
