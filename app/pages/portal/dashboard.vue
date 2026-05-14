@@ -56,15 +56,16 @@
     </div>
 
     <!-- Team Balances -->
-    <div v-if="teamStats.hasAny" class="mb-8 p-5 rounded-2xl border border-amber-500/30 bg-amber-500/5">
+    <div class="mb-8 p-5 rounded-2xl border border-amber-500/30 bg-amber-500/5">
       <div class="flex items-center gap-3 mb-4">
         <span class="text-2xl">🏆</span>
         <h2 class="text-lg font-bold text-white">Team Package Balances</h2>
+        <span v-if="!teamStats.hasAny" class="text-xs text-amber-500/70 border border-amber-500/30 px-2 py-0.5 rounded-full ml-auto">No active hours found</span>
       </div>
       
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <!-- Standard Team Stats -->
-        <div v-if="teamStats.standard.total > 0" class="bg-black/20 rounded-xl p-4 border border-white/5">
+        <div class="bg-black/20 rounded-xl p-4 border border-white/5">
           <div class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-3">Standard Team Hours</div>
           
           <div class="grid grid-cols-3 gap-2 text-center mb-3">
@@ -84,7 +85,7 @@
         </div>
 
         <!-- Buyout Stats -->
-        <div v-if="teamStats.buyout.total > 0" class="bg-black/20 rounded-xl p-4 border border-white/5">
+        <div class="bg-black/20 rounded-xl p-4 border border-white/5">
           <div class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-3">Full Facility Buyout Hours</div>
           
           <div class="grid grid-cols-3 gap-2 text-center mb-3">
