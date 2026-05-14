@@ -45,8 +45,13 @@
                 <div class="flex items-center gap-2">
                   <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide bg-green-500/20 text-green-400 uppercase">Member 🌟</span>
                   <span class="flex items-baseline gap-0.5 text-green-400">
-                    <span class="text-xl font-bold">{{ formatPrice(service.memberPriceCents) }}</span>
-                    <span class="text-xs font-normal text-green-500/80">{{ getPriceUnit(service.durationMinutes) }}</span>
+                    <template v-if="service.memberText">
+                      <span class="text-sm font-bold">{{ service.memberText }}</span>
+                    </template>
+                    <template v-else>
+                      <span class="text-xl font-bold">{{ formatPrice(service.memberPriceCents) }}</span>
+                      <span class="text-xs font-normal text-green-500/80">{{ getPriceUnit(service.durationMinutes) }}</span>
+                    </template>
                   </span>
                 </div>
               </div>

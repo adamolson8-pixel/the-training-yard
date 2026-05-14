@@ -1,5 +1,5 @@
 import { serverSupabaseServiceRole } from '#supabase/server'
-import { requireAdmin } from '../../../utils/auth'
+import { requireAdmin } from '../../../../utils/auth'
 
 export default defineEventHandler(async (event) => {
   await requireAdmin(event)

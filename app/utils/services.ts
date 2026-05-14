@@ -10,6 +10,7 @@ export interface Service {
   description: string
   priceCents: number
   memberPriceCents: number
+  memberText?: string
   durationMinutes: number
   facilityType: 'cage' | 'turf' | 'team'
   maxPlayers: number
@@ -39,6 +40,7 @@ export const SERVICES: Service[] = [
     description: 'One batting cage for up to 2 players. Great for a focused individual session.',
     priceCents: 3000,
     memberPriceCents: 2250,
+    memberText: 'Included (up to 1 hr/day)',
     durationMinutes: 30,
     facilityType: 'cage',
     maxPlayers: 2,
@@ -50,6 +52,7 @@ export const SERVICES: Service[] = [
     description: 'One batting cage for up to 2 players. Double the reps, double the results.',
     priceCents: 5000,
     memberPriceCents: 3750,
+    memberText: 'Included (1 hr/day)',
     durationMinutes: 60,
     facilityType: 'cage',
     maxPlayers: 2,
@@ -61,6 +64,7 @@ export const SERVICES: Service[] = [
     description: 'Half of the synthetic turf field for small group training or practice.',
     priceCents: 7500,
     memberPriceCents: 5625,
+    memberText: 'Included (1 hr/week)',
     durationMinutes: 60,
     facilityType: 'turf',
     maxPlayers: 15,
