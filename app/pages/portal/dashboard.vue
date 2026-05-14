@@ -55,24 +55,57 @@
       </div>
     </div>
 
-    <!-- Team Balances (Only show if they have hours) -->
-    <div v-if="(profile?.team_standard_hours > 0 || profile?.team_buyout_hours > 0)" class="mb-8 p-5 rounded-2xl border border-amber-500/30 bg-amber-500/5">
+    <!-- Team Balances -->
+    <div v-if="teamStats.hasAny" class="mb-8 p-5 rounded-2xl border border-amber-500/30 bg-amber-500/5">
       <div class="flex items-center gap-3 mb-4">
         <span class="text-2xl">🏆</span>
         <h2 class="text-lg font-bold text-white">Team Package Balances</h2>
       </div>
+      
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div v-if="profile?.team_standard_hours > 0" class="bg-black/20 rounded-xl p-4 border border-white/5">
-          <div class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">Standard Team</div>
-          <div class="text-3xl font-bold text-amber-400">{{ profile.team_standard_hours }} <span class="text-base font-normal text-gray-500">hours left</span></div>
+        <!-- Standard Team Stats -->
+        <div v-if="teamStats.standard.total > 0" class="bg-black/20 rounded-xl p-4 border border-white/5">
+          <div class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-3">Standard Team Hours</div>
+          
+          <div class="grid grid-cols-3 gap-2 text-center mb-3">
+            <div class="bg-white/5 rounded-lg py-2">
+              <div class="text-2xl font-bold text-white">{{ teamStats.standard.total }}</div>
+              <div class="text-[10px] text-gray-500 uppercase font-bold">Total</div>
+            </div>
+            <div class="bg-white/5 rounded-lg py-2">
+              <div class="text-2xl font-bold text-gray-400">{{ teamStats.standard.used }}</div>
+              <div class="text-[10px] text-gray-500 uppercase font-bold">Used/Booked</div>
+            </div>
+            <div class="bg-amber-500/10 border border-amber-500/20 rounded-lg py-2">
+              <div class="text-2xl font-bold text-amber-400">{{ teamStats.standard.remaining }}</div>
+              <div class="text-[10px] text-amber-500 uppercase font-bold">Remaining</div>
+            </div>
+          </div>
         </div>
-        <div v-if="profile?.team_buyout_hours > 0" class="bg-black/20 rounded-xl p-4 border border-white/5">
-          <div class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">Full Facility Buyout</div>
-          <div class="text-3xl font-bold text-amber-400">{{ profile.team_buyout_hours }} <span class="text-base font-normal text-gray-500">hours left</span></div>
+
+        <!-- Buyout Stats -->
+        <div v-if="teamStats.buyout.total > 0" class="bg-black/20 rounded-xl p-4 border border-white/5">
+          <div class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-3">Full Facility Buyout Hours</div>
+          
+          <div class="grid grid-cols-3 gap-2 text-center mb-3">
+            <div class="bg-white/5 rounded-lg py-2">
+              <div class="text-2xl font-bold text-white">{{ teamStats.buyout.total }}</div>
+              <div class="text-[10px] text-gray-500 uppercase font-bold">Total</div>
+            </div>
+            <div class="bg-white/5 rounded-lg py-2">
+              <div class="text-2xl font-bold text-gray-400">{{ teamStats.buyout.used }}</div>
+              <div class="text-[10px] text-gray-500 uppercase font-bold">Used/Booked</div>
+            </div>
+            <div class="bg-amber-500/10 border border-amber-500/20 rounded-lg py-2">
+              <div class="text-2xl font-bold text-amber-400">{{ teamStats.buyout.remaining }}</div>
+              <div class="text-[10px] text-amber-500 uppercase font-bold">Remaining</div>
+            </div>
+          </div>
         </div>
       </div>
+
       <div class="mt-4 flex gap-3">
-        <NuxtLink to="/portal/book" class="btn-primary text-sm px-4 py-2">Book a Team Session →</NuxtLink>
+        <NuxtLink v-if="teamStats.standard.remaining > 0 || teamStats.buyout.remaining > 0" to="/portal/book" class="btn-primary text-sm px-4 py-2">Book a Team Session →</NuxtLink>
         <NuxtLink to="/teams" class="border border-amber-500/50 text-amber-400 hover:bg-amber-500/10 transition-colors font-semibold text-sm px-4 py-2 rounded-lg">Buy More Hours</NuxtLink>
       </div>
     </div>
@@ -161,6 +194,32 @@ const { data: bookingsData } = await useFetch<{ upcoming: any[], past: any[] }>(
 const upcomingBookings = computed(() => bookingsData.value?.upcoming ?? [])
 const upcomingCount = computed(() => upcomingBookings.value.length)
 const totalCount = computed(() => (bookingsData.value?.upcoming?.length ?? 0) + (bookingsData.value?.past?.length ?? 0))
+
+const teamStats = computed(() => {
+  const allBookings = [...(bookingsData.value?.upcoming || []), ...(bookingsData.value?.past || [])]
+  
+  // Bookings with amount_cents === 0 and a valid service_label are considered redeemed team hours
+  const standardUsed = allBookings.filter(b => b.amount_cents === 0 && b.status !== 'canceled' && !b.service_label?.toLowerCase().includes('buyout')).length
+  const buyoutUsed = allBookings.filter(b => b.amount_cents === 0 && b.status !== 'canceled' && b.service_label?.toLowerCase().includes('buyout')).length
+  
+  const p = profile.value as any
+  const standardRemaining = p?.team_standard_hours || 0
+  const buyoutRemaining = p?.team_buyout_hours || 0
+
+  return {
+    hasAny: (standardRemaining > 0 || standardUsed > 0 || buyoutRemaining > 0 || buyoutUsed > 0),
+    standard: {
+      total: standardRemaining + standardUsed,
+      used: standardUsed,
+      remaining: standardRemaining
+    },
+    buyout: {
+      total: buyoutRemaining + buyoutUsed,
+      used: buyoutUsed,
+      remaining: buyoutRemaining
+    }
+  }
+})
 
 const membershipLabel = computed(() => {
   const s = (profile.value as any)?.membership_status
