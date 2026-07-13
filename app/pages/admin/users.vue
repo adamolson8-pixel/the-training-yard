@@ -158,11 +158,11 @@
                 <div class="grid grid-cols-2 gap-3">
                   <div>
                     <label class="block text-xs font-bold text-gray-700 mb-1">Standard</label>
-                    <input type="number" min="0" v-model.number="editHoursForm.standard" class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-amber-500 focus:border-amber-500">
+                    <input type="number" min="0" v-model.number="editHoursForm.standard" class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-900 focus:ring-amber-500 focus:border-amber-500">
                   </div>
                   <div>
                     <label class="block text-xs font-bold text-gray-700 mb-1">Buyout</label>
-                    <input type="number" min="0" v-model.number="editHoursForm.buyout" class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-amber-500 focus:border-amber-500">
+                    <input type="number" min="0" v-model.number="editHoursForm.buyout" class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-900 focus:ring-amber-500 focus:border-amber-500">
                   </div>
                 </div>
                 <div class="flex gap-2 justify-end mt-2">
@@ -220,23 +220,23 @@
         <form @submit.prevent="submitUser" class="space-y-4">
           <div>
             <label class="block text-sm font-bold text-gray-700 mb-1">Full Name</label>
-            <input type="text" v-model="addForm.full_name" required class="w-full border border-gray-200 rounded-xl px-4 py-2 focus:ring-primary focus:border-primary">
+            <input type="text" v-model="addForm.full_name" required class="w-full border border-gray-200 rounded-xl px-4 py-2 text-gray-900 focus:ring-primary focus:border-primary">
           </div>
           <div>
             <label class="block text-sm font-bold text-gray-700 mb-1">Email</label>
-            <input type="email" v-model="addForm.email" required class="w-full border border-gray-200 rounded-xl px-4 py-2 focus:ring-primary focus:border-primary">
+            <input type="email" v-model="addForm.email" required class="w-full border border-gray-200 rounded-xl px-4 py-2 text-gray-900 focus:ring-primary focus:border-primary">
           </div>
           <div>
             <label class="block text-sm font-bold text-gray-700 mb-1">Password</label>
-            <input type="text" v-model="addForm.password" required class="w-full border border-gray-200 rounded-xl px-4 py-2 focus:ring-primary focus:border-primary">
+            <input type="text" v-model="addForm.password" required class="w-full border border-gray-200 rounded-xl px-4 py-2 text-gray-900 focus:ring-primary focus:border-primary">
           </div>
           <div>
             <label class="block text-sm font-bold text-gray-700 mb-1">Phone</label>
-            <input type="text" v-model="addForm.phone" class="w-full border border-gray-200 rounded-xl px-4 py-2 focus:ring-primary focus:border-primary">
+            <input type="text" v-model="addForm.phone" class="w-full border border-gray-200 rounded-xl px-4 py-2 text-gray-900 focus:ring-primary focus:border-primary">
           </div>
           <div>
             <label class="block text-sm font-bold text-gray-700 mb-1">Role</label>
-            <select v-model="addForm.role" class="w-full border border-gray-200 rounded-xl px-4 py-2 focus:ring-primary focus:border-primary">
+            <select v-model="addForm.role" class="w-full border border-gray-200 rounded-xl px-4 py-2 text-gray-900 focus:ring-primary focus:border-primary">
               <option value="customer">Customer</option>
               <option value="admin">Administrator</option>
             </select>

@@ -17,7 +17,7 @@ export function getLocalBusinessSchema() {
     name: 'The Training Yard',
     description: 'Des Moines\' premier 6,000 sq ft indoor sports facility featuring 4 retractable batting cages and full synthetic turf for baseball, softball, soccer, and agility training.',
     url: 'https://trainingyarddsm.com',
-    telephone: '+1-515-802-1457',
+    telephone: '+1-515-441-0528',
     email: 'info@trainingyarddsm.com',
     priceRange: '$$',
     currenciesAccepted: 'USD',

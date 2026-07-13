@@ -85,7 +85,7 @@ Every batting cage rental at The Training Yard includes:
 
 ## How to Book a Cage Session
 
-Individual cage rentals start at $30 for 30 minutes or $50 for a full hour. [Members](/training) get discounted rates and priority booking. [Book your cage session](/training) online or call us at 515.802.1457.
+Individual cage rentals start at $30 for 30 minutes or $50 for a full hour. [Members](/training) get discounted rates and priority booking. [Book your cage session](/training) online or call us at 515.441.0528.
 
 ## Indoor Hitting Training in Des Moines
 
