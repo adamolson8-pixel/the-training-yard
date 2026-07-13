@@ -8,6 +8,13 @@
 </template>
 
 <script setup lang="ts">
+useHead({
+  title: 'Confirming Account | The Training Yard',
+  meta: [
+    { name: 'robots', content: 'noindex, nofollow' },
+  ],
+})
+
 // Supabase handles the token exchange automatically via @nuxtjs/supabase.
 // This page is just a visual placeholder during the redirect.
 // The module will read the #access_token from the URL fragment and

@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
   // Simple shared-secret guard — set CRON_SECRET in your env
   const authHeader = getHeader(event, 'authorization')
   const cronSecret = config.cronSecret || process.env.CRON_SECRET
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
     throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
   }
 

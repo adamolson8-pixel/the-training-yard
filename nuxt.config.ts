@@ -75,11 +75,13 @@ export default defineNuxtConfig({
           content: 'Des Moines\' premier indoor training facility. 4 batting cages, 60x100 turf, baseball, softball, soccer & agility training. Memberships starting at $89/mo.',
         },
         { property: 'og:url', content: 'https://trainingyarddsm.com' },
+        { property: 'og:image', content: 'https://trainingyarddsm.com/images/Training_Yard_Facility_homepage.jpg' },
         { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:image', content: 'https://trainingyarddsm.com/images/Training_Yard_Facility_homepage.jpg' },
       ],
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
-        { rel: 'canonical', href: 'https://trainingyarddsm.com' },
+        // Canonical URLs are set per-page via useHead() — do NOT set a global canonical
       ],
     },
   },
@@ -96,6 +98,7 @@ export default defineNuxtConfig({
     '/resources/agility-cone-drills-multi-sport-athletes': { prerender: true },
     '/resources/coaching-101-managing-indoor-practice-time': { prerender: true },
     '/about': { prerender: true },
+    '/teams': { prerender: true },
     '/login': { prerender: true },
     '/confirm': { prerender: true },
     '/booking-success': { ssr: false },
@@ -111,7 +114,7 @@ export default defineNuxtConfig({
       login: '/login',
       callback: '/confirm',
       // Public routes that do NOT require authentication
-      exclude: ['/', '/about', '/facility', '/training', '/teams', '/resources', '/resources/*', '/api/*', '/booking-success', '/team-success'],
+      exclude: ['/', '/about', '/facility', '/training', '/teams', '/resources', '/resources/*', '/api/*', '/booking-success', '/team-success', '/sitemap.xml', '/llms.txt', '/robots.txt'],
     }
   }
 })

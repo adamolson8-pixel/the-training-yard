@@ -110,7 +110,15 @@
 <script setup lang="ts">
 useHead({
   title: 'Training Resources | The Training Yard | Des Moines',
-  meta: [{ name: 'description', content: 'Free baseball, softball, soccer, and agility training resources. Drill videos, practice plans, and facility guides from The Training Yard in Des Moines, IA.' }],
+  meta: [
+    { name: 'description', content: 'Free baseball, softball, soccer, and agility training resources. Drill videos, practice plans, and facility guides from The Training Yard in Des Moines, IA.' },
+    { property: 'og:title', content: 'Training Resources | The Training Yard | Des Moines' },
+    { property: 'og:description', content: 'Free baseball, softball, soccer, and agility training resources. Drill videos, practice plans, and facility guides from The Training Yard in Des Moines, IA.' },
+    { property: 'og:url', content: 'https://trainingyarddsm.com/resources' },
+  ],
+  link: [
+    { rel: 'canonical', href: 'https://trainingyarddsm.com/resources' },
+  ],
 })
 
 useJsonLd([

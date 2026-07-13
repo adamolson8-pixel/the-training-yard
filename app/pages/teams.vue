@@ -252,7 +252,18 @@
 </template>
 
 <script setup lang="ts">
-useHead({ title: 'Team Rentals & Packages – The Training Yard' })
+useHead({
+  title: 'Team Rentals & Packages – The Training Yard',
+  meta: [
+    { name: 'description', content: 'Team rental packages at The Training Yard Des Moines. Standard team and full facility buyout options. Hourly, bulk, and annual VIP plans for clubs, travel teams, and school programs.' },
+    { property: 'og:title', content: 'Team Rentals & Packages – The Training Yard' },
+    { property: 'og:description', content: 'Team rental packages at The Training Yard Des Moines. Standard team and full facility buyout options. Hourly, bulk, and annual VIP plans for clubs, travel teams, and school programs.' },
+    { property: 'og:url', content: 'https://trainingyarddsm.com/teams' },
+  ],
+  link: [
+    { rel: 'canonical', href: 'https://trainingyarddsm.com/teams' },
+  ],
+})
 
 const user = useSupabaseUser()
 const loading = ref<string | null>(null)

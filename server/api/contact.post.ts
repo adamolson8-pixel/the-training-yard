@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer'
+import { escapeHtml, escapeHtmlWithBreaks } from '../utils/sanitize'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -16,31 +17,31 @@ export default defineEventHandler(async (event) => {
   // Configure transporter using Zoho SMTP
   const transporter = nodemailer.createTransport({
     host: config.smtpHost,
-    port: config.smtpPort as number,
-    secure: config.smtpPort === 465, // true for 465, false for other ports
+    port: Number(config.smtpPort),
+    secure: Number(config.smtpPort) === 465, // true for 465, false for other ports
     auth: {
       user: config.smtpUser,
       pass: config.smtpPass,
     },
   })
 
+  // Sanitize ALL user inputs before embedding in HTML
   const htmlContent = `
     <h2>New Contact Form Submission</h2>
-    <p><strong>Name:</strong> ${name}</p>
-    <p><strong>Email:</strong> ${email}</p>
-    <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
-    <p><strong>Interested In:</strong> ${interest || 'Not specified'}</p>
+    <p><strong>Name:</strong> ${escapeHtml(name)}</p>
+    <p><strong>Email:</strong> ${escapeHtml(email)}</p>
+    <p><strong>Phone:</strong> ${escapeHtml(phone) || 'Not provided'}</p>
+    <p><strong>Interested In:</strong> ${escapeHtml(interest) || 'Not specified'}</p>
     <p><strong>Message:</strong></p>
-    <p>${message.replace(/\n/g, '<br>')}</p>
+    <p>${escapeHtmlWithBreaks(message)}</p>
   `
 
   try {
     await transporter.sendMail({
       from: `"The Training Yard Website" <${config.smtpUser}>`, // Must match authenticated user
       to: 'info@trainingyarddsm.com',
-      cc: 'Adam@heartlandroofingandsiding.com',
       replyTo: email,
-      subject: `New Inquiry from ${name} - ${interest || 'Website Contact'}`,
+      subject: `New Inquiry from ${escapeHtml(name)} - ${escapeHtml(interest) || 'Website Contact'}`,
       html: htmlContent,
     })
 

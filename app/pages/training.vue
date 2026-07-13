@@ -120,7 +120,15 @@
 <script setup lang="ts">
 useHead({
   title: 'Memberships & Rates | The Training Yard | Des Moines',
-  meta: [{ name: 'description', content: 'Membership plans from $89/mo. Individual, Family & Team tiers. Book batting cages and turf rentals at The Training Yard Des Moines.' }],
+  meta: [
+    { name: 'description', content: 'Membership plans from $89/mo. Individual, Family & Team tiers. Book batting cages and turf rentals at The Training Yard Des Moines.' },
+    { property: 'og:title', content: 'Memberships & Rates | The Training Yard | Des Moines' },
+    { property: 'og:description', content: 'Membership plans from $89/mo. Individual, Family & Team tiers. Book batting cages and turf rentals at The Training Yard Des Moines.' },
+    { property: 'og:url', content: 'https://trainingyarddsm.com/training' },
+  ],
+  link: [
+    { rel: 'canonical', href: 'https://trainingyarddsm.com/training' },
+  ],
 })
 
 useJsonLd([

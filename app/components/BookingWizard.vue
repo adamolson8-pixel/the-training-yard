@@ -348,7 +348,13 @@
           </div>
           <div class="border-t border-white/10 pt-3 flex justify-between items-center">
             <span class="font-bold text-white text-base">Total Due</span>
-            <span class="text-3xl font-bold text-amber-400">{{ formatPrice(store.service?.priceCents ?? 0) }}</span>
+            <template v-if="isMember && store.service?.memberPriceCents">
+              <div class="text-right">
+                <span class="text-3xl font-bold text-green-400">{{ formatPrice(store.service.memberPriceCents) }}</span>
+                <div class="text-xs text-gray-500 mt-0.5"><span class="line-through">{{ formatPrice(store.service.priceCents) }}</span> · Member discount applied ✓</div>
+              </div>
+            </template>
+            <span v-else class="text-3xl font-bold text-amber-400">{{ formatPrice(store.service?.priceCents ?? 0) }}</span>
           </div>
         </div>
 
@@ -382,7 +388,7 @@
               <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" /><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
               Processing...
             </span>
-            <span v-else>🔒 Secure Checkout — {{ formatPrice(store.service?.priceCents ?? 0) }}</span>
+            <span v-else>🔒 Secure Checkout — {{ formatPrice(isMember && store.service?.memberPriceCents ? store.service.memberPriceCents : (store.service?.priceCents ?? 0)) }}</span>
           </button>
         </div>
         <p v-if="!store.service?.isTeam" class="text-xs text-gray-500 mt-3 text-center">Payments processed securely by Stripe. You'll be redirected to complete payment.</p>
@@ -403,6 +409,7 @@ const profileData = ref<any>(null)
 
 const hasStandardHours = computed(() => (profileData.value?.team_standard_hours || 0) > 0)
 const hasBuyoutHours = computed(() => (profileData.value?.team_buyout_hours || 0) > 0)
+const isMember = computed(() => profileData.value?.membership_status === 'active')
 
 // Step 3 (form data)
 const form = reactive({
@@ -533,6 +540,8 @@ async function startCheckout() {
       },
     })
     window.open(res.url, '_blank')
+    // Reset button so user can retry if popup was blocked
+    isCheckingOut.value = false
   } catch (err: unknown) {
     const e = err as { data?: { message?: string } }
     checkoutError.value = e?.data?.message || 'Something went wrong. Please try again.'

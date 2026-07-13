@@ -38,6 +38,9 @@ useHead({
       content: 'The Training Yard is Des Moines\' premier 6,000 sq ft indoor sports facility. 4 batting cages, 60x100 synthetic turf. Baseball, softball, soccer & agility training. Memberships from $89/mo.',
     },
   ],
+  link: [
+    { rel: 'canonical', href: 'https://trainingyarddsm.com' },
+  ],
 })
 
 // JSON-LD Schema

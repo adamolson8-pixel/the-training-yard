@@ -1,5 +1,6 @@
 import { serverSupabaseServiceRole } from '#supabase/server'
 import { sendEmail } from '../utils/email'
+import { escapeHtml } from '../utils/sanitize'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -23,15 +24,15 @@ export default defineEventHandler(async (event) => {
       <table style="width: 100%; max-width: 500px; border-collapse: collapse; margin-top: 20px;">
         <tr>
           <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold; width: 120px;">Email</td>
-          <td style="padding: 10px; border-bottom: 1px solid #eee;">${email}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #eee;">${escapeHtml(email)}</td>
         </tr>
         <tr>
           <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Resource</td>
-          <td style="padding: 10px; border-bottom: 1px solid #eee;">${resource || 'Unknown'}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #eee;">${escapeHtml(resource) || 'Unknown'}</td>
         </tr>
         <tr>
           <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Source</td>
-          <td style="padding: 10px; border-bottom: 1px solid #eee;">${source || 'Website'}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #eee;">${escapeHtml(source) || 'Website'}</td>
         </tr>
       </table>
       <p style="margin-top: 20px; font-size: 0.9em; color: #777;">You can now add this email to your marketing list.</p>

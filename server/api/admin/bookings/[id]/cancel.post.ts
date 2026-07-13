@@ -1,6 +1,8 @@
 import { serverSupabaseServiceRole } from '#supabase/server'
+import { requireAdmin } from '../../../../utils/auth'
 
 export default defineEventHandler(async (event) => {
+  await requireAdmin(event)
   const id = getRouterParam(event, 'id')
   if (!id) {
     throw createError({ statusCode: 400, message: 'Booking ID required.' })

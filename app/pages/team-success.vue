@@ -28,5 +28,8 @@
 <script setup lang="ts">
 useHead({
   title: 'Team Package Confirmed | Training Yard DSM',
+  meta: [
+    { name: 'robots', content: 'noindex, nofollow' },
+  ],
 })
 </script>

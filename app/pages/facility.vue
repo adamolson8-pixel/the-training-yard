@@ -114,6 +114,12 @@ useHead({
       name: 'description',
       content: 'Explore The Training Yard\'s 6,000 sq ft indoor facility. 60\' × 100\' synthetic turf, 4 retractable batting cages, and multi-sport configurations for baseball, softball, soccer & agility.',
     },
+    { property: 'og:title', content: 'The Facility | The Training Yard | Des Moines Indoor Sports' },
+    { property: 'og:description', content: 'Explore The Training Yard\'s 6,000 sq ft indoor facility. 60\' × 100\' synthetic turf, 4 retractable batting cages, and multi-sport configurations for baseball, softball, soccer & agility.' },
+    { property: 'og:url', content: 'https://trainingyarddsm.com/facility' },
+  ],
+  link: [
+    { rel: 'canonical', href: 'https://trainingyarddsm.com/facility' },
   ],
 })
 

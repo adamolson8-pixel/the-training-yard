@@ -72,6 +72,13 @@
 </template>
 
 <script setup lang="ts">
+useHead({
+  title: 'Log In | The Training Yard',
+  meta: [
+    { name: 'robots', content: 'noindex, nofollow' },
+  ],
+})
+
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 

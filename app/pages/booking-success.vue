@@ -73,6 +73,9 @@
 <script setup lang="ts">
 useHead({
   title: 'Booking Confirmed | Training Yard DSM',
+  meta: [
+    { name: 'robots', content: 'noindex, nofollow' },
+  ],
 })
 
 const route = useRoute()

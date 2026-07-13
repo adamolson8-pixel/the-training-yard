@@ -1,2 +1,9 @@
 User-Agent: *
-Disallow:
+Disallow: /admin/
+Disallow: /portal/
+Disallow: /confirm
+Disallow: /booking-success
+Disallow: /team-success
+Disallow: /login
+
+Sitemap: https://trainingyarddsm.com/sitemap.xml

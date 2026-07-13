@@ -114,7 +114,7 @@
         </p>
         <div class="p-3 rounded-xl mb-5 text-sm" :class="isCancelFullRefund ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-amber-500/10 border border-amber-500/20 text-amber-400'">
           <span v-if="isCancelFullRefund">✓ Full refund — you're cancelling more than 24 hours before your session.</span>
-          <span v-else">⚠ 50% cancellation fee — this session is less than 24 hours away.</span>
+          <span v-else>⚠ 50% cancellation fee — this session is less than 24 hours away.</span>
         </div>
         <div class="flex gap-3">
           <button class="flex-1 py-2.5 px-4 rounded-xl border border-white/10 text-gray-300 hover:bg-white/5 text-sm font-medium transition-all" @click="cancelTarget = null">Keep Booking</button>
