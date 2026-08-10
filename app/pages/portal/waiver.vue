@@ -169,9 +169,9 @@ async function submitManualWaiver() {
   submitting.value = true
   submitError.value = ''
   try {
-    await $fetch('/api/portal/me', {
-      method: 'PATCH',
-      body: { waiver_signed: true, waiver_signed_at: new Date().toISOString() },
+    await $fetch('/api/portal/waiver', {
+      method: 'POST',
+      body: { signerName: manualName.value, participantName: manualName.value, liabilityAccepted: manualChecked.value },
     })
     // Redirect to dashboard with success indicator
     await navigateTo('/portal/waiver?signed=true')

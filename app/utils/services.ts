@@ -1,9 +1,3 @@
-export interface ServicePackage {
-  label: string   // e.g. '6 hrs'
-  priceCents: number
-  hourlyRate?: string  // e.g. '$142.50/hr'
-}
-
 export interface Service {
   id: string
   label: string
@@ -18,7 +12,6 @@ export interface Service {
   isTeam?: boolean
   singlePriceCents?: number   // single-practice hourly rate in cents
   teamNote?: string
-  packages?: ServicePackage[]
 }
 
 export function formatPrice(cents: number): string {
@@ -93,12 +86,19 @@ export const SERVICES: Service[] = [
     emoji: '👥',
     isTeam: true,
     singlePriceCents: 15000,
-    teamNote: 'From $112.50/hr',
-    packages: [
-      { label: '6 hrs', priceCents: 85500, hourlyRate: '$142.50/hr' },
-      { label: '12 hrs', priceCents: 153000, hourlyRate: '$127.50/hr' },
-      { label: '24 hrs', priceCents: 270000, hourlyRate: '$112.50/hr' },
-    ],
+    teamNote: 'Call for custom discounted team pricing',
+  },
+  {
+    id: 'team_standard_90', label: 'Team Standard – 90 min',
+    description: "60'×50' half turf plus 2 batting cages for an extended team practice.",
+    priceCents: 22500, memberPriceCents: 16875, durationMinutes: 90, facilityType: 'team', maxPlayers: 20,
+    emoji: '👥', isTeam: true, singlePriceCents: 22500, teamNote: 'Redeem 1.5 package hours',
+  },
+  {
+    id: 'team_standard_120', label: 'Team Standard – 120 min',
+    description: "60'×50' half turf plus 2 batting cages for a full two-hour practice.",
+    priceCents: 30000, memberPriceCents: 22500, durationMinutes: 120, facilityType: 'team', maxPlayers: 20,
+    emoji: '👥', isTeam: true, singlePriceCents: 30000, teamNote: 'Redeem 2 package hours',
   },
   {
     id: 'full_buyout_60',
@@ -112,11 +112,18 @@ export const SERVICES: Service[] = [
     emoji: '🏆',
     isTeam: true,
     singlePriceCents: 22500,
-    teamNote: 'From $168.75/hr',
-    packages: [
-      { label: '6 hrs', priceCents: 128250, hourlyRate: '$213.75/hr' },
-      { label: '12 hrs', priceCents: 229500, hourlyRate: '$191.25/hr' },
-      { label: '24 hrs', priceCents: 405000, hourlyRate: '$168.75/hr' },
-    ],
+    teamNote: 'Call for custom discounted team pricing',
+  },
+  {
+    id: 'full_buyout_90', label: 'Full Facility Buyout – 90 min',
+    description: "Exclusive use of all 4 cages and the complete 60'×100' turf for 90 minutes.",
+    priceCents: 33750, memberPriceCents: 25313, durationMinutes: 90, facilityType: 'team', maxPlayers: 40,
+    emoji: '🏆', isTeam: true, singlePriceCents: 33750, teamNote: 'Redeem 1.5 package hours',
+  },
+  {
+    id: 'full_buyout_120', label: 'Full Facility Buyout – 120 min',
+    description: "Exclusive use of all 4 cages and the complete 60'×100' turf for two hours.",
+    priceCents: 45000, memberPriceCents: 33750, durationMinutes: 120, facilityType: 'team', maxPlayers: 40,
+    emoji: '🏆', isTeam: true, singlePriceCents: 45000, teamNote: 'Redeem 2 package hours',
   },
 ]

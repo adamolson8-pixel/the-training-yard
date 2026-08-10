@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
   const { data, error } = await (supabase as any)
     .from('bookings')
     .select('*')
-    .eq('customer_email', user.email)
+    .eq('user_id', user.id)
     .order('booking_date', { ascending: false })
 
   if (error) {

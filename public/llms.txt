@@ -1,12 +1,12 @@
 # The Training Yard — llms.txt
 # https://trainingyarddsm.com
-# Last updated: 2026-04-30
+# Last updated: 2026-08-10
 
 ## Business Information
 - **Name:** The Training Yard
 - **Type:** Indoor Sports Training Facility
 - **Location:** 2519 NW 66th Ave, Des Moines, IA 50313
-- **Phone:** 515.802.1457
+- **Phone:** 515.441.0528
 - **Email:** info@trainingyarddsm.com
 - **Website:** https://trainingyarddsm.com
 - **Hours:** Monday–Friday 6:00 AM – 10:00 PM, Saturday–Sunday 8:00 AM – 8:00 PM
@@ -24,7 +24,7 @@
 2. **Turf Rentals** — Half turf or full 60' × 100' turf for team practices, drills, and conditioning.
 3. **Private Lessons** — One-on-one instruction in hitting, pitching, fielding, and sport-specific skills. From $65/session.
 4. **Youth Clinics & Camps** — Progressive multi-week programs in baseball, softball, soccer, and agility.
-5. **Team Practice Blocks** — Seasonal contracts for club and travel teams needing guaranteed weekly turf time.
+5. **Team Practice Plans** — Custom discounted arrangements for club, travel, and school teams, shaped around roster size, schedule, facility setup, and season length.
 6. **Speed & Agility Training** — Ladder drills, cone work, shuttle runs, and SAQ programming.
 
 ## Sports Supported
@@ -44,8 +44,8 @@
 
 ### Membership Tiers
 - **Individual Monthly:** $89/month — Off-peak cage access, 20% off peak rates, member-only open gym
-- **Family Pass:** $149/month — Up to 4 family members, shared hours, 15% off clinics & camps
-- **Seasonal Team Contract:** From $1,200/season — Guaranteed weekly prime-time full turf, 10–16 week commitment
+- **Family Pass:** $129/month — Up to 4 family members, shared hours, 15% off clinics & camps
+- **Team Practice Plans:** Call 515.441.0528 for custom discounted pricing. The Training Yard works directly with each team to create a plan around its roster, schedule, space needs, and budget.
 
 ### Programs
 - Youth Hitting Clinic: $199/player, 6 weeks
@@ -76,7 +76,7 @@ A: Baseball, softball, soccer, agility and speed training, flag football, and ge
 A: 6,000 square feet — 60 feet wide by 100 feet long of premium synthetic turf.
 
 **Q: Can a team rent the whole turf?**
-A: Yes. Full-turf rentals are available by the hour ($250/hr) or via seasonal team contracts.
+A: Yes. Standard team setups, full-facility rentals, and recurring practice arrangements are available. Call 515.441.0528 or visit /teams for custom discounted pricing.
 
 **Q: Do members get discounts?**
 A: Yes. All tiers include priority booking, discounted rates, and member-only sessions.

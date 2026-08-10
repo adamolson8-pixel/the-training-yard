@@ -1,5 +1,6 @@
 import { serverSupabaseServiceRole } from '#supabase/server'
 import { requireAdmin } from '../../../utils/auth'
+import { recordAdminAction } from '../../../utils/adminAudit'
 
 const ADMIN_ALLOWED_FIELDS = ['role', 'membership_type', 'membership_status', 'membership_start', 'membership_expires', 'waiver_signed', 'waiver_signed_at', 'waiver_override_by', 'full_name', 'phone', 'stripe_customer_id', 'stripe_subscription_id']
 
@@ -33,6 +34,8 @@ export default defineEventHandler(async (event) => {
     .single()
 
   if (error) throw createError({ statusCode: 500, statusMessage: 'Failed to update user.' })
+
+  await recordAdminAction(supabase, admin.id, 'account.updated', 'user', targetId, { fields: Object.keys(updates) })
 
   return data
 })

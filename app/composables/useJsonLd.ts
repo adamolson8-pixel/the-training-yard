@@ -51,7 +51,10 @@ export function getLocalBusinessSchema() {
     ],
     image: 'https://trainingyarddsm.com/images/Training_Yard_Facility_homepage.jpg',
     logo: 'https://trainingyarddsm.com/images/logo.jpg',
-    sameAs: [],
+    sameAs: [
+      'https://www.facebook.com/TheTrainingYardDSM/',
+      'https://www.instagram.com/thetrainingyarddsm/',
+    ],
     hasOfferCatalog: {
       '@type': 'OfferCatalog',
       name: 'Training Yard Services',

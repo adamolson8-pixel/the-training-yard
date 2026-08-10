@@ -2,7 +2,7 @@ import { serverSupabaseServiceRole } from '#supabase/server'
 import { requireAuth } from '../../utils/auth'
 
 // Only these fields may be updated by the user themselves
-const ALLOWED_FIELDS = ['full_name', 'phone', 'emergency_contact', 'waiver_signed', 'waiver_signed_at', 'dependents'] as const
+const ALLOWED_FIELDS = ['full_name', 'phone', 'emergency_contact', 'dependents'] as const
 
 
 export default defineEventHandler(async (event) => {

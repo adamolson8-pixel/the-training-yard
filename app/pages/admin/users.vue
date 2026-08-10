@@ -198,9 +198,13 @@
             <section class="border border-red-200 rounded-xl p-4 bg-red-50">
               <div class="text-xs font-bold uppercase tracking-widest text-red-400 mb-3">Danger Zone</div>
               <p class="text-gray-500 text-xs mb-3">These actions are permanent and cannot be undone.</p>
-              <div class="flex gap-2">
+              <div class="flex gap-2 flex-wrap">
+                <button @click="sendPasswordReset" :disabled="accountActionSaving"
+                  class="flex-1 py-2 text-xs font-bold text-amber-700 border border-amber-300 bg-white hover:bg-amber-50 rounded-lg transition-colors disabled:opacity-50">
+                  ✉ Send Password Reset
+                </button>
                 <button @click="deleteUser"
-                  class="flex-1 py-2 text-xs font-bold text-red-600 border border-red-300 bg-white hover:bg-red-50 rounded-lg transition-colors">
+                  :disabled="accountActionSaving" class="flex-1 py-2 text-xs font-bold text-red-600 border border-red-300 bg-white hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50">
                   🗑 Delete Account
                 </button>
               </div>
@@ -269,6 +273,7 @@ const drawerRole = ref('')
 const drawerBookings = ref<any[]>([])
 const drawerBookingsPending = ref(false)
 const waiverSaving = ref(false)
+const accountActionSaving = ref(false)
 
 const editingHours = ref(false)
 const hoursSaving = ref(false)
@@ -361,7 +366,7 @@ async function openDrawer(u: any) {
 
   drawerBookingsPending.value = true
   const data = await $fetch<any>('/api/admin/bookings', { query: { user_id: u.id } })
-  drawerBookings.value = Array.isArray(data) ? data : []
+  drawerBookings.value = Array.isArray(data) ? data : (data.bookings || [])
   drawerBookingsPending.value = false
 }
 
@@ -384,9 +389,31 @@ async function approveWaiver() {
 
 async function deleteUser() {
   if (!drawer.value) return
-  if (!confirm(`Permanently delete ${drawer.value.email}? This cannot be undone.`)) return
-  // Note: Supabase user deletion requires service role admin auth API — flag for admin to do in dashboard
-  alert('To fully delete a Supabase auth account, go to Supabase Dashboard → Authentication → Users and delete from there. The profile will also need to be removed from the profiles table.')
+  const confirmation = prompt(`Permanently delete ${drawer.value.email}? Type the full email address to confirm.`)
+  if (confirmation === null) return
+  accountActionSaving.value = true
+  try {
+    await $fetch(`/api/admin/users/${drawer.value.id}`, { method: 'DELETE', body: { confirm_email: confirmation } })
+    drawer.value = null
+    await fetchUsers()
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || 'Unable to delete the account.')
+  } finally {
+    accountActionSaving.value = false
+  }
+}
+
+async function sendPasswordReset() {
+  if (!drawer.value || !confirm(`Send a password reset email to ${drawer.value.email}?`)) return
+  accountActionSaving.value = true
+  try {
+    await $fetch(`/api/admin/users/${drawer.value.id}/reset-password`, { method: 'POST' })
+    alert('Password reset email sent.')
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || 'Unable to send the reset email.')
+  } finally {
+    accountActionSaving.value = false
+  }
 }
 
 function membershipBadge(status: string) {

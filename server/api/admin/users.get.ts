@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
 
   let req = (supabase as any)
     .from('profiles')
-    .select('id, email, full_name, phone, role, membership_type, membership_status, membership_expires, waiver_signed, waiver_signed_at, created_at, team_standard_hours, team_buyout_hours', { count: 'exact' })
+    .select('id, email, full_name, phone, role, membership_type, membership_status, membership_expires, waiver_signed, waiver_signed_at, waiver_override_by, created_at, team_standard_hours, team_buyout_hours', { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(from, to)
 

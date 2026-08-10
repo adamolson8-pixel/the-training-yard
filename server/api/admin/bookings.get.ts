@@ -1,5 +1,6 @@
 import { serverSupabaseServiceRole } from '#supabase/server'
 import { requireAdmin } from '../../utils/auth'
+import { facilityWindow } from '../../utils/booking'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -26,7 +27,8 @@ export default defineEventHandler(async (event) => {
     const { data, error } = await req
 
     if (error) {
-      return { error: `DB Error: ${error.message} - ${error.details}` }
+      console.error('[admin bookings] Database query failed:', error)
+      throw createError({ statusCode: 500, statusMessage: 'Unable to load bookings.' })
     }
 
     const mappedBookings = data.map((b: any) => {
@@ -46,31 +48,26 @@ export default defineEventHandler(async (event) => {
         if (timeStr.indexOf(':') === 1) timeStr = '0' + timeStr
       }
 
-      const startObj = new Date(`${b.booking_date}T${timeStr}:00Z`)
-      const endObj = new Date(startObj.getTime() + (b.duration_minutes || 60) * 60000)
-
-      let resourceId = 'cage-1'
-      if (b.service_type === 'cage_rental') {
-         if (b.service_label?.toLowerCase().includes('cage 2')) resourceId = 'cage-2'
-         else if (b.service_label?.toLowerCase().includes('cage 3')) resourceId = 'cage-3'
-         else if (b.service_label?.toLowerCase().includes('cage 4')) resourceId = 'cage-4'
-         else if (b.service_label?.toLowerCase().includes('full turf')) resourceId = 'full-turf'
-         else if (b.service_label?.toLowerCase().includes('half turf')) resourceId = 'half-turf'
-      }
+      const legacyWindow = !b.start_at ? facilityWindow(b.booking_date, timeStr, b.duration_minutes || 60) : null
+      const startObj = b.start_at ? new Date(b.start_at) : legacyWindow!.startAt
+      const endObj = b.end_at ? new Date(b.end_at) : legacyWindow!.endAt
+      const resourceId = Number(b.cage_units || 0) === 4 && Number(b.turf_units || 0) === 2
+        ? 'full-facility'
+        : `cages-${Number(b.cage_units || 0)}-turf-${Number(b.turf_units || 0)}`
 
       return {
         ...b,
         resource_id: resourceId,
         start_time: startObj.toISOString(),
         end_time: endObj.toISOString(),
-        profiles: b.profiles || { full_name: b.customer_name, email: b.customer_email }
+        profiles: { full_name: b.customer_name, email: b.customer_email },
       }
     })
 
     return { bookings: mappedBookings, isAdmin: true }
   } catch (err: any) {
-    // If we throw here, $fetch intercepts it and hides it.
-    // By returning it as a 200 JSON object with an 'error' key, schedule.vue will display it.
-    return { error: `Fatal Server Error: ${err.message || err}` }
+    if (err?.statusCode) throw err
+    console.error('[admin bookings] Unexpected failure:', err)
+    throw createError({ statusCode: 500, statusMessage: 'Unable to load bookings.' })
   }
 })

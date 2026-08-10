@@ -1,8 +1,9 @@
 import { serverSupabaseServiceRole } from '#supabase/server'
 import { requireAdmin } from '../../../utils/auth'
+import { recordAdminAction } from '../../../utils/adminAudit'
 
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  const admin = await requireAdmin(event)
   const supabase = serverSupabaseServiceRole(event)
   const body = await readBody(event)
 
@@ -52,5 +53,6 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  await recordAdminAction(supabase, admin.id, 'account.created', 'user', userId, { role: role === 'admin' ? 'admin' : 'customer' })
   return { success: true, user_id: userId }
 })

@@ -1,317 +1,185 @@
 <template>
   <div class="min-h-screen bg-gray-950 text-white">
-
-    <!-- Hero -->
-    <section class="pt-24 pb-12 px-4 text-center bg-gradient-to-b from-black to-gray-950">
-      <div class="max-w-3xl mx-auto">
-        <div class="text-5xl mb-4">🏆</div>
-        <h1 class="font-display text-4xl md:text-5xl font-bold mb-4">Team Rentals & Packages</h1>
-        <p class="text-gray-400 text-lg">Flexible hourly rates, bulk packages, and VIP season plans for clubs, travel teams, and school programs.</p>
+    <section class="relative overflow-hidden px-4 pb-16 pt-24 text-center bg-gradient-to-b from-black to-gray-950">
+      <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.16),transparent_48%)]" />
+      <div class="relative mx-auto max-w-4xl">
+        <span class="mb-5 inline-flex rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-amber-400">
+          Team &amp; Club Partners
+        </span>
+        <h1 class="font-display text-4xl font-bold leading-tight md:text-6xl">{{ TEAM_PRICING.headline }}</h1>
+        <p class="mx-auto mt-5 max-w-3xl text-lg leading-relaxed text-gray-300 md:text-xl">{{ TEAM_PRICING.message }}</p>
+        <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <a :href="TEAM_PRICING.phoneHref" class="btn-primary w-full text-center sm:w-auto" :aria-label="`${TEAM_PRICING.callCta} at ${TEAM_PRICING.phoneDisplay}`">
+            {{ TEAM_PRICING.callCta }}
+          </a>
+          <a href="#inquiry" class="btn-secondary w-full text-center sm:w-auto" @click.prevent="scrollToInquiry()">
+            {{ TEAM_PRICING.inquiryCta }}
+          </a>
+        </div>
+        <p class="mt-4 text-sm text-gray-400">
+          Prefer to talk it through? Call <a :href="TEAM_PRICING.phoneHref" class="font-bold text-amber-400 hover:text-amber-300">{{ TEAM_PRICING.phoneDisplay }}</a>.
+        </p>
       </div>
     </section>
 
-    <!-- Pricing Tables -->
-    <section class="py-12 px-4">
-      <div class="max-w-5xl mx-auto space-y-10">
+    <section class="px-4 py-14">
+      <div class="mx-auto max-w-5xl">
+        <div class="mb-10 text-center">
+          <h2 class="font-display text-3xl font-bold md:text-4xl">Choose the Space. We’ll Build the Plan.</h2>
+          <p class="mx-auto mt-3 max-w-2xl text-gray-400">Start with the setup that fits your practice. We’ll help shape the schedule and pricing around your actual needs.</p>
+        </div>
 
-        <!-- ═══ Standard Team ═══ -->
-        <div class="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
-          <!-- Header -->
-          <div class="px-6 py-5 border-b border-white/10 flex items-center gap-3">
-            <span class="text-2xl">👥</span>
-            <div class="flex-1">
-              <h2 class="text-xl font-bold text-white">Standard Team</h2>
-              <p class="text-gray-400 text-sm">2 Batting Cages + Half Turf (60'×50') · Up to 20 athletes</p>
+        <div class="grid gap-6 md:grid-cols-2">
+          <article v-for="option in teamOptions" :key="option.value" class="flex h-full flex-col rounded-2xl border bg-white/5 p-7" :class="option.featured ? 'border-amber-500/35' : 'border-white/10'">
+            <div class="mb-4 flex items-start justify-between gap-3">
+              <span class="text-4xl" aria-hidden="true">{{ option.emoji }}</span>
+              <span v-if="option.featured" class="rounded-full bg-amber-500 px-3 py-1 text-xs font-bold text-black">Maximum Flexibility</span>
             </div>
-          </div>
-          <!-- Table -->
-          <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-              <thead>
-                <tr class="border-b border-white/10 text-gray-400">
-                  <th class="text-left px-6 py-3 font-medium">Package</th>
-                  <th class="text-right px-6 py-3 font-medium">Total Price</th>
-                  <th class="text-right px-6 py-3 font-medium">Effective Rate</th>
-                  <th class="text-right px-6 py-3 font-medium">Savings</th>
-                </tr>
-              </thead>
-              <tbody>
-                <!-- Regular rows -->
-                <tr v-for="row in standardTeam" :key="row.label" class="border-b border-white/5 hover:bg-white/5 transition-colors">
-                  <td class="px-6 py-4 font-medium text-white">{{ row.label }}</td>
-                  <td class="px-6 py-4 text-right text-amber-400 font-bold">{{ row.price }}</td>
-                  <td class="px-6 py-4 text-right text-gray-300">
-                    <div>{{ row.rate }}</div>
-                    <div v-if="row.comparisonRate" class="text-gray-500 text-xs line-through">{{ row.comparisonRate }}</div>
-                  </td>
-                  <td class="px-6 py-4 text-right">
-                    <button class="btn-primary text-xs py-1.5 px-3 whitespace-nowrap" @click="buyPackage(row, 'standard')">
-                      {{ loading === row.label ? 'Redirecting...' : 'Buy Package' }}
-                    </button>
-                  </td>
-                </tr>
-                <!-- VIP row — visually highlighted -->
-                <tr class="bg-green-500/8 border-t-2 border-green-500/30">
-                  <td class="px-6 py-4">
-                    <div class="flex items-center gap-2 flex-wrap">
-                      <span class="font-bold text-white">Annual VIP — 24 hrs</span>
-                      <span class="text-[10px] font-bold bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-0.5 rounded-full">⭐ VIP</span>
-                      <span class="text-[10px] font-bold bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-0.5 rounded-full">Best Value</span>
-                    </div>
-                    <div class="text-gray-400 text-xs mt-0.5">Year-round access · First-priority scheduling · 20% off extra hrs · 10% roster discount</div>
-                  </td>
-                  <td class="px-6 py-4 text-right">
-                    <div class="text-green-400 font-bold text-base">$2,700<span class="text-xs font-normal text-gray-400">/yr</span></div>
-                  </td>
-                  <td class="px-6 py-4 text-right">
-                    <div class="text-green-400 font-semibold">$112.50/hr</div>
-                    <div class="text-gray-500 text-xs line-through">$150/hr</div>
-                  </td>
-                  <td class="px-6 py-4 text-right">
-                    <button class="btn-primary bg-green-600 hover:bg-green-500 text-white border-none text-xs py-1.5 px-3 whitespace-nowrap" @click="buyPackage({ label: 'Standard VIP – 24 hrs', priceCents: 270000, hours: 24 }, 'standard')">
-                      {{ loading === 'standard-vip' ? 'Redirecting...' : 'Buy VIP →' }}
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <!-- CTA footer -->
-          <div class="px-6 py-4 border-t border-white/10 bg-white/3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <p class="text-gray-400 text-xs">Book in 60, 90, or 120-min blocks. Pitching machines included upon availability.</p>
-            <a href="#inquiry" class="btn-primary whitespace-nowrap text-sm" @click.prevent="setPackageAndScroll('Standard Team VIP – 24-Hour Annual ($2,700/yr)')">Get Standard VIP →</a>
-          </div>
+            <h3 class="text-2xl font-bold">{{ option.name }}</h3>
+            <p class="mt-2 text-sm leading-relaxed text-gray-400">{{ option.description }}</p>
+            <ul class="my-6 flex-1 space-y-3 text-sm text-gray-300">
+              <li v-for="feature in option.features" :key="feature" class="flex items-start gap-2">
+                <span class="mt-0.5 text-green-400" aria-hidden="true">✓</span>
+                <span>{{ feature }}</span>
+              </li>
+            </ul>
+            <button class="btn-primary w-full" type="button" @click="scrollToInquiry(option.value)">{{ TEAM_PRICING.inquiryCta }}</button>
+          </article>
         </div>
-
-        <!-- ═══ Full Facility Buyout ═══ -->
-        <div class="rounded-2xl border border-amber-500/30 bg-amber-500/5 overflow-hidden">
-          <!-- Header -->
-          <div class="px-6 py-5 border-b border-amber-500/20 flex items-center gap-3">
-            <span class="text-2xl">🏆</span>
-            <div class="flex-1">
-              <h2 class="text-xl font-bold text-white">Full Facility Buyout</h2>
-              <p class="text-gray-400 text-sm">4 Batting Cages + Full Turf (60'×100') · Up to 40 athletes · No sharing</p>
-            </div>
-            <span class="text-xs bg-amber-500 text-black font-bold px-3 py-1 rounded-full whitespace-nowrap">Premium</span>
-          </div>
-          <!-- Table -->
-          <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-              <thead>
-                <tr class="border-b border-amber-500/20 text-gray-400">
-                  <th class="text-left px-6 py-3 font-medium">Package</th>
-                  <th class="text-right px-6 py-3 font-medium">Total Price</th>
-                  <th class="text-right px-6 py-3 font-medium">Effective Rate</th>
-                  <th class="text-right px-6 py-3 font-medium">Savings</th>
-                </tr>
-              </thead>
-              <tbody>
-                <!-- Regular rows -->
-                <tr v-for="row in fullBuyout" :key="row.label" class="border-b border-white/5 hover:bg-white/5 transition-colors">
-                  <td class="px-6 py-4 font-medium text-white">{{ row.label }}</td>
-                  <td class="px-6 py-4 text-right text-amber-400 font-bold">{{ row.price }}</td>
-                  <td class="px-6 py-4 text-right text-gray-300">
-                    <div>{{ row.rate }}</div>
-                    <div v-if="row.comparisonRate" class="text-gray-500 text-xs line-through">{{ row.comparisonRate }}</div>
-                  </td>
-                  <td class="px-6 py-4 text-right">
-                    <button class="btn-primary text-xs py-1.5 px-3 whitespace-nowrap" @click="buyPackage(row, 'buyout')">
-                      {{ loading === row.label ? 'Redirecting...' : 'Buy Package' }}
-                    </button>
-                  </td>
-                </tr>
-                <!-- VIP row — visually highlighted -->
-                <tr class="bg-amber-500/8 border-t-2 border-amber-500/30">
-                  <td class="px-6 py-4">
-                    <div class="flex items-center gap-2 flex-wrap">
-                      <span class="font-bold text-white">Annual VIP — 24 hrs</span>
-                      <span class="text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full">⭐ VIP</span>
-                      <span class="text-[10px] font-bold bg-amber-500 text-black px-2 py-0.5 rounded-full">Best Value</span>
-                    </div>
-                    <div class="text-gray-400 text-xs mt-0.5">Year-round access · First-priority, no-sharing guaranteed · 20% off extra hrs · 10% roster discount</div>
-                  </td>
-                  <td class="px-6 py-4 text-right">
-                    <div class="text-amber-400 font-bold text-base">$4,050<span class="text-xs font-normal text-gray-400">/yr</span></div>
-                  </td>
-                  <td class="px-6 py-4 text-right">
-                    <div class="text-amber-400 font-semibold">$168.75/hr</div>
-                    <div class="text-gray-500 text-xs line-through">$225/hr</div>
-                  </td>
-                  <td class="px-6 py-4 text-right">
-                    <button class="btn-primary text-xs py-1.5 px-3 whitespace-nowrap" @click="buyPackage({ label: 'Full Facility VIP – 24 hrs', priceCents: 405000, hours: 24 }, 'buyout')">
-                      {{ loading === 'buyout-vip' ? 'Redirecting...' : 'Buy VIP →' }}
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <!-- CTA footer -->
-          <div class="px-6 py-4 border-t border-amber-500/20 bg-amber-500/3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <p class="text-gray-400 text-xs">Book in 60, 90, or 120-min blocks. Full facility — all cages open, no sharing ever.</p>
-            <a href="#inquiry" class="btn-primary whitespace-nowrap text-sm" @click.prevent="setPackageAndScroll('Full Facility VIP – 24-Hour Annual ($4,050/yr)')">Get Full Facility VIP →</a>
-          </div>
-        </div>
-
-        <!-- Notes -->
-        <div class="bg-white/5 border border-white/10 rounded-xl p-5 text-sm text-gray-400 space-y-2">
-          <p>📅 <strong class="text-white">Scheduling:</strong> Book in 60, 90, or 120-minute increments. Priority advanced scheduling included with all team packages.</p>
-          <p>🎯 <strong class="text-white">Includes:</strong> Pitching machines upon availability for all team rentals.</p>
-          <p>👨‍👩‍👧 <strong class="text-white">Guest fee:</strong> $15/non-member actively training. Parents/coaches assisting are always free.</p>
-        </div>
-
       </div>
     </section>
 
+    <section class="border-y border-white/10 bg-white/[0.03] px-4 py-14">
+      <div class="mx-auto max-w-5xl">
+        <div class="grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
+          <div>
+            <span class="text-sm font-bold uppercase tracking-widest text-amber-400">A plan that fits</span>
+            <h2 class="mt-3 font-display text-3xl font-bold">No One-Size-Fits-All Team Rate</h2>
+            <p class="mt-4 leading-relaxed text-gray-400">A weekly winter practice should not be priced the same as a one-time tryout, clinic, or full-season training partnership. We’ll listen first and recommend an arrangement that works for both your team and the facility.</p>
+          </div>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div v-for="factor in pricingFactors" :key="factor.title" class="rounded-xl border border-white/10 bg-black/20 p-5">
+              <div class="text-2xl" aria-hidden="true">{{ factor.emoji }}</div>
+              <h3 class="mt-3 font-bold text-white">{{ factor.title }}</h3>
+              <p class="mt-1 text-sm leading-relaxed text-gray-400">{{ factor.description }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-
-
-    <section id="inquiry" class="py-16 px-4">
-      <div class="max-w-2xl mx-auto">
-        <div class="text-center mb-10">
-          <h2 class="font-display text-3xl font-bold mb-3">Request Team Availability</h2>
-          <p class="text-gray-400">Tell us about your team and we'll get back to you with availability and custom package options.</p>
+    <section id="inquiry" class="scroll-mt-24 px-4 py-16">
+      <div class="mx-auto max-w-2xl">
+        <div class="mb-10 text-center">
+          <h2 class="font-display text-3xl font-bold">{{ TEAM_PRICING.inquiryCta }}</h2>
+          <p class="mt-3 text-gray-400">Tell us what would make a great practice plan for your team. We’ll follow up to talk through availability and pricing.</p>
         </div>
 
-        <form @submit.prevent="submitInquiry" class="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8 space-y-5">
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <form class="space-y-5 rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8" @submit.prevent="submitInquiry">
+          <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <div>
-              <label class="block text-sm font-medium text-gray-300 mb-1">Your Name *</label>
-              <input v-model="form.name" type="text" required class="form-input" placeholder="Coach / Contact name" />
+              <label for="teamContactName" class="block text-sm font-medium text-gray-300 mb-1">Your Name *</label>
+              <input id="teamContactName" v-model="form.name" type="text" required autocomplete="name" class="form-input" placeholder="Coach / contact name">
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-300 mb-1">Email *</label>
-              <input v-model="form.email" type="email" required class="form-input" placeholder="you@example.com" />
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-1">Phone</label>
-              <input v-model="form.phone" type="tel" class="form-input" placeholder="515-000-0000" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-1">Organization / Team Name *</label>
-              <input v-model="form.orgName" type="text" required class="form-input" placeholder="Des Moines Hawks 14U" />
+              <label for="teamContactEmail" class="block text-sm font-medium text-gray-300 mb-1">Email *</label>
+              <input id="teamContactEmail" v-model="form.email" type="email" required autocomplete="email" class="form-input" placeholder="you@example.com">
             </div>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <div>
-              <label class="block text-sm font-medium text-gray-300 mb-1">Sport / Activity</label>
-              <input v-model="form.sport" type="text" class="form-input" placeholder="Baseball, Softball, Multi-sport..." />
+              <label for="teamContactPhone" class="block text-sm font-medium text-gray-300 mb-1">Phone</label>
+              <input id="teamContactPhone" v-model="form.phone" type="tel" autocomplete="tel" class="form-input" placeholder="515-000-0000">
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-300 mb-1">Number of Players</label>
-              <input v-model="form.players" type="number" min="1" class="form-input" placeholder="15" />
+              <label for="teamOrganization" class="block text-sm font-medium text-gray-300 mb-1">Organization / Team Name *</label>
+              <input id="teamOrganization" v-model="form.orgName" type="text" required autocomplete="organization" class="form-input" placeholder="Des Moines Hawks 14U">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <div>
+              <label for="teamSport" class="block text-sm font-medium text-gray-300 mb-1">Sport / Activity</label>
+              <input id="teamSport" v-model="form.sport" type="text" class="form-input" placeholder="Baseball, softball, soccer...">
+            </div>
+            <div>
+              <label for="teamPlayers" class="block text-sm font-medium text-gray-300 mb-1">Number of Players</label>
+              <input id="teamPlayers" v-model="form.players" type="number" min="1" class="form-input" placeholder="15">
             </div>
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-1">Package Interest</label>
-            <select v-model="form.packageInterest" class="form-input">
-              <option value="">Not sure yet</option>
-              <optgroup label="Standard Team (2 Cages + Half Turf)">
-                <option value="Standard Team – Single Practice ($150/hr)">Single Practice ($150/hr)</option>
-                <option value="Standard Team – 6-Hour Package ($855)">6-Hour Package ($855)</option>
-                <option value="Standard Team – 12-Hour Package ($1,530)">12-Hour Package ($1,530)</option>
-                <option value="Standard Team VIP – 24-Hour Annual ($2,700/yr)">⭐ VIP – 24-Hour Annual ($2,700/yr)</option>
-              </optgroup>
-              <optgroup label="Full Facility Buyout (4 Cages + Full Turf)">
-                <option value="Full Facility Buyout – Single Practice ($225/hr)">Single Practice ($225/hr)</option>
-                <option value="Full Facility Buyout – 6-Hour Package ($1,282.50)">6-Hour Package ($1,282.50)</option>
-                <option value="Full Facility Buyout – 12-Hour Package ($2,295)">12-Hour Package ($2,295)</option>
-                <option value="Full Facility VIP – 24-Hour Annual ($4,050/yr)">⭐ VIP – 24-Hour Annual ($4,050/yr)</option>
-              </optgroup>
+            <label for="teamSetup" class="block text-sm font-medium text-gray-300 mb-1">Preferred Team Setup</label>
+            <select id="teamSetup" v-model="form.packageInterest" class="form-input">
+              <option value="">Help me choose</option>
+              <option value="Standard Team Setup — 2 Cages + Half Turf">Standard Team Setup — 2 Cages + Half Turf</option>
+              <option value="Full Facility — 4 Cages + Full Turf">Full Facility — 4 Cages + Full Turf</option>
+              <option value="Custom or rotating setup">Custom or rotating setup</option>
             </select>
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-1">Anything else?</label>
-            <textarea v-model="form.message" rows="4" class="form-input" placeholder="Preferred days/times, season dates, specific needs..."></textarea>
+            <label for="teamNeeds" class="block text-sm font-medium text-gray-300 mb-1">Practice Schedule &amp; Team Needs</label>
+            <textarea id="teamNeeds" v-model="form.message" rows="5" class="form-input" placeholder="Preferred days and times, season dates, practice frequency, goals, and anything we should know..."></textarea>
           </div>
 
-          <!-- Status messages -->
-          <div v-if="submitStatus === 'success'" class="p-4 rounded-xl bg-green-500/10 border border-green-500/30 text-green-400 text-sm text-center">
-            ✅ Inquiry sent! We'll be in touch within 24 hours.
+          <div v-if="submitStatus === 'success'" role="status" class="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-center text-sm text-green-400">
+            Inquiry sent! We’ll be in touch within 24 hours to discuss a plan for your team.
           </div>
-          <div v-if="submitStatus === 'error'" class="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm text-center">
-            Something went wrong. Please email us directly at <a href="mailto:adam@trainingyarddsm.com" class="underline">adam@trainingyarddsm.com</a>
+          <div v-if="submitStatus === 'error'" role="alert" class="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-center text-sm text-red-400">
+            Something went wrong. Call <a :href="TEAM_PRICING.phoneHref" class="font-bold underline">{{ TEAM_PRICING.phoneDisplay }}</a> or email <a href="mailto:info@trainingyarddsm.com" class="font-bold underline">info@trainingyarddsm.com</a>.
           </div>
 
           <button type="submit" class="btn-primary w-full text-lg" :disabled="submitting">
-            {{ submitting ? 'Sending...' : 'Send Inquiry' }}
+            {{ submitting ? 'Sending…' : TEAM_PRICING.inquiryCta }}
           </button>
-
+          <p class="text-center text-xs text-gray-500">No obligation. We’ll start with a conversation about what works for your team.</p>
         </form>
       </div>
     </section>
-
   </div>
 </template>
 
 <script setup lang="ts">
+import { TEAM_PRICING } from '~/utils/teamPricing'
+
 useHead({
-  title: 'Team Rentals & Packages – The Training Yard',
+  title: 'Custom Team Pricing & Rentals – The Training Yard',
   meta: [
-    { name: 'description', content: 'Team rental packages at The Training Yard Des Moines. Standard team and full facility buyout options. Hourly, bulk, and annual VIP plans for clubs, travel teams, and school programs.' },
-    { property: 'og:title', content: 'Team Rentals & Packages – The Training Yard' },
-    { property: 'og:description', content: 'Team rental packages at The Training Yard Des Moines. Standard team and full facility buyout options. Hourly, bulk, and annual VIP plans for clubs, travel teams, and school programs.' },
+    { name: 'description', content: 'Custom discounted team pricing at The Training Yard Des Moines. We work with clubs, travel teams, and school programs to build a practice plan around their schedule, roster, and budget.' },
+    { property: 'og:title', content: 'Custom Team Pricing, Built Around Your Season' },
+    { property: 'og:description', content: 'Tell us what your team needs, and we’ll build a discounted practice plan around your schedule, roster, and budget.' },
     { property: 'og:url', content: 'https://trainingyarddsm.com/teams' },
   ],
-  link: [
-    { rel: 'canonical', href: 'https://trainingyarddsm.com/teams' },
-  ],
+  link: [{ rel: 'canonical', href: 'https://trainingyarddsm.com/teams' }],
 })
 
-const user = useSupabaseUser()
-const loading = ref<string | null>(null)
-
-const standardTeam = [
-  { label: 'Single Practice (1 hr)', price: '$150', rate: '$150/hr', priceCents: 15000, hours: 1 },
-  { label: '6-Hour Package', price: '$855', rate: '$142.50/hr', comparisonRate: '$150/hr', priceCents: 85500, hours: 6 },
-  { label: '12-Hour Package', price: '$1,530', rate: '$127.50/hr', comparisonRate: '$150/hr', priceCents: 153000, hours: 12 },
+const teamOptions = [
+  {
+    name: 'Standard Team Setup',
+    value: 'Standard Team Setup — 2 Cages + Half Turf',
+    emoji: '👥',
+    description: "Two batting cages plus 60' × 50' of open turf for organized practices, station work, and smaller team groups.",
+    features: ['Room for up to 20 athletes', 'Hitting, fielding, and conditioning stations', '60, 90, and 120-minute practice options', 'Pitching machines available upon request'],
+    featured: false,
+  },
+  {
+    name: 'Full Facility',
+    value: 'Full Facility — 4 Cages + Full Turf',
+    emoji: '🏆',
+    description: "Exclusive use of all four cages and the full 60' × 100' turf—ideal for larger rosters, clinics, tryouts, and complete team practices.",
+    features: ['Room for up to 40 athletes', 'No shared space during your reservation', 'Flexible cage and open-turf configurations', 'Great for recurring practices and special events'],
+    featured: true,
+  },
 ]
 
-const fullBuyout = [
-  { label: 'Single Practice (1 hr)', price: '$225', rate: '$225/hr', priceCents: 22500, hours: 1 },
-  { label: '6-Hour Package', price: '$1,282.50', rate: '$213.75/hr', comparisonRate: '$225/hr', priceCents: 128250, hours: 6 },
-  { label: '12-Hour Package', price: '$2,295', rate: '$191.25/hr', comparisonRate: '$225/hr', priceCents: 229500, hours: 12 },
+const pricingFactors = [
+  { emoji: '📅', title: 'Season & Frequency', description: 'One-time sessions, weekly practices, and longer partnerships each call for a different plan.' },
+  { emoji: '👥', title: 'Roster & Space', description: 'We’ll match your group size and practice format to the right facility configuration.' },
+  { emoji: '⏱️', title: 'Days & Times', description: 'Timing and flexibility help us find the best availability and value for your team.' },
+  { emoji: '🤝', title: 'Budget & Goals', description: 'Share what you need to accomplish, and we’ll work to create pricing that makes sense.' },
 ]
-
-async function buyPackage(pkg: any, type: 'standard' | 'buyout') {
-  if (!user.value) {
-    alert('Please log in or create an account to purchase a team package.')
-    navigateTo('/login?redirect=/teams')
-    return
-  }
-
-  loading.value = pkg.label === 'Standard VIP – 24 hrs' ? 'standard-vip' : pkg.label === 'Full Facility VIP – 24 hrs' ? 'buyout-vip' : pkg.label
-  try {
-    const { url } = await $fetch<{ url: string }>('/api/stripe/create-team-checkout', {
-      method: 'POST',
-      body: {
-        packageId: `${type}_${pkg.hours}`,
-        packageName: `${pkg.label} (${type === 'standard' ? 'Standard Team' : 'Full Buyout'})`,
-        priceCents: pkg.priceCents,
-        hoursToAdd: pkg.hours,
-        packageType: type,
-      }
-    })
-    window.open(url, '_blank')
-  } catch (e: any) {
-    alert(e?.data?.message || 'Failed to start checkout. Please try again.')
-  } finally {
-    loading.value = null
-  }
-}
-
-function setPackageAndScroll(pkg: string) {
-  form.packageInterest = pkg
-  const el = document.getElementById('inquiry')
-  if (el) el.scrollIntoView({ behavior: 'smooth' })
-}
 
 const form = reactive({
   name: '',
@@ -326,6 +194,11 @@ const form = reactive({
 
 const submitting = ref(false)
 const submitStatus = ref<'idle' | 'success' | 'error'>('idle')
+
+function scrollToInquiry(setup = '') {
+  if (setup) form.packageInterest = setup
+  document.getElementById('inquiry')?.scrollIntoView({ behavior: 'smooth' })
+}
 
 async function submitInquiry() {
   submitting.value = true
@@ -343,8 +216,12 @@ async function submitInquiry() {
 </script>
 
 <style scoped>
-select option, select optgroup {
+select option {
   background-color: #111827;
   color: white;
+}
+select.form-input {
+  min-width: 0;
+  max-width: 100%;
 }
 </style>

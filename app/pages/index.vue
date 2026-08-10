@@ -60,11 +60,11 @@ useJsonLd([
     },
     {
       question: 'Can a team rent the whole turf?',
-      answer: 'Yes. We offer full-turf team rentals by the hour and seasonal team contracts. When you book the full turf, all four batting cages retract to give your team the complete 60\' × 100\' space.',
+      answer: 'Yes. We offer standard team setups, full-facility rentals, and recurring practice arrangements. We work directly with teams to create custom discounted pricing around their roster, schedule, space, and season.',
     },
     {
       question: 'Do members get discounts or priority booking?',
-      answer: 'Yes. All membership tiers include priority booking, discounted hourly rates, and member-only open gym sessions. Family Pass and Team members get additional discounts on clinics, camps, and equipment.',
+      answer: 'Yes. Individual and Family memberships include priority booking, discounted hourly rates, and member-only open gym sessions. Team pricing is customized around each team’s needs.',
     },
     {
       question: 'What ages is the facility best for?',

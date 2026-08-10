@@ -170,9 +170,9 @@ Quick stretch. Coaching recap: one thing the team did well, one thing to work on
 
 ## Booking Full-Turf Team Practices
 
-The Training Yard offers full 60' × 100' turf rentals at $225/hour for walk-in teams, or discounted rates through our [Annual Team VIP membership](/training) starting at $2,700/year with guaranteed priority slots.
+The Training Yard offers full 60' × 100' turf rentals and recurring practice arrangements for teams. Because every roster and season is different, we build [custom discounted team pricing](/teams) around your schedule, space needs, and practice goals.
 
-[Contact us](/about) to schedule your team's winter practice block. We recommend booking 2–3 weeks in advance for peak evening and weekend slots.`,
+[Request custom team pricing](/teams) to schedule your team's winter practice block. We recommend reaching out 2–3 weeks in advance for peak evening and weekend slots.`,
     },
     {
       slug: 'soccer-footwork-ladder-drills-for-speed',
@@ -254,7 +254,7 @@ The Training Yard's full 60' × 100' synthetic turf supports soccer training yea
 - Technical footwork sessions
 - Team tactical drills
 
-[Book turf time](/training) for your soccer team or individual session. Full turf rentals start at $225/hour, with discounted rates for [members](/training).`,
+[Request custom team pricing](/teams) for a soccer team practice plan, or [book turf time](/training) for an individual session. Individual and Family members receive discounted rental rates.`,
     },
     {
       slug: 'softball-pitching-warm-up-routine',
@@ -325,7 +325,7 @@ After completing this warm-up, you're ready for your full pitching session — w
 
 Our batting cages double as pitching lanes. The 60-foot distance accommodates full fastpitch pitching mechanics. Book a [single cage for $30/half hour or $50/hour](/training), and bring your catcher or use our backstop net.
 
-[Members](/training) receive 20% off cage rates and priority booking for peak afternoon and evening slots when Des Moines fastpitch teams are most active.`,
+[Individual and Family members](/training) receive discounted cage rates and priority booking for peak afternoon and evening slots. Coaches can also request [custom discounted team pricing](/teams) for recurring fastpitch practices.`,
     },
     {
       slug: 'agility-cone-drills-multi-sport-athletes',
@@ -422,7 +422,7 @@ Iowa weather limits outdoor agility training to roughly 5 months of the year. In
 
 ## Book Turf Time for Agility Training
 
-Half turf rentals (50' × 60') start at $75/hour — enough space for a full cone circuit. [Full turf](/training) at $225/hour accommodates team-sized groups. [Members](/training) get discounted rates and priority booking.`,
+Half turf rentals (50' × 60') provide enough space for a full cone circuit, while the full facility accommodates team-sized groups. [Individual and Family members](/training) receive discounted rates and priority booking, and organized teams can request [custom discounted team pricing](/teams).`,
     },
     {
       slug: 'coaching-101-managing-indoor-practice-time',
@@ -489,7 +489,7 @@ Your rental starts at the scheduled time. If you spend the first 10 minutes drag
 
 At The Training Yard, you can run this exact plan using a **Team Practice configuration**: 2 batting cages active + open turf for fielding and tee work. This is our most popular team setup because it maximizes both hitting and fielding reps simultaneously.
 
-When you [book a team session](/training), let us know your team size and preferred configuration — we'll have the space set up before you arrive.
+When you [request custom team pricing](/teams), let us know your team size and preferred configuration — we'll help shape a practice plan around your season.
 
 ## Equipment You Don't Need to Bring
 
@@ -506,7 +506,7 @@ You just need to bring: bats, gloves, and a plan.
 
 We offer a [free downloadable practice plan template](/resources) optimized for our 60' × 100' space.
 
-[Book your team practice](/training) or [contact us](/about) with questions about team configurations and seasonal contracts.`,
+[Request custom team pricing](/teams) or call 515.441.0528 with questions about team configurations and recurring practice plans.`,
     },
   ]
 
