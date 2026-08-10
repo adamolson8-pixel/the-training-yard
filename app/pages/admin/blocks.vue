@@ -22,12 +22,13 @@
               <th class="text-left px-4 py-3 font-semibold text-gray-600">Start</th>
               <th class="text-left px-4 py-3 font-semibold text-gray-600">End</th>
               <th class="text-left px-4 py-3 font-semibold text-gray-600">Reason</th>
+              <th class="text-left px-4 py-3 font-semibold text-gray-600">Related To</th>
               <th class="text-right px-4 py-3 font-semibold text-gray-600">Actions</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100">
-            <tr v-if="pending"><td colspan="5" class="py-10 text-center text-gray-400">Loading...</td></tr>
-            <tr v-else-if="!blocks.length"><td colspan="5" class="py-10 text-center text-gray-400">No blocks set. The facility is fully open.</td></tr>
+            <tr v-if="pending"><td colspan="6" class="py-10 text-center text-gray-400">Loading...</td></tr>
+            <tr v-else-if="!blocks.length"><td colspan="6" class="py-10 text-center text-gray-400">No blocks set. The facility is fully open.</td></tr>
             <tr v-for="b in blocks" :key="b.id" class="hover:bg-gray-50">
               <td class="px-4 py-3">
                 <span class="px-2 py-0.5 rounded-full text-xs font-bold"
@@ -38,6 +39,7 @@
               <td class="px-4 py-3 text-gray-700 whitespace-nowrap">{{ fmtDateTime(b.start_at) }}</td>
               <td class="px-4 py-3 text-gray-700 whitespace-nowrap">{{ fmtDateTime(b.end_at) }}</td>
               <td class="px-4 py-3 text-gray-500">{{ b.reason || '—' }}</td>
+              <td class="px-4 py-3 text-gray-500 text-xs">{{ relationLabel(b) }}</td>
               <td class="px-4 py-3 text-right">
                 <button @click="deleteBlock(b.id)" class="text-xs font-bold text-red-500 hover:text-red-700 border border-red-200 px-3 py-1 rounded-lg transition-colors">Remove</button>
               </td>
@@ -60,6 +62,17 @@
               <option value="">🏟 Facility-Wide (blocks everything)</option>
               <option v-for="r in resources" :key="r.id" :value="r.id">{{ r.name }}</option>
             </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-gray-500 mb-1">Related account</label>
+              <select v-model="form.user_id" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm"><option value="">None</option><option v-for="u in users" :key="u.id" :value="u.id">{{ u.full_name || u.email }}</option></select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-500 mb-1">Related team</label>
+              <select v-model="form.team_id" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm"><option value="">None</option><option v-for="t in teams" :key="t.id" :value="t.id">{{ t.name }}</option></select>
+            </div>
           </div>
 
           <!-- Reason -->
@@ -129,6 +142,8 @@ const pending = ref(false)
 const showForm = ref(false)
 const submitting = ref(false)
 const formError = ref('')
+const users = ref<any[]>([])
+const teams = ref<any[]>([])
 
 const resources = [
   { id: 'cage-1', name: '🏏 Cage 1' },
@@ -142,6 +157,8 @@ const resources = [
 const form = reactive({
   resource_id: '',
   reason: 'Maintenance',
+  user_id: '',
+  team_id: '',
   all_day: false,
   startDate: new Date().toISOString().split('T')[0],
   startTime: '06:00',
@@ -151,7 +168,14 @@ const form = reactive({
 
 async function fetchBlocks() {
   pending.value = true
-  blocks.value = await $fetch<any[]>('/api/admin/blocks')
+  const [blockData, userData, teamData] = await Promise.all([
+    $fetch<any[]>('/api/admin/blocks'),
+    $fetch<any>('/api/admin/users', { query: { limit: 1000 } }),
+    $fetch<any>('/api/admin/teams'),
+  ])
+  blocks.value = blockData
+  users.value = userData.users || []
+  teams.value = teamData.teams || []
   pending.value = false
 }
 fetchBlocks()
@@ -160,14 +184,16 @@ async function submitBlock() {
   formError.value = ''
   if (!form.startDate || !form.endDate) { formError.value = 'Start and end dates are required.'; return }
 
-  const start_at = form.all_day ? `${form.startDate}T00:00:00Z` : `${form.startDate}T${form.startTime}:00Z`
-  const end_at = form.all_day ? `${form.endDate}T23:59:59Z` : `${form.endDate}T${form.endTime}:00Z`
-
   submitting.value = true
   try {
     await $fetch('/api/admin/blocks', {
       method: 'POST',
-      body: { start_at, end_at, resource_id: form.resource_id || null, reason: form.reason, all_day: form.all_day }
+      body: {
+        start_date: form.startDate, start_time: form.startTime,
+        end_date: form.endDate, end_time: form.endTime,
+        resource_id: form.resource_id || null, reason: form.reason, all_day: form.all_day,
+        user_id: form.user_id || null, team_id: form.team_id || null,
+      }
     })
     showForm.value = false
     await fetchBlocks()
@@ -192,7 +218,13 @@ function resourceLabel(id: string) {
 
 function fmtDateTime(d: string) {
   if (!d) return '—'
-  return new Date(d).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'UTC' })
+  return new Date(d).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/Chicago' })
+}
+
+function relationLabel(block: any) {
+  const user = users.value.find(row => row.id === block.user_id)
+  const team = teams.value.find(row => row.id === block.team_id)
+  return team?.name || user?.full_name || user?.email || '—'
 }
 </script>
 

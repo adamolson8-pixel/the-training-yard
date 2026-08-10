@@ -7,203 +7,112 @@ export default defineEventHandler(async (event) => {
   const isTestMode = String(config.stripeTestMode) === 'true'
   const stripeKey = isTestMode ? config.stripeTestSecretKey : config.stripeSecretKey
   const webhookSecret = isTestMode ? config.stripeTestWebhookSecret : config.stripeWebhookSecret
-  const stripe = new Stripe(stripeKey)
+  if (!stripeKey || !webhookSecret) throw createError({ statusCode: 503, statusMessage: 'Stripe webhook is not configured.' })
 
   const rawBody = await readRawBody(event)
-  const sig = getHeader(event, 'stripe-signature')
-
-  if (!rawBody || !sig) {
-    throw createError({ statusCode: 400, message: 'Missing body or signature.' })
-  }
-
+  const signature = getHeader(event, 'stripe-signature')
+  if (!rawBody || !signature) throw createError({ statusCode: 400, statusMessage: 'Missing body or signature.' })
+  const stripe = new Stripe(stripeKey)
   let stripeEvent: Stripe.Event
   try {
-    stripeEvent = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret)
-  } catch (err: any) {
-    throw createError({ statusCode: 400, message: `Webhook signature verification failed: ${err.message}` })
+    stripeEvent = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret)
+  } catch (error: any) {
+    throw createError({ statusCode: 400, statusMessage: `Webhook signature verification failed: ${error.message}` })
   }
 
   const supabase = serverSupabaseServiceRole(event)
+  const { data: previous } = await (supabase as any).from('stripe_webhook_events').select('status').eq('event_id', stripeEvent.id).maybeSingle()
+  if (previous?.status === 'processed') return { received: true, duplicate: true }
+  await (supabase as any).from('stripe_webhook_events').upsert({
+    event_id: stripeEvent.id, event_type: stripeEvent.type, status: 'processing', error_message: null,
+  }, { onConflict: 'event_id' })
 
-  // ─── One-time booking payment confirmed ───────────────────────────────────
-  if (stripeEvent.type === 'checkout.session.completed') {
-    const session = stripeEvent.data.object as Stripe.Checkout.Session
+  try {
+    if (stripeEvent.type === 'checkout.session.completed') {
+      const session = stripeEvent.data.object as Stripe.Checkout.Session
+      const paymentIntentId = typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id || null
 
-    console.log('Webhook: checkout.session.completed for session', session.id)
+      if (session.metadata?.type === 'booking' && session.metadata.booking_id) {
+        const { data: booking, error } = await (supabase as any).from('bookings').update({
+          status: 'confirmed', payment_status: 'paid', confirmed_at: new Date().toISOString(), hold_expires_at: null,
+          stripe_payment_intent_id: paymentIntentId, payment_intent_id: paymentIntentId,
+        }).eq('id', session.metadata.booking_id).eq('stripe_session_id', session.id).select().single()
+        if (error || !booking) throw error || new Error('Booking hold not found for completed checkout.')
+        await (supabase as any).from('payments').upsert({
+          user_id: booking.user_id, booking_id: booking.id, amount_cents: session.amount_total || booking.amount_cents,
+          currency: session.currency || 'usd', stripe_session_id: session.id,
+          stripe_payment_intent_id: paymentIntentId, event_id: stripeEvent.id, status: 'paid',
+        }, { onConflict: 'event_id' })
+        await Promise.allSettled([sendBookingConfirmation(booking), sendAdminNotification(booking)])
+      }
 
-    // ─── Membership subscription checkout ────────────────────────────────
-    if (session.metadata?.type === 'membership' && session.mode === 'subscription') {
-      const userId = session.metadata.supabase_user_id
-      const membershipType = session.metadata.membership_type
-      const subscriptionId = typeof session.subscription === 'string'
-        ? session.subscription
-        : (session.subscription as any)?.id
+      if (session.metadata?.type === 'team_package' && session.metadata.team_package_id) {
+        const { data: teamPackage, error } = await (supabase as any).from('team_packages').update({
+          status: 'active', hours_remaining: (session.metadata.package_id?.includes('vip') ? 24 : Number(session.metadata.package_id?.match(/-(\d+)hr$/)?.[1] || 1)),
+          stripe_payment_intent_id: paymentIntentId, purchased_at: new Date().toISOString(),
+          expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+        }).eq('id', session.metadata.team_package_id).eq('stripe_session_id', session.id).select().single()
+        if (error || !teamPackage) throw error || new Error('Team package not found for completed checkout.')
+        await (supabase as any).from('team_package_ledger').upsert({
+          team_package_id: teamPackage.id, hours_delta: teamPackage.hours_purchased, reason: 'package purchase', created_by: teamPackage.purchased_by, source_event_id: stripeEvent.id,
+        }, { onConflict: 'source_event_id' })
+        await (supabase as any).from('payments').upsert({
+          user_id: teamPackage.purchased_by, team_id: teamPackage.team_id, team_package_id: teamPackage.id,
+          amount_cents: session.amount_total || teamPackage.amount_cents, currency: session.currency || 'usd',
+          stripe_session_id: session.id, stripe_payment_intent_id: paymentIntentId, event_id: stripeEvent.id, status: 'paid',
+        }, { onConflict: 'event_id' })
+      }
 
-      console.log('Webhook: Membership checkout completed for user', userId, 'type:', membershipType)
-
-      if (userId && membershipType) {
-        // Fetch subscription to get period end
-        let periodEnd: string | null = null
-        if (subscriptionId) {
-          try {
+      if (session.metadata?.type === 'membership' && session.mode === 'subscription') {
+        const userId = session.metadata.supabase_user_id
+        const subscriptionId = typeof session.subscription === 'string' ? session.subscription : session.subscription?.id
+        if (userId && session.metadata.membership_type) {
+          let membershipExpires: string | null = null
+          if (subscriptionId) {
             const subscription = await stripe.subscriptions.retrieve(subscriptionId)
-            periodEnd = new Date((subscription as any).current_period_end * 1000).toISOString()
-          } catch (e) {
-            console.error('Webhook: failed to retrieve subscription details:', e)
+            membershipExpires = new Date((subscription as any).current_period_end * 1000).toISOString()
           }
-        }
-
-        const updates: Record<string, any> = {
-          membership_type: membershipType,
-          membership_status: 'active',
-          membership_start: new Date().toISOString(),
-          stripe_subscription_id: subscriptionId || null,
-        }
-        if (periodEnd) updates.membership_expires = periodEnd
-
-        // stripe_customer_id should already be set by create-membership-checkout,
-        // but set it here too in case
-        const customerId = typeof session.customer === 'string' ? session.customer : (session.customer as any)?.id
-        if (customerId) updates.stripe_customer_id = customerId
-
-        await (supabase as any)
-          .from('profiles')
-          .update(updates)
-          .eq('id', userId)
-
-        console.log('Webhook: Profile updated with membership:', membershipType)
-      }
-    }
-
-    // ─── Regular booking payment ─────────────────────────────────────────
-    if (session.mode === 'payment') {
-      const { data: booking, error: updateError } = await (supabase as any)
-        .from('bookings')
-        .update({
-          status: 'confirmed',
-          confirmed_at: new Date().toISOString(),
-        })
-        .eq('stripe_session_id', session.id)
-        .select()
-        .single()
-
-      if (updateError) {
-        console.error('Webhook: Failed to update booking:', updateError)
-      } else if (booking) {
-        console.log('Webhook: Booking confirmed successfully:', booking.id)
-        // Log to payments table (best-effort, don't crash if payments table schema differs)
-        try {
-          await (supabase as any).from('payments').insert({
-            booking_id: booking.id,
-            amount_cents: session.amount_total,
-            status: 'paid',
-          })
-        } catch (paymentErr) {
-          console.error('Webhook: payments insert failed (non-fatal):', paymentErr)
-        }
-
-        await Promise.allSettled([
-          sendBookingConfirmation(booking),
-          sendAdminNotification(booking),
-        ])
-      }
-    }
-  }
-
-  // ─── Team Package Payment Confirmed ───────────────────────────────────────
-  if (stripeEvent.type === 'checkout.session.completed') {
-    const session = stripeEvent.data.object as Stripe.Checkout.Session
-    
-    if (session.metadata?.type === 'team_package') {
-      const userId = session.metadata.user_id
-      const packageType = session.metadata.package_type // 'standard' or 'buyout'
-      const hoursToAdd = parseInt(session.metadata.hours_to_add || '0')
-
-      if (userId && hoursToAdd > 0) {
-        // Fetch current hours
-        const { data: profile } = await (supabase as any)
-          .from('profiles')
-          .select('team_standard_hours, team_buyout_hours')
-          .eq('id', userId)
-          .single()
-        
-        if (profile) {
-          const updates: any = {}
-          if (packageType === 'standard') {
-            updates.team_standard_hours = (profile.team_standard_hours || 0) + hoursToAdd
-          } else if (packageType === 'buyout') {
-            updates.team_buyout_hours = (profile.team_buyout_hours || 0) + hoursToAdd
-          }
-          
-          await (supabase as any)
-            .from('profiles')
-            .update(updates)
-            .eq('id', userId)
+          await (supabase as any).from('profiles').update({
+            membership_type: session.metadata.membership_type, membership_status: 'active', membership_start: new Date().toISOString(),
+            membership_expires: membershipExpires, stripe_subscription_id: subscriptionId || null,
+            stripe_customer_id: typeof session.customer === 'string' ? session.customer : session.customer?.id || null,
+          }).eq('id', userId)
         }
       }
     }
-  }
 
-  // ─── Subscription payment succeeded (membership renewal) ─────────────────
-  if (stripeEvent.type === 'invoice.payment_succeeded') {
-    const invoice = stripeEvent.data.object as Stripe.Invoice
-    const customerId = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id
-    const subscriptionId = typeof (invoice as any).subscription === 'string' ? (invoice as any).subscription : (invoice as any).subscription?.id
-
-    if (!customerId || !subscriptionId) return { received: true }
-
-    // Fetch subscription to get current period end
-    const subscription = await stripe.subscriptions.retrieve(subscriptionId)
-    const periodEnd = new Date((subscription as any).current_period_end * 1000).toISOString()
-
-    await (supabase as any)
-      .from('profiles')
-      .update({
-        membership_status: 'active',
-        membership_expires: periodEnd,
-        stripe_subscription_id: subscriptionId,
-      })
-      .eq('stripe_customer_id', customerId)
-  }
-
-  // ─── Subscription updated (plan change, reactivation) ────────────────────
-  if (stripeEvent.type === 'customer.subscription.updated') {
-    const subscription = stripeEvent.data.object as Stripe.Subscription
-    const customerId = typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id
-    const periodEnd = new Date((subscription as any).current_period_end * 1000).toISOString()
-
-    // Map Stripe status to our status
-    const statusMap: Record<string, string> = {
-      active: 'active',
-      past_due: 'past_due',
-      canceled: 'canceled',
-      unpaid: 'past_due',
-      trialing: 'active',
+    if (stripeEvent.type === 'checkout.session.expired') {
+      const session = stripeEvent.data.object as Stripe.Checkout.Session
+      if (session.metadata?.booking_id) await (supabase as any).from('bookings').update({ status: 'expired', payment_status: 'failed', hold_expires_at: new Date().toISOString() }).eq('id', session.metadata.booking_id).eq('status', 'pending')
+      if (session.metadata?.team_package_id) await (supabase as any).from('team_packages').update({ status: 'cancelled' }).eq('id', session.metadata.team_package_id).eq('status', 'pending')
     }
-    const membershipStatus = statusMap[subscription.status] ?? subscription.status
 
-    await (supabase as any)
-      .from('profiles')
-      .update({
-        membership_status: membershipStatus,
-        membership_expires: periodEnd,
-      })
-      .eq('stripe_customer_id', customerId)
+    if (stripeEvent.type === 'invoice.payment_succeeded') {
+      const invoice = stripeEvent.data.object as Stripe.Invoice
+      const customerId = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id
+      const subscriptionId = typeof (invoice as any).subscription === 'string' ? (invoice as any).subscription : (invoice as any).subscription?.id
+      if (customerId && subscriptionId) {
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+        await (supabase as any).from('profiles').update({ membership_status: 'active', membership_expires: new Date((subscription as any).current_period_end * 1000).toISOString(), stripe_subscription_id: subscriptionId }).eq('stripe_customer_id', customerId)
+      }
+    }
+
+    if (stripeEvent.type === 'customer.subscription.updated' || stripeEvent.type === 'customer.subscription.deleted') {
+      const subscription = stripeEvent.data.object as Stripe.Subscription
+      const customerId = typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id
+      const statusMap: Record<string, string> = { active: 'active', trialing: 'active', past_due: 'past_due', unpaid: 'past_due', canceled: 'canceled' }
+      await (supabase as any).from('profiles').update({
+        membership_status: stripeEvent.type === 'customer.subscription.deleted' ? 'canceled' : (statusMap[subscription.status] || subscription.status),
+        membership_expires: new Date((subscription as any).current_period_end * 1000).toISOString(),
+        stripe_subscription_id: stripeEvent.type === 'customer.subscription.deleted' ? null : subscription.id,
+      }).eq('stripe_customer_id', customerId)
+    }
+
+    await (supabase as any).from('stripe_webhook_events').update({ status: 'processed', processed_at: new Date().toISOString() }).eq('event_id', stripeEvent.id)
+    return { received: true }
+  } catch (error: any) {
+    console.error('[stripe webhook] Processing failed:', error)
+    await (supabase as any).from('stripe_webhook_events').update({ status: 'failed', error_message: String(error?.message || error).slice(0, 1000) }).eq('event_id', stripeEvent.id)
+    throw createError({ statusCode: 500, statusMessage: 'Webhook processing failed; Stripe should retry.' })
   }
-
-  // ─── Subscription canceled ────────────────────────────────────────────────
-  if (stripeEvent.type === 'customer.subscription.deleted') {
-    const subscription = stripeEvent.data.object as Stripe.Subscription
-    const customerId = typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id
-
-    await (supabase as any)
-      .from('profiles')
-      .update({
-        membership_status: 'canceled',
-        stripe_subscription_id: null,
-      })
-      .eq('stripe_customer_id', customerId)
-  }
-
-  return { received: true }
 })

@@ -27,15 +27,12 @@ export default defineEventHandler(async (event) => {
   const windowStart = new Date(now.getTime() + 23 * 60 * 60 * 1000)
   const windowEnd = new Date(now.getTime() + 25 * 60 * 60 * 1000)
 
-  const startStr = windowStart.toISOString().split('T')[0]
-  const endStr = windowEnd.toISOString().split('T')[0]
-
   const { data: bookings, error } = await (supabase as any)
     .from('bookings')
     .select('*, profiles(full_name, email)')
     .eq('status', 'confirmed')
-    .gte('booking_date', startStr)
-    .lte('booking_date', endStr)
+    .gte('start_at', windowStart.toISOString())
+    .lte('start_at', windowEnd.toISOString())
     .is('reminder_sent_at', null)   // Only send once
 
   if (error) {

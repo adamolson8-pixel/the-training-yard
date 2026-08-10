@@ -124,9 +124,10 @@ const schedLinks = [
 ]
 const peopleLinks = [
   { to: '/admin/users', icon: '👥', label: 'Users' },
+  { to: '/admin/teams', icon: '🏟️', label: 'Teams' },
   { to: '/admin/payments', icon: '💳', label: 'Payments' },
   { to: '/admin/memberships', icon: '🌟', label: 'Memberships' },
-  { to: '/admin/waivers', icon: '📝', label: 'Waivers' },
+  { to: '/admin/waivers', icon: '📝', label: 'Documents' },
 ]
 const systemLinks = [
   { to: '/admin/settings', icon: '⚙️', label: 'Settings' },

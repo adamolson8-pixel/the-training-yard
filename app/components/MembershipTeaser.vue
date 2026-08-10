@@ -36,7 +36,11 @@
             <h3 class="font-display font-bold text-xl text-white mb-1">{{ tier.name }}</h3>
             <p class="text-gray-400 text-sm mb-6">{{ tier.target }}</p>
 
-            <div class="flex items-baseline gap-1 mb-6">
+            <div v-if="tier.isTeam" class="mb-6">
+              <div class="font-display text-2xl font-bold text-white">Custom Team Pricing</div>
+              <div class="mt-1 text-sm text-amber-400">Built around your season</div>
+            </div>
+            <div v-else class="flex items-baseline gap-1 mb-6">
               <span class="font-display text-4xl font-bold text-white">${{ tier.price }}</span>
               <span class="text-gray-400">/{{ tier.period }}</span>
             </div>
@@ -52,7 +56,7 @@
 
             <NuxtLink
               :id="`membership-cta-${tier.name.toLowerCase().replace(/\s/g, '-')}`"
-              :to="tier.cta === 'Join Now' ? '/login?signup=true' : '/training'"
+              :to="tier.isTeam ? '/teams' : tier.cta === 'Join Now' ? '/login?signup=true' : '/training'"
               :class="tier.popular ? 'btn-primary w-full text-center' : 'btn-secondary w-full text-center'"
             >
               {{ tier.cta }}
@@ -71,6 +75,8 @@
 </template>
 
 <script setup lang="ts">
+import { TEAM_PRICING } from '~/utils/teamPricing'
+
 const tiers = [
   {
     name: 'Individual Monthly',
@@ -104,18 +110,19 @@ const tiers = [
     ],
   },
   {
-    name: 'Annual Team VIP',
+    name: 'Team Partnerships',
     target: 'Club & Travel Teams',
-    price: '2,700',
-    period: 'yr',
+    price: '',
+    period: '',
     popular: false,
-    cta: 'Contact for Details',
+    cta: TEAM_PRICING.callCta,
+    isTeam: true,
     features: [
-      '24 Hours Standard Practice',
-      'First-Priority Scheduling',
-      '20% off additional hours',
-      '10% Roster Discount',
-      'Dedicated scheduling coordinator',
+      'Pricing tailored to your team',
+      'Standard or full-facility setups',
+      'One-time or recurring practices',
+      'Flexible season planning',
+      'Direct scheduling support',
     ],
   },
 ]

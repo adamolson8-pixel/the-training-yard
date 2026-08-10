@@ -155,6 +155,7 @@ const navLinks = computed(() => {
     { to: '/portal/dashboard', icon: '🏠', label: 'Dashboard' },
     { to: '/portal/bookings', icon: '📅', label: 'My Bookings' },
     { to: '/portal/book', icon: '⚡', label: 'Book a Session' },
+    { to: '/portal/team', icon: '🏆', label: 'My Team' },
     { to: '/portal/membership', icon: '🌟', label: 'Membership' },
     { to: '/portal/waiver', icon: '📋', label: 'Waiver', badge: profile.value?.waiver_signed ? undefined : '!' },
     { to: '/portal/profile', icon: '⚙️', label: 'Profile' },

@@ -110,10 +110,10 @@
       <div class="rounded-2xl border border-white/10 bg-white/5 p-5">
         <div class="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <div class="text-white font-bold text-sm">Looking for Team Packages?</div>
-            <p class="text-gray-400 text-xs mt-0.5">Standard Team and Full Facility Buyout options available.</p>
+            <div class="text-white font-bold text-sm">Training with a Team?</div>
+            <p class="text-gray-400 text-xs mt-0.5">We’ll build custom discounted pricing around your team’s season.</p>
           </div>
-          <NuxtLink to="/teams" class="text-sm font-bold text-amber-400 hover:text-amber-300 transition-colors">View Team Rates →</NuxtLink>
+          <NuxtLink to="/teams" class="text-sm font-bold text-amber-400 hover:text-amber-300 transition-colors">Request Team Pricing →</NuxtLink>
         </div>
       </div>
     </div>
@@ -293,8 +293,8 @@ const membershipTypeLabel = computed(() => {
     individual_annual: 'Individual Plan — $890/yr',
     family: 'Family Plan — $129/mo',
     family_annual: 'Family Plan — $1,290/yr',
-    team_vip_standard: 'Team VIP Standard — $2,700/yr',
-    team_vip_full: 'Team VIP Full Facility — $4,050/yr',
+    team_vip_standard: 'Team Partnership — Standard Setup',
+    team_vip_full: 'Team Partnership — Full Facility',
   }
   return t ? (map[t] ?? t) : ''
 })

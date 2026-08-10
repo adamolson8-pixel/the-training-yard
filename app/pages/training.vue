@@ -42,7 +42,11 @@
             >
               <h3 class="font-display font-bold text-xl text-white mb-1">{{ tier.name }}</h3>
               <p class="text-gray-400 text-sm mb-6">{{ tier.target }}</p>
-              <div class="flex items-baseline gap-1 mb-6">
+              <div v-if="tier.isTeam" class="mb-6">
+                <div class="font-display text-2xl font-bold text-white">Custom Team Pricing</div>
+                <div class="mt-1 text-sm text-amber-400">Built around your season</div>
+              </div>
+              <div v-else class="flex items-baseline gap-1 mb-6">
                 <span class="text-gray-400 text-lg mr-1" v-if="tier.isTeam">from</span>
                 <span class="font-display text-5xl font-bold text-white">${{ tier.price }}</span>
                 <span class="text-gray-400">/{{ tier.period }}</span>
@@ -55,7 +59,7 @@
                 </li>
               </ul>
               <a
-                v-if="tier.cta === 'Contact for Details'"
+                v-if="tier.isTeam"
                 href="/teams"
                 class="btn-secondary w-full text-center"
               >{{ tier.cta }}</a>
@@ -118,12 +122,14 @@
 </template>
 
 <script setup lang="ts">
+import { TEAM_PRICING } from '~/utils/teamPricing'
+
 useHead({
   title: 'Memberships & Rates | The Training Yard | Des Moines',
   meta: [
-    { name: 'description', content: 'Membership plans from $89/mo. Individual, Family & Team tiers. Book batting cages and turf rentals at The Training Yard Des Moines.' },
+    { name: 'description', content: 'Individual and Family memberships plus custom discounted team pricing at The Training Yard Des Moines. Book batting cages and turf rentals online.' },
     { property: 'og:title', content: 'Memberships & Rates | The Training Yard | Des Moines' },
-    { property: 'og:description', content: 'Membership plans from $89/mo. Individual, Family & Team tiers. Book batting cages and turf rentals at The Training Yard Des Moines.' },
+    { property: 'og:description', content: 'Individual and Family memberships plus custom discounted team pricing at The Training Yard Des Moines.' },
     { property: 'og:url', content: 'https://trainingyarddsm.com/training' },
   ],
   link: [
@@ -152,13 +158,13 @@ const tiers = [
     features: ['Daily 1-hour cage access included', 'One Half Turf session per week', 'Walk-On Access to unreserved turf', '25% off additional rentals', 'Parent/coach helpers are free', 'Annual Billing: $890/yr (Save $178)'] },
   { name: 'Family Pass', target: 'Household members', price: '129', period: 'mo', popular: true, cta: 'Join Now',
     features: ['Shared daily 1-hour cage access', 'One Half Turf session per week', 'Walk-On Access to unreserved turf', '25% off additional rentals', 'Parent/coach helpers are free', 'Annual Billing: $1,290/yr (Save $258)'] },
-  { name: 'Team Rentals', target: 'Organized teams & clubs', price: '112.50', period: 'hr', popular: false, cta: 'Contact for Details', isTeam: true,
-    features: ['Standard Team (2 Cages + Half Turf): from $150/hr', 'Full Facility Buyout (4 Cages + Full Turf): from $225/hr', '6-hr, 12-hr & 24-hr bulk packages available', 'Priority advanced scheduling included', 'Annual Team VIP: $2,700/yr (24 hrs + perks)', '10% Roster Discount on player memberships'] },
+  { name: 'Team Partnerships', target: 'Organized teams & clubs', price: '', period: '', popular: false, cta: TEAM_PRICING.inquiryCta, isTeam: true,
+    features: ['Custom discounted pricing for your team', 'Standard or full-facility configurations', 'One-time, recurring, and seasonal options', 'Scheduling shaped around your needs', 'Options for rosters of up to 40 athletes', 'Direct planning support from our team'] },
 ]
 
 function scrollToBook(tier: { cta: string }) {
-  if (tier.cta === 'Contact for Details') {
-    navigateTo('/about')
+  if (tier.cta === TEAM_PRICING.inquiryCta) {
+    navigateTo('/teams')
     return
   }
   if (tier.cta === 'Join Now') {

@@ -40,16 +40,24 @@ export default defineEventHandler(async (event) => {
     if (ampm === 'AM' && hour === 12) hour = 0
     timeStr = `${String(hour).padStart(2, '0')}:${minute}:00`
   }
-  const bookingDateTime = new Date(`${booking.booking_date}T${timeStr}`)
+  const bookingDateTime = booking.start_at ? new Date(booking.start_at) : new Date(`${booking.booking_date}T${timeStr}`)
   const hoursUntilBooking = (bookingDateTime.getTime() - Date.now()) / (1000 * 60 * 60)
   const isFullRefund = hoursUntilBooking >= 24
 
   let stripeRefundId: string | null = null
 
+  if (booking.credit_hours_used > 0) {
+    const { error: restoreError } = await (supabase as any).rpc('restore_team_booking_credit', { p_booking_id: bookingId, p_user_id: user.id })
+    if (restoreError) throw createError({ statusCode: 500, statusMessage: 'Unable to restore team hours. The booking was not cancelled.' })
+    sendCancellationConfirmation(booking, true).catch(err => console.error('[email] Cancellation email failed:', err))
+    return { success: true, creditHoursRestored: booking.credit_hours_used, isFullRefund: true, hoursUntilBooking: Math.round(hoursUntilBooking) }
+  }
+
   // Attempt Stripe refund if there's a payment
   if (booking.stripe_payment_intent_id && booking.payment_status === 'paid') {
     const isTestMode = config.stripeTestMode === 'true'
     const stripeKey = isTestMode ? config.stripeTestSecretKey : config.stripeSecretKey
+    if (!stripeKey) throw createError({ statusCode: 503, statusMessage: 'Refund processing is temporarily unavailable. The booking was not cancelled.' })
     const stripe = new Stripe(stripeKey)
 
     try {
@@ -74,7 +82,7 @@ export default defineEventHandler(async (event) => {
       })
     } catch (stripeErr: any) {
       console.error('Stripe refund failed:', stripeErr.message)
-      // Still proceed with cancellation even if refund fails — admin can handle manually
+      throw createError({ statusCode: 502, statusMessage: 'Stripe could not process the refund, so the booking was not cancelled. Please contact us.' })
     }
   }
 
@@ -109,4 +117,3 @@ export default defineEventHandler(async (event) => {
     hoursUntilBooking: Math.round(hoursUntilBooking),
   }
 })
-

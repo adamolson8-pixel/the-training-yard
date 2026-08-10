@@ -14,7 +14,12 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss',
     '@nuxtjs/google-fonts',
     '@nuxtjs/supabase',
+    '@nuxtjs/sitemap',
   ],
+
+  sitemap: {
+    siteUrl: 'https://trainingyarddsm.com',
+  },
 
   runtimeConfig: {
     smtpHost: process.env.SMTP_HOST || 'smtp.zoho.com',
@@ -99,22 +104,63 @@ export default defineNuxtConfig({
     '/resources/coaching-101-managing-indoor-practice-time': { prerender: true },
     '/about': { prerender: true },
     '/teams': { prerender: true },
+    '/privacy': { prerender: true },
+    '/terms': { prerender: true },
     '/login': { prerender: true },
     '/confirm': { prerender: true },
-    '/booking-success': { ssr: false },
-    '/team-success': { ssr: false },
-    '/admin/bookings': { ssr: false },
-    '/admin/schedule': { ssr: false },
+    '/reset-password': { ssr: false, prerender: true },
+    '/team-waiver': { ssr: false, prerender: true },
+    '/booking-success': { ssr: false, prerender: true },
+    '/team-success': { ssr: false, prerender: true },
+    '/admin/bookings': { ssr: false, prerender: true },
+    '/admin/schedule': { ssr: false, prerender: true },
+    '/admin/blocks': { ssr: false, prerender: true },
+    '/admin/memberships': { ssr: false, prerender: true },
+    '/admin/payments': { ssr: false, prerender: true },
+    '/admin/settings': { ssr: false, prerender: true },
+    '/admin/teams': { ssr: false, prerender: true },
+    '/admin/users': { ssr: false, prerender: true },
+    '/admin/waivers': { ssr: false, prerender: true },
+    '/portal/book': { ssr: false, prerender: true },
+    '/portal/bookings': { ssr: false, prerender: true },
+    '/portal/dashboard': { ssr: false, prerender: true },
+    '/portal/membership': { ssr: false, prerender: true },
+    '/portal/profile': { ssr: false, prerender: true },
+    '/portal/team': { ssr: false, prerender: true },
+    '/portal/waiver': { ssr: false, prerender: true },
     '/portal/**': { ssr: false },
     '/admin/**': { ssr: false },
   },
 
   supabase: {
+    // Route-level auth/admin middleware waits for the persisted session. The
+    // module's global redirect runs before session hydration on deep links and
+    // can bounce valid users to /login.
+    redirect: false,
     redirectOptions: {
       login: '/login',
       callback: '/confirm',
       // Public routes that do NOT require authentication
-      exclude: ['/', '/about', '/facility', '/training', '/teams', '/resources', '/resources/*', '/api/*', '/booking-success', '/team-success', '/sitemap.xml', '/llms.txt', '/robots.txt'],
+      // Netlify serves prerendered routes with a trailing slash. Keep both the
+      // canonical path and every nested/slashed form public so hydration does
+      // not bounce visitors to /login after the page first renders.
+      exclude: [
+        '/',
+        '/about', '/about/**',
+        '/facility', '/facility/**',
+        '/training', '/training/**',
+        '/teams', '/teams/**',
+        '/resources', '/resources/**',
+        '/api/**',
+        '/booking-success', '/booking-success/**',
+        '/team-success', '/team-success/**',
+        '/confirm', '/confirm/**',
+        '/reset-password', '/reset-password/**',
+        '/team-waiver', '/team-waiver/**',
+        '/privacy', '/privacy/**',
+        '/terms', '/terms/**',
+        '/sitemap.xml', '/llms.txt', '/robots.txt',
+      ],
     }
   }
 })

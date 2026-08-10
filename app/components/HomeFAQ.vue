@@ -70,11 +70,11 @@ const faqs = [
   },
   {
     question: 'Can a team rent the whole turf?',
-    answer: 'Absolutely. We offer full-turf team rentals by the hour, and seasonal team contracts for clubs that need guaranteed weekly practice time. When you book the full turf, all four batting cages retract to give your team the complete 60\' × 100\' space.',
+    answer: 'Absolutely. We offer standard team setups, full-facility rentals, and recurring practice arrangements. Because every roster and season is different, we work directly with teams to create custom discounted pricing. Call 515.441.0528 or request a team quote online.',
   },
   {
     question: 'Do members get discounts or priority booking?',
-    answer: 'Yes. All membership tiers include priority online booking, discounted hourly rates, and access to member-only open gym sessions. Family Pass and Seasonal Team members receive additional perks including discounts on clinics, camps, and equipment rentals.',
+    answer: 'Yes. Individual and Family memberships include priority online booking, discounted hourly rates, and access to member-only open gym sessions. Team pricing is customized around the roster, schedule, space, and season.',
   },
   {
     question: 'What ages is the facility best for?',

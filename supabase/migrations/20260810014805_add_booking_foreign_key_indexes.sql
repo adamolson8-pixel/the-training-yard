@@ -1,0 +1,13 @@
+CREATE INDEX IF NOT EXISTS idx_bookings_waiver_signature_id ON public.bookings (waiver_signature_id);
+CREATE INDEX IF NOT EXISTS idx_payments_team_id ON public.payments (team_id);
+CREATE INDEX IF NOT EXISTS idx_payments_team_package_id ON public.payments (team_package_id);
+CREATE INDEX IF NOT EXISTS idx_team_invitations_invited_by ON public.team_invitations (invited_by);
+CREATE INDEX IF NOT EXISTS idx_team_invitations_team_id ON public.team_invitations (team_id);
+CREATE INDEX IF NOT EXISTS idx_team_ledger_booking_id ON public.team_package_ledger (booking_id);
+CREATE INDEX IF NOT EXISTS idx_team_ledger_created_by ON public.team_package_ledger (created_by);
+CREATE INDEX IF NOT EXISTS idx_team_ledger_package_id ON public.team_package_ledger (team_package_id);
+CREATE INDEX IF NOT EXISTS idx_team_packages_purchased_by ON public.team_packages (purchased_by);
+CREATE INDEX IF NOT EXISTS idx_team_participants_waiver_signature_id ON public.team_participants (waiver_signature_id);
+CREATE INDEX IF NOT EXISTS idx_teams_created_by ON public.teams (created_by);
+CREATE INDEX IF NOT EXISTS idx_waiver_signatures_document_id ON public.waiver_signatures (document_id);
+CREATE INDEX IF NOT EXISTS idx_waiver_signatures_participant_id ON public.waiver_signatures (participant_id);

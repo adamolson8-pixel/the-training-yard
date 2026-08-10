@@ -65,12 +65,13 @@
           </template>
         </div>
 
-        <h3 class="text-lg font-bold text-white mb-3">Team Rentals & Packages</h3>
+        <h3 class="text-lg font-bold text-white mb-1">Team Rentals</h3>
+        <p class="mb-3 text-xs text-gray-400">Already have team hours? Book below. New team? Ask us for pricing built around your season.</p>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <template v-for="service in SERVICES.filter(s => s.isTeam)" :key="service.id">
             <!-- Allow selection if they have hours for it -->
             <button
-              v-if="(service.id === 'team_standard_60' && hasStandardHours) || (service.id === 'full_buyout_60' && hasBuyoutHours)"
+              v-if="canRedeem(service)"
               class="text-left p-4 rounded-xl border-2 transition-all focus:outline-none focus:ring-2 focus:ring-amber-500"
               :class="store.service?.id === service.id
                 ? 'border-amber-500 bg-amber-500/10'
@@ -83,11 +84,11 @@
               <div class="mb-3 space-y-1.5">
                 <div class="flex items-center gap-2">
                   <span class="inline-block px-2 py-1 rounded text-xs font-bold tracking-wide bg-amber-500/20 text-amber-400 uppercase border border-amber-500/50">
-                    Redeem 1 Hour
+                    Redeem {{ service.durationMinutes / 60 }} {{ service.durationMinutes === 60 ? 'Hour' : 'Hours' }}
                   </span>
                 </div>
                 <div class="text-xs text-gray-400">
-                  You have {{ service.id === 'full_buyout_60' ? profileData?.team_buyout_hours : profileData?.team_standard_hours }} hours remaining.
+                  You have {{ remainingHoursForService(service) }} hours remaining.
                 </div>
               </div>
 
@@ -107,7 +108,7 @@
               <div class="text-3xl mb-2">{{ service.emoji }}</div>
               <div class="font-bold text-white text-sm mb-1 flex items-center gap-2">
                 {{ service.label }}
-                <span class="text-[10px] font-bold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.5 rounded-full">See Package Options →</span>
+                <span class="text-[10px] font-bold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.5 rounded-full">Custom Team Pricing →</span>
               </div>
               <div class="text-gray-400 text-xs mb-3">{{ service.description }}</div>
               <div class="text-amber-400 text-xs mb-3 font-medium">{{ service.teamNote }}</div>
@@ -124,7 +125,7 @@
       <!-- Step 2: Date & Time -->
       <div v-if="store.step === 2">
         <h2 class="text-2xl font-bold text-white mb-2">Pick a Date & Time</h2>
-        <p class="text-gray-400 mb-6">We're open Monday–Saturday. Select your preferred session.</p>
+        <p class="text-gray-400 mb-6">We're open 7 days a week. Select your preferred session.</p>
 
         <div class="mb-6">
           <label class="block text-sm font-semibold text-gray-300 mb-2">Date</label>
@@ -137,11 +138,16 @@
             @change="onDateChange"
           />
           <p v-if="selectedDate && !isOpenDaySelected" class="text-red-400 text-sm mt-2">
-            Sorry, we're closed on Sundays. Please pick another day.
+            Sorry, we're closed on this day. Please pick another day.
           </p>
         </div>
 
-        <div v-if="availableSlots.length > 0">
+        <div v-if="availabilityLoading" class="text-gray-300 text-sm" role="status">Checking live availability…</div>
+        <p v-else-if="availabilityError" class="text-red-300 text-sm bg-red-950/30 border border-red-500/30 rounded-lg p-3" role="alert">
+          {{ availabilityError }}
+          <button class="underline ml-1" @click="loadAvailability">Try again</button>
+        </p>
+        <div v-else-if="availableSlots.length > 0">
           <label class="block text-sm font-semibold text-gray-300 mb-3">Available Times</label>
           <div class="grid grid-cols-3 sm:grid-cols-4 gap-2">
             <button
@@ -375,7 +381,7 @@
               <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" /><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
               Confirming Booking...
             </span>
-            <span v-else>Confirm & Deduct 1 Hour</span>
+            <span v-else>Confirm & Deduct {{ (store.service?.durationMinutes || 60) / 60 }} {{ store.service?.durationMinutes === 60 ? 'Hour' : 'Hours' }}</span>
           </button>
 
           <button
@@ -392,7 +398,7 @@
           </button>
         </div>
         <p v-if="!store.service?.isTeam" class="text-xs text-gray-500 mt-3 text-center">Payments processed securely by Stripe. You'll be redirected to complete payment.</p>
-        <p v-else class="text-xs text-gray-500 mt-3 text-center">1 Hour will be deducted from your team's available balance.</p>
+        <p v-else class="text-xs text-gray-500 mt-3 text-center">Package hours are deducted atomically when the booking is confirmed.</p>
       </div>
     </div>
   </div>
@@ -400,16 +406,20 @@
 
 <script setup lang="ts">
 import { SERVICES, formatPrice } from '~/utils/services'
-import { isOpenDay, getAvailableTimeSlots } from '~/utils/timeSlots'
+import { isOpenDay } from '~/utils/timeSlots'
 import { useBookingStore } from '~/stores/booking'
 
 const store = useBookingStore()
 const user = useSupabaseUser()
 const profileData = ref<any>(null)
 
-const hasStandardHours = computed(() => (profileData.value?.team_standard_hours || 0) > 0)
-const hasBuyoutHours = computed(() => (profileData.value?.team_buyout_hours || 0) > 0)
 const isMember = computed(() => profileData.value?.membership_status === 'active')
+function remainingHoursForService(service: { id: string }) {
+  return Number(service.id.startsWith('full_buyout') ? profileData.value?.team_buyout_hours || 0 : profileData.value?.team_standard_hours || 0)
+}
+function canRedeem(service: { id: string; durationMinutes: number }) {
+  return remainingHoursForService(service) >= service.durationMinutes / 60
+}
 
 // Step 3 (form data)
 const form = reactive({
@@ -427,10 +437,20 @@ function submitCustomerInfo() {
   store.nextStep()
 }
 
-const { data: profileResponse, error: profileError } = await useFetch<any>('/api/portal/me', {
-  headers: useRequestHeaders(['cookie']),
-  immediate: true
-})
+const profileResponse = ref<any>(null)
+
+watch(user, async (currentUser) => {
+  if (!currentUser) {
+    profileResponse.value = null
+    profileData.value = null
+    return
+  }
+  try {
+    profileResponse.value = await $fetch('/api/portal/me')
+  } catch (error) {
+    console.error('Unable to load booking profile:', error)
+  }
+}, { immediate: true })
 
 watch(profileResponse, (newVal) => {
   if (newVal) {
@@ -485,12 +505,28 @@ const isOpenDaySelected = computed(() => {
   if (!selectedDate.value) return true
   return isOpenDay(new Date(selectedDate.value + 'T12:00:00'))
 })
-const availableSlots = computed(() => {
-  if (!selectedDate.value || !isOpenDaySelected.value) return []
-  return getAvailableTimeSlots(new Date(selectedDate.value + 'T12:00:00'))
-})
-function onDateChange() {
+const availableSlots = ref<string[]>([])
+const availabilityLoading = ref(false)
+const availabilityError = ref('')
+async function loadAvailability() {
   selectedTime.value = ''
+  availableSlots.value = []
+  availabilityError.value = ''
+  if (!selectedDate.value || !store.service || !isOpenDaySelected.value) return
+  availabilityLoading.value = true
+  try {
+    const result = await $fetch<{ slots: Array<{ time: string; available: boolean }> }>('/api/availability', {
+      query: { date: selectedDate.value, service_id: store.service.id },
+    })
+    availableSlots.value = result.slots.filter(slot => slot.available).map(slot => slot.time)
+  } catch (error: any) {
+    availabilityError.value = error?.data?.statusMessage || error?.data?.message || 'Live availability is temporarily unavailable.'
+  } finally {
+    availabilityLoading.value = false
+  }
+}
+function onDateChange() {
+  void loadAvailability()
 }
 function confirmDateTime() {
   if (!selectedDate.value || !selectedTime.value) return
@@ -539,9 +575,7 @@ async function startCheckout() {
         waiverSignerName: store.waiverSignerName,
       },
     })
-    window.open(res.url, '_blank')
-    // Reset button so user can retry if popup was blocked
-    isCheckingOut.value = false
+    window.location.assign(res.url)
   } catch (err: unknown) {
     const e = err as { data?: { message?: string } }
     checkoutError.value = e?.data?.message || 'Something went wrong. Please try again.'

@@ -1,8 +1,8 @@
-// Days open: Monday (1) through Saturday (6). Sunday (0) is closed.
-export const DAYS_OPEN = [1, 2, 3, 4, 5, 6]
+// Days open: Monday (1) through Sunday (0). Open 7 days a week.
+export const DAYS_OPEN = [0, 1, 2, 3, 4, 5, 6]
 
 /**
- * Returns true if the given date is an open day (Mon–Sat).
+ * Returns true if the given date is an open day (Mon–Sun — open daily).
  */
 export function isOpenDay(date: Date): boolean {
   return DAYS_OPEN.includes(date.getDay())

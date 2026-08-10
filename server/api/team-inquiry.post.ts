@@ -1,5 +1,6 @@
 import { sendEmail } from '../utils/email'
 import { escapeHtml } from '../utils/sanitize'
+import { serverSupabaseServiceRole } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -10,6 +11,14 @@ export default defineEventHandler(async (event) => {
   }
 
   const adminEmail = process.env.ADMIN_EMAIL || 'adam@trainingyarddsm.com'
+  const supabase = serverSupabaseServiceRole(event)
+  const { data: lead, error: leadError } = await (supabase as any).from('lead_submissions').insert({
+    kind: 'team_inquiry', name: String(name).trim(), email: String(email).trim().toLowerCase(), phone: phone || null,
+    organization_name: String(orgName).trim(), payload: { sport, packageInterest, players, message }, delivery_status: 'pending',
+  }).select('id').single()
+  if (leadError || !lead) throw createError({ statusCode: 503, statusMessage: 'We could not save your inquiry. Please try again.' })
+
+  const deliveryErrors: string[] = []
 
   // Email to admin (sanitize all user input)
   try {
@@ -32,6 +41,7 @@ export default defineEventHandler(async (event) => {
     })
   } catch (err) {
     console.error('[team-inquiry] Failed to send admin notification:', err)
+    deliveryErrors.push('admin notification')
   }
 
   // Confirmation to submitter
@@ -52,7 +62,13 @@ export default defineEventHandler(async (event) => {
     })
   } catch (err) {
     console.error('[team-inquiry] Failed to send customer confirmation:', err)
+    deliveryErrors.push('customer confirmation')
   }
 
-  return { success: true }
+  await (supabase as any).from('lead_submissions').update({
+    delivery_status: deliveryErrors.length ? 'failed' : 'delivered',
+    delivery_error: deliveryErrors.length ? `Failed: ${deliveryErrors.join(', ')}` : null,
+  }).eq('id', lead.id)
+
+  return { success: true, saved: true, emailDelivered: deliveryErrors.length === 0 }
 })

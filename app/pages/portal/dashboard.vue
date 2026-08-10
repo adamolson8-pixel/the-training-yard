@@ -199,9 +199,8 @@ const totalCount = computed(() => (bookingsData.value?.upcoming?.length ?? 0) + 
 const teamStats = computed(() => {
   const allBookings = [...(bookingsData.value?.upcoming || []), ...(bookingsData.value?.past || [])]
   
-  // Bookings with amount_cents === 0 and a valid service_label are considered redeemed team hours
-  const standardUsed = allBookings.filter(b => b.amount_cents === 0 && b.status !== 'canceled' && !b.service_label?.toLowerCase().includes('buyout')).length
-  const buyoutUsed = allBookings.filter(b => b.amount_cents === 0 && b.status !== 'canceled' && b.service_label?.toLowerCase().includes('buyout')).length
+  const standardUsed = allBookings.filter(b => b.credit_hours_used > 0 && b.status !== 'cancelled' && b.package_type === 'standard').reduce((sum, b) => sum + Number(b.credit_hours_used), 0)
+  const buyoutUsed = allBookings.filter(b => b.credit_hours_used > 0 && b.status !== 'cancelled' && b.package_type === 'buyout').reduce((sum, b) => sum + Number(b.credit_hours_used), 0)
   
   const p = profile.value as any
   const standardRemaining = p?.team_standard_hours || 0
@@ -243,7 +242,7 @@ const quickActions = [
   { to: '/portal/membership', icon: '🌟', label: 'Membership', desc: 'View plan & billing status' },
   { to: '/portal/waiver', icon: '📋', label: 'Waiver Status', desc: 'View or sign your liability waiver' },
   { to: '/portal/profile', icon: '⚙️', label: 'Profile', desc: 'Update your account info' },
-  { to: '/teams', icon: '🏆', label: 'Team Packages', desc: 'Explore bulk & VIP plans' },
+  { to: '/teams', icon: '🏆', label: 'Team Rentals', desc: 'Request custom team pricing' },
 ]
 
 function formatDate(dateStr: string): string {
