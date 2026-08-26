@@ -19,7 +19,7 @@
       </div>
       <p class="text-gray-400 text-sm mt-4">
         Your liability waiver is on file. You're cleared to train at The Training Yard. If you need a copy, contact us at
-        <a href="mailto:adam@trainingyarddsm.com" class="text-amber-400 hover:underline">adam@trainingyarddsm.com</a>.
+        <a href="mailto:info@trainingyarddsm.com" class="text-amber-400 hover:underline">info@trainingyarddsm.com</a>.
       </p>
       <div v-if="justSigned" class="mt-4 pt-4 border-t border-green-500/20">
         <div class="flex items-center gap-3">

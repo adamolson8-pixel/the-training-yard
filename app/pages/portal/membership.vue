@@ -368,7 +368,7 @@ async function openStripePortal() {
     const { url } = await $fetch<{ url: string }>('/api/stripe/customer-portal', { method: 'POST' })
     window.open(url, '_blank')
   } catch {
-    alert('Unable to open billing portal. Please contact us at adam@trainingyarddsm.com')
+    alert('Unable to open billing portal. Please contact us at info@trainingyarddsm.com')
   } finally {
     loadingPortal.value = false
   }
