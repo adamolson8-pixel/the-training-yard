@@ -15,7 +15,14 @@ export default defineNuxtConfig({
     '@nuxtjs/google-fonts',
     '@nuxtjs/supabase',
     '@nuxtjs/sitemap',
+    'nuxt-gtag',
   ],
+
+  // GA4. The measurement ID comes from NUXT_PUBLIC_GTAG_ID (Netlify env var,
+  // production context) — never hardcoded here.
+  gtag: {
+    enabled: process.env.NODE_ENV === 'production',
+  },
 
   sitemap: {
     siteUrl: 'https://trainingyarddsm.com',

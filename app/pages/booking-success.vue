@@ -94,6 +94,19 @@ const { data: booking, pending, error } = await useFetch<{
   server: false,
 })
 
+// GA4: fire the lead event once the confirmed booking loads. Value is the real
+// amount paid (Stripe returns cents), not a flat assumption, so revenue in GA4
+// matches what actually cleared. Guarded so it fires at most once per page view.
+const leadTracked = ref(false)
+watch(booking, (b) => {
+  if (!b || leadTracked.value) return
+  leadTracked.value = true
+  useTrackEvent('generate_lead', {
+    value: (b.amountTotal ?? 0) / 100,
+    currency: 'USD',
+  })
+}, { immediate: true })
+
 function formatDate(dateStr: string): string {
   if (!dateStr) return ''
   const d = new Date(dateStr + 'T12:00:00')
