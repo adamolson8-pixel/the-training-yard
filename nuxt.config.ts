@@ -24,8 +24,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     smtpHost: process.env.SMTP_HOST || 'smtp.zoho.com',
     smtpPort: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 465,
-    smtpUser: process.env.SMTP_USER || 'info@trainingyarddsm.com',
-    smtpPass: process.env.SMTP_PASS || '',
+    smtpUser: '',                 // SMTP_USER / NUXT_SMTP_USER - read at runtime, never baked into the build
+    smtpPass: '',                 // SMTP_PASS / NUXT_SMTP_PASS - read at runtime, never baked into the build
     // Stripe — live
     stripeSecretKey: '',
     stripeWebhookSecret: '',
