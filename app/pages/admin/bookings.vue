@@ -141,10 +141,34 @@ const dateFrom = ref('')
 const dateTo = ref('')
 const cancelling = ref<string | null>(null)
 
-const { data: bookings, pending, error, refresh } = await useFetch<any[]>('/api/admin/bookings', {
-  query: computed(() => ({ status: statusFilter.value })),
-  server: false,
-})
+// Do NOT use useFetch()/useAsyncData() on this page. /admin/bookings is
+// `ssr: false` + `prerender: true`, and the prerendered payload for such a
+// route serializes as {"data":-1} — so nuxtApp.payload.data is *undefined*
+// on the client. useAsyncData reads payload.data[key] while hydrating and
+// writes payload._errors[key]; both throw on undefined, which is where
+// "Cannot read/set properties of undefined (reading '$f...')" came from.
+// Plain $fetch on mount never touches the payload, and is the pattern every
+// other admin page already uses.
+const bookings = ref<any>(null)
+const pending = ref(true)
+const error = ref<{ message: string } | null>(null)
+
+async function refresh() {
+  pending.value = true
+  error.value = null
+  try {
+    bookings.value = await $fetch<any>('/api/admin/bookings', {
+      query: { status: statusFilter.value },
+    })
+  } catch (e: any) {
+    error.value = { message: e?.data?.message || e?.statusMessage || e?.message || 'Unknown error' }
+    bookings.value = null
+  } finally {
+    pending.value = false
+  }
+}
+
+onMounted(refresh)
 
 const filtered = computed(() => {
   let list = (bookings.value as any)?.bookings ?? []
