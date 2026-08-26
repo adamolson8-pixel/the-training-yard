@@ -1,4 +1,4 @@
-import { sendEmail } from '../utils/email'
+import { sendEmail, getAdminEmail } from '../utils/email'
 import { escapeHtml } from '../utils/sanitize'
 import { serverSupabaseServiceRole } from '#supabase/server'
 
@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Name, email, and organization are required.' })
   }
 
-  const adminEmail = process.env.ADMIN_EMAIL || 'adam@trainingyarddsm.com'
+  const adminEmail = getAdminEmail()
   const supabase = serverSupabaseServiceRole(event)
   const { data: lead, error: leadError } = await (supabase as any).from('lead_submissions').insert({
     kind: 'team_inquiry', name: String(name).trim(), email: String(email).trim().toLowerCase(), phone: phone || null,

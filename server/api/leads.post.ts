@@ -1,5 +1,5 @@
 import { serverSupabaseServiceRole } from '#supabase/server'
-import { sendEmail } from '../utils/email'
+import { sendEmail, getAdminEmail } from '../utils/email'
 import { escapeHtml } from '../utils/sanitize'
 
 export default defineEventHandler(async (event) => {
@@ -14,8 +14,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // 1. Send Notification to Admin
-  const config = useRuntimeConfig()
-  const adminEmail = config.adminEmail || 'info@trainingyarddsm.com'
+  const adminEmail = getAdminEmail()
 
   const htmlContent = `
     <div style="font-family: sans-serif; color: #333;">

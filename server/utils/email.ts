@@ -42,9 +42,21 @@ function getSmtpTransporter() {
   })
 }
 
-function getAdminEmail(): string {
+/**
+ * Admin notification recipients.
+ * NOTE: adam@trainingyarddsm.com is NOT a real mailbox - never use it as a default.
+ * Env value (ADMIN_EMAIL / NUXT_ADMIN_EMAIL) may be a comma-separated list.
+ */
+const DEFAULT_ADMIN_RECIPIENTS = [
+  'adam@heartlandroofingandsiding.com',
+  'jesse@heartlandroofingandsiding.com',
+]
+
+export function getAdminEmail(): string[] {
   const config = useRuntimeConfig()
-  return (config.adminEmail as string) || process.env.ADMIN_EMAIL || 'adam@trainingyarddsm.com'
+  const raw = String((config.adminEmail as string) || process.env.ADMIN_EMAIL || '').trim()
+  const parsed = raw.split(',').map(a => a.trim()).filter(Boolean)
+  return parsed.length ? parsed : [...DEFAULT_ADMIN_RECIPIENTS]
 }
 
 async function getEmailTemplates() {
@@ -80,18 +92,25 @@ export async function sendEmail({ to, subject, html, text }: {
   html: string
   text?: string
 }) {
+  const recipients = (Array.isArray(to) ? to : String(to).split(','))
+    .map(a => a.trim())
+    .filter(Boolean)
+  if (!recipients.length) throw new Error('[email] No recipients provided')
+
   const resend = getResend()
 
   if (resend) {
     const { error } = await resend.emails.send({
       from: FROM_ADDRESS,
-      to: Array.isArray(to) ? to : [to],
+      to: recipients,
       subject,
       html,
       text,
     })
     if (error) {
       console.error('[email:resend] Failed to send:', error)
+      // Throw so callers can record an accurate delivery status instead of assuming success.
+      throw new Error(`Resend send failed: ${error.message || error.name || 'unknown error'}`)
     }
     return
   }
@@ -102,7 +121,7 @@ export async function sendEmail({ to, subject, html, text }: {
     console.warn('[email] No provider configured. Email not sent. Set NUXT_RESEND_API_KEY or SMTP_* env vars.')
     return
   }
-  await transporter.sendMail({ from: FROM_ADDRESS, to, subject, html, text })
+  await transporter.sendMail({ from: FROM_ADDRESS, to: recipients, subject, html, text })
 }
 
 // ─── Shared HTML wrapper ─────────────────────────────────────────────────────

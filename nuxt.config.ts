@@ -35,7 +35,7 @@ export default defineNuxtConfig({
     stripeTestMode: '',           // mapped from NUXT_STRIPE_TEST_MODE env var
     // Email
     resendApiKey: '',             // NUXT_RESEND_API_KEY
-    adminEmail: '',               // NUXT_ADMIN_EMAIL — defaults to adam@trainingyarddsm.com
+    adminEmail: '',               // NUXT_ADMIN_EMAIL — comma-separated; defaults to adam@ + jesse@heartlandroofingandsiding.com
     cronSecret: '',               // NUXT_CRON_SECRET — protects /api/cron/reminders
 
 
