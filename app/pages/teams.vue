@@ -206,6 +206,7 @@ async function submitInquiry() {
   try {
     await $fetch('/api/team-inquiry', { method: 'POST', body: form })
     submitStatus.value = 'success'
+    useTrackEvent('generate_lead', { lead_source: 'team_inquiry' })
     Object.assign(form, { name: '', email: '', phone: '', orgName: '', sport: '', players: '', packageInterest: '', message: '' })
   } catch {
     submitStatus.value = 'error'

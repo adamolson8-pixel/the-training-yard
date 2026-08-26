@@ -209,6 +209,7 @@ const handleLogin = async () => {
         }
       })
       if (error) throw error
+      useTrackEvent('sign_up', { method: 'email' })
       successMsg.value = 'Check your email for the confirmation link!'
     } else {
       const { error } = await supabase.auth.signInWithPassword({

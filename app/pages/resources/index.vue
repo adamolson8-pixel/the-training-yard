@@ -144,6 +144,7 @@ const submitLeadMagnet = async () => {
           source: 'Resources Page'
         }
       })
+      useTrackEvent('generate_lead', { lead_source: 'resource_download' })
     } catch (e) {
       console.error('Failed to save lead', e)
     }

@@ -193,6 +193,7 @@ const submitForm = async () => {
       body: form
     })
     formSubmitted.value = true
+    useTrackEvent('generate_lead', { lead_source: 'contact_form' })
   } catch (error: any) {
     formError.value = error.message || 'An error occurred while sending your message. Please try again.'
   } finally {

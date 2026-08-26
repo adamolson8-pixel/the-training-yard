@@ -94,16 +94,18 @@ const { data: booking, pending, error } = await useFetch<{
   server: false,
 })
 
-// GA4: fire the lead event once the confirmed booking loads. Value is the real
+// GA4: a paid checkout is a purchase, so report it as one. Value is the real
 // amount paid (Stripe returns cents), not a flat assumption, so revenue in GA4
 // matches what actually cleared. Guarded so it fires at most once per page view.
-const leadTracked = ref(false)
+const purchaseTracked = ref(false)
 watch(booking, (b) => {
-  if (!b || leadTracked.value) return
-  leadTracked.value = true
-  useTrackEvent('generate_lead', {
+  if (!b || purchaseTracked.value) return
+  purchaseTracked.value = true
+  useTrackEvent('purchase', {
+    transaction_id: sessionId,
     value: (b.amountTotal ?? 0) / 100,
     currency: 'USD',
+    items: [{ item_name: b.serviceLabel, price: (b.amountTotal ?? 0) / 100, quantity: 1 }],
   })
 }, { immediate: true })
 
