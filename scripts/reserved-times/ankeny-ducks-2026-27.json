@@ -1,0 +1,21 @@
+{
+  "label": "Ankeny Ducks — 2026-27 reserved times",
+  "team_name": "Ankeny Ducks",
+  "resource_id": "team-standard",
+  "reason": "Team Reservation — Ankeny Ducks",
+  "season": {
+    "start_date": "2026-08-01",
+    "until": "2027-03-31"
+  },
+  "patterns": [
+    { "label": "Sunday morning",   "days_of_week": [0], "start_time": "09:00", "end_time": "11:00" },
+    { "label": "Sunday afternoon", "days_of_week": [0], "start_time": "14:00", "end_time": "18:00" },
+    { "label": "Tuesday evening",  "days_of_week": [2], "start_time": "17:00", "end_time": "20:00" },
+    { "label": "Thursday evening", "days_of_week": [4], "start_time": "17:00", "end_time": "20:00" }
+  ],
+  "notes": [
+    "Standing reserved times run August 1 through the end of March.",
+    "April 1 – July 31 the Ducks choose 3 hours per week instead, so nothing is pre-blocked for the summer — book those on request.",
+    "Each block holds a team-standard footprint (2 cages + half turf), leaving 2 cages and half the turf open to everyone else."
+  ]
+}
