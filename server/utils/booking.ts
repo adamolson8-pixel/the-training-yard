@@ -1,6 +1,14 @@
 import { getServiceById } from '../../app/utils/services'
+import {
+  DATE_PATTERN,
+  FACILITY_TIME_ZONE,
+  addFacilityDays as addFacilityDaysRaw,
+  facilityInstant,
+  normalizeTime as normalizeTimeRaw,
+} from '../../lib/facilityTime.mjs'
+import { blockCapacity as blockCapacityRaw } from '../../lib/facilityResources.mjs'
 
-export const FACILITY_TIME_ZONE = 'America/Chicago'
+export { FACILITY_TIME_ZONE }
 export const OPENING_HOUR = 8
 export const LAST_START_HOUR = 19
 
@@ -15,56 +23,37 @@ export function serviceCapacity(serviceId: string) {
 }
 
 export function blockCapacity(resourceId?: string | null) {
-  if (!resourceId) return { cageUnits: 4, turfUnits: 2 }
-  if (['cage-1', 'cage-2', 'cage-3', 'cage-4'].includes(resourceId)) return { cageUnits: 1, turfUnits: 0 }
-  if (resourceId === 'half-turf') return { cageUnits: 0, turfUnits: 1 }
-  if (resourceId === 'full-turf') return { cageUnits: 0, turfUnits: 2 }
-  throw createError({ statusCode: 400, statusMessage: 'Invalid resource.' })
+  try {
+    return blockCapacityRaw(resourceId)
+  } catch {
+    throw createError({ statusCode: 400, statusMessage: 'Invalid resource.' })
+  }
 }
 
 export function normalizeTime(value: string) {
-  const twelveHour = value.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i)
-  if (twelveHour) {
-    let hour = Number(twelveHour[1])
-    const minute = Number(twelveHour[2])
-    const period = twelveHour[3].toUpperCase()
-    if (hour < 1 || hour > 12 || minute > 59) throw createError({ statusCode: 400, statusMessage: 'Invalid time.' })
-    if (period === 'PM' && hour !== 12) hour += 12
-    if (period === 'AM' && hour === 12) hour = 0
-    return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
-  }
-  const twentyFourHour = value.trim().match(/^(\d{2}):(\d{2})$/)
-  if (!twentyFourHour || Number(twentyFourHour[1]) > 23 || Number(twentyFourHour[2]) > 59) {
+  try {
+    return normalizeTimeRaw(value)
+  } catch {
     throw createError({ statusCode: 400, statusMessage: 'Invalid time.' })
   }
-  return value.trim()
 }
 
-function timeZoneOffset(date: Date, timeZone: string) {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone,
-    year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
-  }).formatToParts(date)
-  const values = Object.fromEntries(parts.map(part => [part.type, part.value]))
-  return Date.UTC(Number(values.year), Number(values.month) - 1, Number(values.day), Number(values.hour), Number(values.minute), Number(values.second)) - date.getTime()
+/** Calendar-day arithmetic on a Central Time date string. */
+export function addFacilityDays(date: string, days: number) {
+  if (!DATE_PATTERN.test(date)) throw createError({ statusCode: 400, statusMessage: 'Invalid date.' })
+  return addFacilityDaysRaw(date, days)
 }
 
 export function facilityWindow(date: string, time: string, durationMinutes: number) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw createError({ statusCode: 400, statusMessage: 'Invalid date.' })
+  if (!DATE_PATTERN.test(date)) throw createError({ statusCode: 400, statusMessage: 'Invalid date.' })
   if (!Number.isInteger(durationMinutes) || durationMinutes < 1 || durationMinutes > 24 * 60) {
     throw createError({ statusCode: 400, statusMessage: 'Invalid duration.' })
   }
-  const normalized = normalizeTime(time)
-  const [year, month, day] = date.split('-').map(Number)
-  const [hour, minute] = normalized.split(':').map(Number)
-  const wallClockUtc = Date.UTC(year, month - 1, day, hour, minute, 0)
-  const firstGuess = new Date(wallClockUtc)
-  const first = wallClockUtc - timeZoneOffset(firstGuess, FACILITY_TIME_ZONE)
-  const startAt = new Date(wallClockUtc - timeZoneOffset(new Date(first), FACILITY_TIME_ZONE))
+  const normalizedTime = normalizeTime(time)
+  const startAt = facilityInstant(date, normalizedTime)
   const endAt = new Date(startAt.getTime() + durationMinutes * 60_000)
 
-  return { startAt, endAt, normalizedTime: normalized }
+  return { startAt, endAt, normalizedTime }
 }
 
 export function bookingWindow(date: string, time: string, durationMinutes: number) {
