@@ -1,6 +1,6 @@
 import { serverSupabaseServiceRole } from '#supabase/server'
 import { requireAdmin } from '../../utils/auth'
-import { facilityWindow } from '../../utils/booking'
+import { facilityWindow, CAGE_CAPACITY, TURF_CAPACITY } from '../../utils/booking'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -51,7 +51,7 @@ export default defineEventHandler(async (event) => {
       const legacyWindow = !b.start_at ? facilityWindow(b.booking_date, timeStr, b.duration_minutes || 60) : null
       const startObj = b.start_at ? new Date(b.start_at) : legacyWindow!.startAt
       const endObj = b.end_at ? new Date(b.end_at) : legacyWindow!.endAt
-      const resourceId = Number(b.cage_units || 0) === 4 && Number(b.turf_units || 0) === 2
+      const resourceId = Number(b.cage_units || 0) === CAGE_CAPACITY && Number(b.turf_units || 0) === TURF_CAPACITY
         ? 'full-facility'
         : `cages-${Number(b.cage_units || 0)}-turf-${Number(b.turf_units || 0)}`
 

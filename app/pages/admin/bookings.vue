@@ -75,7 +75,7 @@
               >
                 <td class="px-4 py-3">
                   <div class="font-semibold text-gray-800">{{ formatDate(booking.booking_date) }}</div>
-                  <div class="text-gray-500">{{ booking.booking_time }}</div>
+                  <div class="text-gray-500">{{ formatTime(booking) }}</div>
                 </td>
                 <td class="px-4 py-3">
                   <div class="font-medium text-gray-800">{{ booking.service_label }}</div>
@@ -181,7 +181,7 @@ function exportCSV() {
   const rows = [
     ['Date', 'Time', 'Service', 'Customer', 'Email', 'Phone', 'Player', 'Amount', 'Status'],
     ...(filtered.value ?? []).map((b: any) => [
-      b.booking_date, b.booking_time, b.service_label,
+      b.booking_date, formatTime(b), b.service_label,
       b.customer_name, b.customer_email, b.customer_phone,
       b.player_name || '', ((b.amount_cents || 0) / 100).toFixed(2), b.status,
     ])
@@ -210,5 +210,19 @@ function formatDate(dateStr: string): string {
   if (!dateStr) return ''
   const d = new Date(dateStr + 'T12:00:00')
   return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+}
+
+/**
+ * booking_time is free text and two writers disagree on its format: admin
+ * reservations store "17:00", public checkout stores "5:00 PM". start_time is a
+ * real timestamp, so format from that and fall back only if it is missing.
+ */
+function formatTime(booking: any): string {
+  if (booking?.start_time) {
+    return new Date(booking.start_time).toLocaleTimeString('en-US', {
+      timeZone: 'America/Chicago', hour: 'numeric', minute: '2-digit',
+    })
+  }
+  return booking?.booking_time || ''
 }
 </script>
