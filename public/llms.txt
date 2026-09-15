@@ -21,7 +21,7 @@
 
 ## Services Offered
 1. **Batting Cage Rentals** — Single cage, two-cage combo, or all four cages. Includes pitching machine, tee, balls, L-screen, and helmets.
-2. **Turf Rentals** — Half turf or full 60' × 100' turf for team practices, drills, and conditioning.
+2. **Turf Rentals** — The 60' × 50' turf field (half the building; the other half is the four batting cages) for team practices, drills, and conditioning. For a full-facility buyout the cages retract, opening the entire 60' × 100' floor.
 3. **Private Lessons** — One-on-one instruction in hitting, pitching, fielding, and sport-specific skills. From $65/session.
 4. **Youth Clinics & Camps** — Progressive multi-week programs in baseball, softball, soccer, and agility.
 5. **Team Practice Plans** — Custom discounted arrangements for club, travel, and school teams, shaped around roster size, schedule, facility setup, and season length.
@@ -39,8 +39,8 @@
 ### Walk-In Rates
 - Single Cage, 30 min: $30
 - Single Cage, 60 min: $50
-- Half Turf, 60 min: $150
-- Full Turf, 60 min: $250
+- Open Turf (no cages), 60 min: $75
+- Full Facility Buyout (all 4 cages + turf), 60 min: $225
 
 ### Membership Tiers
 - **Individual Monthly:** $89/month — Off-peak cage access, 20% off peak rates, member-only open gym

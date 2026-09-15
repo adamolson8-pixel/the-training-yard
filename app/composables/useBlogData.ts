@@ -168,7 +168,7 @@ End practice with something fun and competitive. Options:
 
 Quick stretch. Coaching recap: one thing the team did well, one thing to work on next time. Dismiss.
 
-## Booking Full-Turf Team Practices
+## Booking Team Turf Practices
 
 The Training Yard offers full 60' × 100' turf rentals and recurring practice arrangements for teams. Because every roster and season is different, we build [custom discounted team pricing](/teams) around your schedule, space needs, and practice goals.
 
@@ -422,7 +422,7 @@ Iowa weather limits outdoor agility training to roughly 5 months of the year. In
 
 ## Book Turf Time for Agility Training
 
-Half turf rentals (50' × 60') provide enough space for a full cone circuit, while the full facility accommodates team-sized groups. [Individual and Family members](/training) receive discounted rates and priority booking, and organized teams can request [custom discounted team pricing](/teams).`,
+Turf rentals (60' × 50') provide enough space for a full cone circuit, while the full facility adds all four batting cages for team-sized groups. [Individual and Family members](/training) receive discounted rates and priority booking, and organized teams can request [custom discounted team pricing](/teams).`,
     },
     {
       slug: 'coaching-101-managing-indoor-practice-time',

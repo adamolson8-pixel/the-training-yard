@@ -44,7 +44,7 @@
               <td v-for="day in weekDays" :key="`${day}-${hour}`" class="p-1.5 align-top border-l border-gray-100 h-24">
                 <div class="rounded-lg p-1.5 h-full" :class="slotClass(day, hour)">
                   <div class="text-[10px] font-bold mb-1" :class="remaining(day, hour).cages === 0 && remaining(day, hour).turf === 0 ? 'text-red-700' : 'text-gray-500'">
-                    {{ remaining(day, hour).cages }}/4 cages · {{ remaining(day, hour).turf }}/2 turf open
+                    {{ remaining(day, hour).cages }}/{{ FACILITY_CAPACITY.cageUnits }} cages · {{ remaining(day, hour).turf }}/{{ FACILITY_CAPACITY.turfUnits }} turf open
                   </div>
                   <button v-for="event in slotEvents(day, hour)" :key="`${event.kind}-${event.id}`" class="w-full text-left text-[10px] leading-tight rounded px-1.5 py-1 mb-1 truncate" :class="event.kind === 'block' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'" :title="eventTitle(event)">
                     {{ event.kind === 'block' ? 'BLOCK' : event.team?.name || event.customer_name || 'Booking' }} · {{ event.cage_units }}C/{{ event.turf_units }}T
@@ -95,6 +95,7 @@
 
 <script setup lang="ts">
 import { SERVICES } from '~/utils/services'
+import { FACILITY_CAPACITY } from '~~/lib/facilityResources.mjs'
 
 definePageMeta({ layout: 'admin', middleware: ['admin'] })
 useHead({ title: 'Facility Schedule — Admin' })
@@ -138,9 +139,9 @@ function eventSpans(event: any, day: string, hour: number) {
 function slotEvents(day: string, hour: number) { return allEvents.value.filter(event => eventSpans(event, day, hour)) }
 function remaining(day: string, hour: number) {
   const rows = slotEvents(day, hour)
-  return { cages: Math.max(0, 4 - rows.reduce((sum, row) => sum + Number(row.cage_units || 0), 0)), turf: Math.max(0, 2 - rows.reduce((sum, row) => sum + Number(row.turf_units || 0), 0)) }
+  return { cages: Math.max(0, FACILITY_CAPACITY.cageUnits - rows.reduce((sum, row) => sum + Number(row.cage_units || 0), 0)), turf: Math.max(0, FACILITY_CAPACITY.turfUnits - rows.reduce((sum, row) => sum + Number(row.turf_units || 0), 0)) }
 }
-function slotClass(day: string, hour: number) { const r = remaining(day, hour); return r.cages === 0 && r.turf === 0 ? 'bg-red-50' : r.cages < 4 || r.turf < 2 ? 'bg-amber-50' : 'bg-green-50/60' }
+function slotClass(day: string, hour: number) { const r = remaining(day, hour); return r.cages === 0 && r.turf === 0 ? 'bg-red-50' : r.cages < FACILITY_CAPACITY.cageUnits || r.turf < FACILITY_CAPACITY.turfUnits ? 'bg-amber-50' : 'bg-green-50/60' }
 function eventTitle(event: any) { return event.kind === 'block' ? `${event.reason || 'Admin block'}${event.team?.name ? ` — ${event.team.name}` : ''}${event.profile?.full_name ? ` — ${event.profile.full_name}` : ''}` : `${event.service_label || 'Reservation'} — ${event.team?.name || event.customer_name || event.profile?.full_name || 'Customer'}` }
 function hourLabel(hour: number) { return `${hour % 12 || 12}:00 ${hour >= 12 ? 'PM' : 'AM'}` }
 function dayLabel(day: string) { return new Date(`${day}T12:00:00Z`).toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' }) }

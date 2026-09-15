@@ -6,11 +6,16 @@ import {
   facilityInstant,
   normalizeTime as normalizeTimeRaw,
 } from '../../lib/facilityTime.mjs'
-import { blockCapacity as blockCapacityRaw } from '../../lib/facilityResources.mjs'
+import { blockCapacity as blockCapacityRaw, FACILITY_CAPACITY } from '../../lib/facilityResources.mjs'
 
 export { FACILITY_TIME_ZONE }
 export const OPENING_HOUR = 8
 export const LAST_START_HOUR = 19
+
+// Facility layout: the building (60'x100') is half turf, half batting cages.
+// ONE turf field (60'x50') + FOUR cages. There is no second turf half.
+export const CAGE_CAPACITY = FACILITY_CAPACITY.cageUnits
+export const TURF_CAPACITY = FACILITY_CAPACITY.turfUnits
 
 export function serviceCapacity(serviceId: string) {
   const service = getServiceById(serviceId)
@@ -19,7 +24,7 @@ export function serviceCapacity(serviceId: string) {
   if (serviceId.startsWith('single_cage')) return { service, cageUnits: 1, turfUnits: 0 }
   if (serviceId === 'half_turf_60') return { service, cageUnits: 0, turfUnits: 1 }
   if (serviceId.startsWith('team_standard')) return { service, cageUnits: 2, turfUnits: 1 }
-  return { service, cageUnits: 4, turfUnits: 2 }
+  return { service, cageUnits: CAGE_CAPACITY, turfUnits: TURF_CAPACITY }
 }
 
 export function blockCapacity(resourceId?: string | null) {

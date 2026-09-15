@@ -1,6 +1,6 @@
 import { serverSupabaseServiceRole } from '#supabase/server'
 import { requireAdmin } from '../../utils/auth'
-import { facilityDateParts } from '../../utils/booking'
+import { facilityDateParts, CAGE_CAPACITY, TURF_CAPACITY } from '../../utils/booking'
 
 export default defineEventHandler(async (event) => {
   await requireAdmin(event)
@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
   setHeader(event, 'Cache-Control', 'no-store')
   return {
     timeZone: 'America/Chicago',
-    capacity: { cages: 4, turfHalves: 2 },
+    capacity: { cages: CAGE_CAPACITY, turf: TURF_CAPACITY },
     bookings: (bookings || []).map((row: any) => ({
       ...row, facility_start: facilityDateParts(row.start_at), facility_end: facilityDateParts(row.end_at),
       profile: row.user_id ? profileMap.get(row.user_id) || null : null,

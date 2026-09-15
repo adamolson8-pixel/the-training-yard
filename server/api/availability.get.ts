@@ -1,5 +1,5 @@
 import { serverSupabaseServiceRole } from '#supabase/server'
-import { bookingWindow, displayTime, serviceCapacity, OPENING_HOUR, LAST_START_HOUR } from '../utils/booking'
+import { bookingWindow, displayTime, serviceCapacity, OPENING_HOUR, LAST_START_HOUR, CAGE_CAPACITY, TURF_CAPACITY } from '../utils/booking'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
@@ -38,7 +38,7 @@ export default defineEventHandler(async (event) => {
       slots.push({
         time: displayTime(time),
         raw_time: `${date}T${time}:00`,
-        available: usedCages + blockedCages + cageUnits <= 4 && usedTurf + blockedTurf + turfUnits <= 2,
+        available: usedCages + blockedCages + cageUnits <= CAGE_CAPACITY && usedTurf + blockedTurf + turfUnits <= TURF_CAPACITY,
       })
     }
     setHeader(event, 'Cache-Control', 'no-store')

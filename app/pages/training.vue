@@ -155,9 +155,9 @@ const openFaq = ref<number | null>(null)
 
 const tiers = [
   { name: 'Individual', target: 'One athlete', price: '89', period: 'mo', popular: false, cta: 'Join Now',
-    features: ['Daily 1-hour cage access included', 'One Half Turf session per week', 'Walk-On Access to unreserved turf', '25% off additional rentals', 'Parent/coach helpers are free', 'Annual Billing: $890/yr (Save $178)'] },
+    features: ['Daily 1-hour cage access included', 'One turf session per week', 'Walk-On Access to unreserved turf', '25% off additional rentals', 'Parent/coach helpers are free', 'Annual Billing: $890/yr (Save $178)'] },
   { name: 'Family Pass', target: 'Household members', price: '129', period: 'mo', popular: true, cta: 'Join Now',
-    features: ['Shared daily 1-hour cage access', 'One Half Turf session per week', 'Walk-On Access to unreserved turf', '25% off additional rentals', 'Parent/coach helpers are free', 'Annual Billing: $1,290/yr (Save $258)'] },
+    features: ['Shared daily 1-hour cage access', 'One turf session per week', 'Walk-On Access to unreserved turf', '25% off additional rentals', 'Parent/coach helpers are free', 'Annual Billing: $1,290/yr (Save $258)'] },
   { name: 'Team Partnerships', target: 'Organized teams & clubs', price: '', period: '', popular: false, cta: TEAM_PRICING.inquiryCta, isTeam: true,
     features: ['Custom discounted pricing for your team', 'Standard or full-facility configurations', 'One-time, recurring, and seasonal options', 'Scheduling shaped around your needs', 'Options for rosters of up to 40 athletes', 'Direct planning support from our team'] },
 ]

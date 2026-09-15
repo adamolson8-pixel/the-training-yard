@@ -81,7 +81,7 @@ export function getLocalBusinessSchema() {
               '@type': 'Offer',
               itemOffered: {
                 '@type': 'Service',
-                name: 'Full Turf Team Rental',
+                name: 'Turf Team Rental',
                 description: 'Rent the full 60\' × 100\' indoor synthetic turf field for team practices and drills.',
               },
             },

@@ -113,8 +113,8 @@
             <label for="teamSetup" class="block text-sm font-medium text-gray-300 mb-1">Preferred Team Setup</label>
             <select id="teamSetup" v-model="form.packageInterest" class="form-input">
               <option value="">Help me choose</option>
-              <option value="Standard Team Setup — 2 Cages + Half Turf">Standard Team Setup — 2 Cages + Half Turf</option>
-              <option value="Full Facility — 4 Cages + Full Turf">Full Facility — 4 Cages + Full Turf</option>
+              <option value="Standard Team Setup — 2 Cages + Turf">Standard Team Setup — 2 Cages + Turf</option>
+              <option value="Full Facility — 4 Cages + Turf">Full Facility — 4 Cages + Turf</option>
               <option value="Custom or rotating setup">Custom or rotating setup</option>
             </select>
           </div>
@@ -158,7 +158,7 @@ useHead({
 const teamOptions = [
   {
     name: 'Standard Team Setup',
-    value: 'Standard Team Setup — 2 Cages + Half Turf',
+    value: 'Standard Team Setup — 2 Cages + Turf',
     emoji: '👥',
     description: "Two batting cages plus 60' × 50' of open turf for organized practices, station work, and smaller team groups.",
     features: ['Room for up to 20 athletes', 'Hitting, fielding, and conditioning stations', '60, 90, and 120-minute practice options', 'Pitching machines available upon request'],
@@ -166,7 +166,7 @@ const teamOptions = [
   },
   {
     name: 'Full Facility',
-    value: 'Full Facility — 4 Cages + Full Turf',
+    value: 'Full Facility — 4 Cages + Turf',
     emoji: '🏆',
     description: "Exclusive use of all four cages and the full 60' × 100' turf—ideal for larger rosters, clinics, tryouts, and complete team practices.",
     features: ['Room for up to 40 athletes', 'No shared space during your reservation', 'Flexible cage and open-turf configurations', 'Great for recurring practices and special events'],

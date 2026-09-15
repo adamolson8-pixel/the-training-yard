@@ -53,7 +53,7 @@
           <p class="text-gray-400 text-sm mb-5">One athlete. All the perks.</p>
           <ul class="space-y-2 text-sm text-gray-300 mb-6 flex-1">
             <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> Daily 1-hour cage access included</li>
-            <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> One Half Turf session per week</li>
+            <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> One turf session per week</li>
             <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> Walk-On Access to unreserved turf</li>
             <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> 25% off additional rentals</li>
             <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> Parent/coach helpers are free</li>
@@ -83,7 +83,7 @@
           <p class="text-gray-400 text-sm mb-5">All household members included.</p>
           <ul class="space-y-2 text-sm text-gray-300 mb-6 flex-1">
             <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> Shared daily 1-hour cage access</li>
-            <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> One Half Turf session per week</li>
+            <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> One turf session per week</li>
             <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> Walk-On Access to unreserved turf</li>
             <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> 25% off additional rentals</li>
             <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> Covers all immediate family members</li>
