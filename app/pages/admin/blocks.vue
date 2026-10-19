@@ -5,7 +5,7 @@
         <h1 class="text-2xl font-bold text-gray-900">Block Time</h1>
         <p class="text-gray-500 text-sm mt-0.5">Prevent bookings for specific resources or the entire facility.</p>
       </div>
-      <button @click="showForm = true" class="btn-admin-primary">+ Add Block</button>
+      <button @click="openForm" class="btn-admin-primary">+ Add Block</button>
     </div>
 
     <!-- Active Blocks List -->
@@ -34,7 +34,7 @@
                 <td class="px-4 py-3">
                   <span class="px-2 py-0.5 rounded-full text-xs font-bold"
                     :class="row.block.resource_id ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'">
-                    {{ row.block.resource_id ? resourceLabel(row.block.resource_id) : '🏟 Facility-Wide' }}
+                    {{ resourceLabel(row.block.resource_id) }}
                   </span>
                   <div v-if="row.kind === 'series'" class="mt-1 text-[11px] font-bold text-gray-500">
                     🔁 {{ seriesDays(row) }} · {{ occurrenceTimeRange(row.block) }}
@@ -88,11 +88,20 @@
         <div class="space-y-4">
           <!-- Resource selector -->
           <div>
-            <label class="block text-xs font-bold text-gray-500 mb-1">Resource *</label>
-            <select v-model="form.resource_id" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400">
-              <option value="">🏟 Facility-Wide (blocks everything)</option>
-              <option v-for="r in resources" :key="r.id" :value="r.id">{{ r.name }}</option>
-            </select>
+            <label class="block text-xs font-bold text-gray-500 mb-1">Resources * <span class="font-normal text-gray-400">(pick one or more)</span></label>
+            <div class="grid grid-cols-2 gap-1.5">
+              <button type="button" @click="form.resource_ids = []" :aria-pressed="!form.resource_ids.length"
+                class="col-span-2 text-left px-3 py-2 rounded-lg text-sm font-semibold border transition-colors"
+                :class="!form.resource_ids.length ? 'bg-red-500 border-red-500 text-white' : 'bg-white border-gray-200 text-gray-800 hover:border-gray-300'">
+                🏟 Facility-Wide (blocks everything)
+              </button>
+              <button v-for="r in resources" :key="r.id" type="button" @click="toggleResource(r.id)" :aria-pressed="form.resource_ids.includes(r.id)"
+                class="text-left px-3 py-2 rounded-lg text-sm font-semibold border transition-colors"
+                :class="[form.resource_ids.includes(r.id) ? 'bg-red-500 border-red-500 text-white' : 'bg-white border-gray-200 text-gray-800 hover:border-gray-300', r.id === 'team-standard' ? 'col-span-2' : '']">
+                {{ r.name }}
+              </button>
+            </div>
+            <p class="text-[11px] text-gray-500 mt-1.5">Closes {{ selectedCapacity.cageUnits }} of {{ FACILITY_CAPACITY.cageUnits }} cages · {{ selectedCapacity.turfUnits }} of {{ FACILITY_CAPACITY.turfUnits }} turf</p>
           </div>
 
           <div class="grid grid-cols-2 gap-3">
@@ -195,7 +204,7 @@
 </template>
 
 <script setup lang="ts">
-import { FACILITY_RESOURCES } from '~~/lib/facilityResources.mjs'
+import { FACILITY_RESOURCES, FACILITY_CAPACITY, blockCapacity, resourceLabel } from '~~/lib/facilityResources.mjs'
 
 definePageMeta({ layout: 'admin', middleware: ['admin'] })
 useHead({ title: 'Block Time — Admin' })
@@ -215,7 +224,7 @@ const expanded = ref(new Set<string>())
 const resources = FACILITY_RESOURCES
 
 const form = reactive({
-  resource_id: '',
+  resource_ids: [] as string[],
   reason: 'Team Reservation',
   user_id: '',
   team_id: '',
@@ -263,6 +272,20 @@ async function fetchBlocks() {
 }
 fetchBlocks()
 
+function openForm() {
+  form.resource_ids = []
+  formError.value = ''
+  showForm.value = true
+}
+
+const selectedCapacity = computed(() => blockCapacity(form.resource_ids))
+
+function toggleResource(id: string) {
+  const position = form.resource_ids.indexOf(id)
+  if (position === -1) form.resource_ids.push(id)
+  else form.resource_ids.splice(position, 1)
+}
+
 function toggleDay(index: number) {
   const position = form.repeatDays.indexOf(index)
   if (position === -1) form.repeatDays.push(index)
@@ -299,7 +322,7 @@ async function submitBlock() {
       body: {
         start_date: form.startDate, start_time: form.startTime,
         end_date: form.repeat ? form.startDate : form.endDate, end_time: form.endTime,
-        resource_id: form.resource_id || null, reason: form.reason, all_day: form.all_day,
+        resource_ids: form.resource_ids, reason: form.reason, all_day: form.all_day,
         user_id: form.user_id || null, team_id: form.team_id || null,
         repeat: form.repeat ? { days_of_week: form.repeatDays, until: form.repeatUntil } : null,
       }
@@ -323,10 +346,6 @@ async function deleteSeries(row: any) {
   if (!confirm(`Remove all ${row.occurrences.length} dates in this repeating block? Customers will be able to book those times again.`)) return
   await $fetch(`/api/admin/blocks/series/${row.key}`, { method: 'DELETE' }).catch(() => null)
   await fetchBlocks()
-}
-
-function resourceLabel(id: string) {
-  return resources.find(r => r.id === id)?.name ?? id
 }
 
 function fmtDateTime(d: string) {

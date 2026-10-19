@@ -90,7 +90,7 @@
     </Transition>
 
     <!-- Main -->
-    <main class="flex-1 min-w-0 overflow-x-hidden bg-gray-50">
+    <main class="flex-1 min-w-0 overflow-x-hidden bg-gray-50 text-gray-900 [color-scheme:light]">
       <NuxtPage />
     </main>
 

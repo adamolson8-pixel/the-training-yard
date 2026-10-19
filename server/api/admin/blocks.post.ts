@@ -4,6 +4,7 @@ import { requireAdmin } from '../../utils/auth'
 import { addFacilityDays, blockCapacity, facilityWindow } from '../../utils/booking'
 import { expandWeeklyRepeat, parseWeeklyRepeat } from '../../utils/recurrence'
 import { recordAdminAction } from '../../utils/adminAudit'
+import { normalizeResourceIds } from '../../../lib/facilityResources.mjs'
 
 /** Supabase rejects very large single inserts; series are written in batches. */
 const INSERT_BATCH_SIZE = 100
@@ -13,7 +14,13 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const supabase = serverSupabaseServiceRole(event)
 
-  const resourceId = body.resource_id ? String(body.resource_id) : null
+  let resourceIds: string[]
+  try {
+    resourceIds = normalizeResourceIds(body.resource_ids ?? body.resource_id)
+  } catch {
+    throw createError({ statusCode: 400, statusMessage: 'Invalid resource.' })
+  }
+  const resourceId = resourceIds.length ? resourceIds.join(',') : null
   const allDay = body.all_day === true
   const startDate = String(body.start_date || '')
   const endDate = String(body.end_date || startDate)

@@ -117,7 +117,7 @@
 
 <script setup lang="ts">
 import { SERVICES } from '~/utils/services'
-import { FACILITY_CAPACITY } from '~~/lib/facilityResources.mjs'
+import { FACILITY_CAPACITY, resourceLabel } from '~~/lib/facilityResources.mjs'
 
 definePageMeta({ layout: 'admin', middleware: ['admin'] })
 useHead({ title: 'Facility Schedule — Admin' })
@@ -176,7 +176,7 @@ function detailRows(event: any): [string, string][] {
   const rows: [string, any][] = []
   const space = `${event.cage_units} cage${Number(event.cage_units) === 1 ? '' : 's'} · ${event.turf_units} turf`
   if (event.kind === 'block') {
-    rows.push(['Reason', event.reason], ['Team', event.team?.name], ['Organization', event.team?.organization_name], ['Account', event.profile ? `${event.profile.full_name || ''} ${event.profile.email ? `(${event.profile.email})` : ''}`.trim() : ''], ['Space', space], ['Recurring', event.recurrence_id ? 'Yes, part of a series' : ''], ['All day', event.all_day ? 'Yes' : ''], ['Blocked by', event.creator?.full_name || event.creator?.email])
+    rows.push(['Reason', event.reason], ['Resources', resourceLabel(event.resource_id)], ['Team', event.team?.name], ['Organization', event.team?.organization_name], ['Account', event.profile ? `${event.profile.full_name || ''} ${event.profile.email ? `(${event.profile.email})` : ''}`.trim() : ''], ['Space', space], ['Recurring', event.recurrence_id ? 'Yes, part of a series' : ''], ['All day', event.all_day ? 'Yes' : ''], ['Blocked by', event.creator?.full_name || event.creator?.email])
   } else {
     rows.push(['Service', event.service_label], ['Team', event.team?.name], ['Customer', event.customer_name || event.profile?.full_name], ['Email', event.customer_email || event.profile?.email], ['Phone', event.customer_phone], ['Player / group', [event.player_name, event.player_age ? `age ${event.player_age}` : ''].filter(Boolean).join(', ')], ['Sport', event.sport], ['Space', space], ['Status', event.status], ['Payment', [event.payment_status, money(event.amount_cents)].filter(Boolean).join(' · ')], ['Waiver', event.waiver_accepted ? `Signed${event.waiver_signer_name ? ` by ${event.waiver_signer_name}` : ''}` : 'Not signed'], ['Source', event.created_by_admin ? 'Admin entry' : event.booking_source], ['Customer notes', event.notes], ['Internal notes', event.admin_notes])
   }
