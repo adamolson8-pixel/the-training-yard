@@ -87,7 +87,7 @@
             </dd>
           </template>
         </dl>
-        <div v-if="detail.team_id" class="mt-6"><NuxtLink to="/admin/teams" class="text-sm font-bold text-red-600 hover:underline">View team →</NuxtLink></div>
+        <div v-if="detail.team_id" class="mt-6"><NuxtLink :to="{ path: '/admin/teams', query: { open: detail.team_id } }" class="text-sm font-bold text-red-600 hover:underline">View {{ detail.team?.name || 'team' }} →</NuxtLink></div>
       </div>
     </div>
 
@@ -133,7 +133,7 @@ const hours = Array.from({ length: 12 }, (_, index) => index + 8)
 const centralParts = (date: Date) => Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: 'America/Chicago', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(date).map(part => [part.type, part.value]))
 const todayParts = centralParts(new Date())
 const todayKey = `${todayParts.year}-${todayParts.month}-${todayParts.day}`
-const selectedDate = ref(todayKey)
+const selectedDate = ref(/^\d{4}-\d{2}-\d{2}$/.test(String(route.query.date || '')) ? String(route.query.date) : todayKey)
 const showReservation = ref(false)
 const savingReservation = ref(false)
 const reservationError = ref('')

@@ -16,7 +16,30 @@
           <div class="grid lg:grid-cols-3 gap-4">
             <section class="panel"><h3>Team staff</h3><div v-if="!team.members.length" class="empty">No team staff.</div><div v-for="member in team.members" :key="member.id" class="row"><div><b>{{ member.full_name || member.email }}</b><small>{{ member.email }}</small></div><span class="badge">{{ member.role }}</span></div></section>
               <section class="panel"><h3>Roster & waivers</h3><div v-if="!team.participants.length" class="empty">No participants added.</div><div v-for="participant in team.participants" :key="participant.id" class="row"><div><b>{{ participant.full_name }}</b><small>{{ participant.guardian_email || 'No guardian email' }}</small></div><span class="badge" :class="participantCleared(participant) ? 'good' : 'bad'">{{ participantCleared(participant) ? 'Current' : 'Missing / expired' }}</span></div></section>
-            <section class="panel"><h3>Balances & bookings</h3><div v-for="pkg in team.packages" :key="pkg.id" class="row"><div><b>{{ pkg.package_name }}</b><small>{{ pkg.package_type }}</small></div><span class="badge good">{{ pkg.hours_remaining }} hr</span></div><div v-if="!team.packages.length" class="empty">No active hour balance.</div><hr class="my-3" /><div v-for="booking in team.bookings.slice(0,5)" :key="booking.id" class="row"><div><b>{{ booking.service_label }}</b><small>{{ fmtDate(booking.start_at) }}</small></div></div><div v-if="!team.bookings.length" class="empty">No upcoming reservations.</div></section>
+            <section class="panel"><h3>Hour balances</h3><div v-for="pkg in team.packages" :key="pkg.id" class="row"><div><b>{{ pkg.package_name }}</b><small>{{ pkg.package_type }}</small></div><span class="badge good">{{ pkg.hours_remaining }} hr</span></div><div v-if="!team.packages.length" class="empty">No active hour balance.</div></section>
+          </div>
+          <div class="grid lg:grid-cols-2 gap-4 mt-4">
+            <section class="panel">
+              <h3>Facility times</h3>
+              <div v-if="standingTimes(team).length" class="mb-3">
+                <div class="text-[10px] uppercase font-bold text-gray-400 mb-1">Standing weekly</div>
+                <div v-for="slot in standingTimes(team)" :key="slot.key" class="row"><div><b>{{ slot.day }} · {{ slot.time }}</b><small>{{ slot.space }} · {{ slot.remaining }} upcoming, through {{ slot.through }}</small></div><span class="badge">weekly</span></div>
+              </div>
+              <div class="text-[10px] uppercase font-bold text-gray-400 mb-1">Next up</div>
+              <NuxtLink v-for="item in upcomingTimes(team)" :key="item.key" :to="{ path: '/admin/schedule', query: { date: item.date } }" class="row hover:bg-gray-50 -mx-2 px-2 rounded-lg">
+                <div><b>{{ item.when }}</b><small>{{ item.label }}</small></div><span class="text-xs font-bold text-red-600">Schedule →</span>
+              </NuxtLink>
+              <div v-if="!upcomingTimes(team).length" class="empty">No upcoming facility time.</div>
+            </section>
+            <section class="panel">
+              <div class="flex items-center justify-between mb-3"><h3 class="!mb-0">Payments</h3><span class="text-[10px] uppercase font-bold text-gray-400">Admin only</span></div>
+              <div v-for="payment in team.payments.slice(0, 8)" :key="payment.id" class="row">
+                <div><b>{{ money(payment.amount_cents) }} · {{ payment.description || 'Payment' }}</b><small>{{ payment.paid_at ? fmtDate(payment.paid_at) : fmtDate(payment.created_at) }} · {{ payment.customer_name || payment.customer_email || 'Unknown payer' }}</small></div>
+                <span class="badge" :class="payment.verified_at && payment.status === 'paid' ? 'good' : payment.status === 'paid' ? '' : 'bad'">{{ payment.verified_at ? `Stripe ✓ ${payment.status.replace('_', ' ')}` : payment.status }}</span>
+              </div>
+              <div v-if="team.payments.length" class="text-xs text-gray-500 pt-2">Total verified: {{ money(team.payments.filter((p: any) => p.verified_at).reduce((sum: number, p: any) => sum + Number(p.amount_cents || 0) - Number(p.amount_refunded_cents || 0), 0)) }}</div>
+              <div v-else class="empty">No payments on record. Run "Verify with Stripe" on the Payments page.</div>
+            </section>
           </div>
         </div>
       </article>
@@ -48,7 +71,35 @@ async function fetchTeams() { loading.value=true; error.value=''; try { const [t
 function openAction(next:string,team:any=null){action.value=next;selectedTeam.value=team;Object.assign(form,blank());formError.value='';showModal.value=true}
 async function submitAction(){saving.value=true;formError.value='';try{await $fetch('/api/admin/teams',{method:'POST',body:{action:action.value,team_id:selectedTeam.value?.id,...form}});showModal.value=false;await fetchTeams()}catch(e:any){formError.value=e?.data?.statusMessage||'Unable to save the team change.'}finally{saving.value=false}}
 function reserveTeam(team:any){navigateTo({path:'/admin/schedule',query:{team:team.id}})}
+const route = useRoute()
+const TZ = 'America/Chicago'
+function money(cents: any) { return `$${(Number(cents || 0) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` }
+function centralDate(value: string) { const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date(value)).map(x => [x.type, x.value])); return `${p.year}-${p.month}-${p.day}` }
+function clock(value: string) { return new Date(value).toLocaleTimeString('en-US', { timeZone: TZ, hour: 'numeric', minute: '2-digit' }) }
+function weekday(value: string) { return new Date(value).toLocaleDateString('en-US', { timeZone: TZ, weekday: 'short' }) }
+function shortDay(value: string) { return new Date(value).toLocaleDateString('en-US', { timeZone: TZ, weekday: 'short', month: 'short', day: 'numeric' }) }
+function space(row: any) { return `${row.cage_units} cage${Number(row.cage_units) === 1 ? '' : 's'}${Number(row.turf_units) ? ' + turf' : ''}` }
+/** Recurring blocks grouped by weekday and time window, e.g. "Tue · 5:00 PM–8:00 PM". */
+function standingTimes(team: any) {
+  const groups = new Map<string, any>()
+  for (const block of (team.blocks || []).filter((b: any) => b.recurrence_id)) {
+    const key = `${weekday(block.start_at)}|${clock(block.start_at)}|${clock(block.end_at)}|${space(block)}`
+    const group = groups.get(key) || { key, day: weekday(block.start_at), time: block.all_day ? 'All day' : `${clock(block.start_at)}–${clock(block.end_at)}`, space: space(block), remaining: 0, last: block.end_at, first: block.start_at }
+    group.remaining++; if (block.end_at > group.last) group.last = block.end_at
+    groups.set(key, group)
+  }
+  const order = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  return [...groups.values()].map(g => ({ ...g, through: shortDay(g.last) })).sort((a, b) => order.indexOf(a.day) - order.indexOf(b.day) || a.first.localeCompare(b.first))
+}
+function upcomingTimes(team: any) {
+  const items = [
+    ...(team.blocks || []).map((b: any) => ({ key: `b-${b.id}`, start: b.start_at, date: centralDate(b.start_at), when: `${shortDay(b.start_at)} · ${b.all_day ? 'All day' : `${clock(b.start_at)}–${clock(b.end_at)}`}`, label: `${b.reason || 'Reserved'} · ${space(b)}` })),
+    ...(team.bookings || []).map((b: any) => ({ key: `k-${b.id}`, start: b.start_at, date: centralDate(b.start_at), when: `${shortDay(b.start_at)} · ${clock(b.start_at)}–${clock(b.end_at)}`, label: `${b.service_label || 'Reservation'} · ${b.status}` })),
+  ]
+  return items.sort((a, b) => a.start.localeCompare(b.start)).slice(0, 6)
+}
 await fetchTeams()
+if (route.query.open) expanded.value = String(route.query.open)
 </script>
 
 <style scoped>
