@@ -194,6 +194,28 @@
               </div>
             </section>
 
+            <!-- Payments (admin only) -->
+            <section>
+              <div class="flex items-center justify-between mb-3">
+                <div class="text-xs font-bold uppercase tracking-widest text-gray-400">Payments</div>
+                <span class="text-[10px] font-bold text-gray-400">Admin only</span>
+              </div>
+              <div v-if="drawerPaymentsPending" class="text-gray-400 text-sm">Loading...</div>
+              <div v-else-if="!drawerPayments.length" class="text-gray-400 text-sm">No payments on record. Run "Verify with Stripe" on the Payments page.</div>
+              <div v-else class="space-y-2 max-h-48 overflow-y-auto">
+                <div v-for="p in drawerPayments" :key="p.id" class="flex items-center justify-between p-2.5 rounded-lg bg-gray-50 border border-gray-100 text-xs">
+                  <div>
+                    <div class="font-semibold text-gray-700">{{ p.description || p.bookings?.service_label || 'Payment' }}</div>
+                    <div class="text-gray-400">{{ fmtDate(p.paid_at || p.created_at) }}<span v-if="p.team"> · {{ p.team.name }}</span></div>
+                  </div>
+                  <div class="text-right">
+                    <div class="font-bold text-gray-800">${{ ((p.amount_cents || 0) / 100).toFixed(2) }}</div>
+                    <span class="px-1.5 py-0.5 rounded-full font-bold" :class="p.verified_at && p.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'">{{ p.verified_at ? `Stripe ✓ ${p.status}` : p.status }}</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
             <!-- Danger Zone -->
             <section class="border border-red-200 rounded-xl p-4 bg-red-50">
               <div class="text-xs font-bold uppercase tracking-widest text-red-400 mb-3">Danger Zone</div>
@@ -272,6 +294,8 @@ const drawer = ref<any>(null)
 const drawerRole = ref('')
 const drawerBookings = ref<any[]>([])
 const drawerBookingsPending = ref(false)
+const drawerPayments = ref<any[]>([])
+const drawerPaymentsPending = ref(false)
 const waiverSaving = ref(false)
 const accountActionSaving = ref(false)
 
@@ -365,9 +389,16 @@ async function openDrawer(u: any) {
   }
 
   drawerBookingsPending.value = true
-  const data = await $fetch<any>('/api/admin/bookings', { query: { user_id: u.id } })
+  drawerPaymentsPending.value = true
+  drawerPayments.value = []
+  const [data, paymentData] = await Promise.all([
+    $fetch<any>('/api/admin/bookings', { query: { user_id: u.id } }),
+    $fetch<any>('/api/admin/payments', { query: { user_id: u.id, limit: 100 } }).catch(() => ({ payments: [] })),
+  ])
   drawerBookings.value = Array.isArray(data) ? data : (data.bookings || [])
   drawerBookingsPending.value = false
+  drawerPayments.value = paymentData.payments || []
+  drawerPaymentsPending.value = false
 }
 
 async function updateRole() {
