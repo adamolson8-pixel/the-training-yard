@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
   ])
   if (bookingError || blockError) throw createError({ statusCode: 500, statusMessage: 'Unable to load the calendar.' })
 
-  const userIds = [...new Set([...(bookings || []), ...(blocks || [])].map((row: any) => row.user_id).filter(Boolean))]
+  const userIds = [...new Set([...(bookings || []), ...(blocks || [])].flatMap((row: any) => [row.user_id, row.created_by]).filter(Boolean))]
   const teamIds = [...new Set([...(bookings || []), ...(blocks || [])].map((row: any) => row.team_id).filter(Boolean))]
   const [{ data: profiles }, { data: teams }] = await Promise.all([
     userIds.length ? (supabase as any).from('profiles').select('id,full_name,email').in('id', userIds) : { data: [] },
@@ -42,6 +42,7 @@ export default defineEventHandler(async (event) => {
     blocks: (blocks || []).map((row: any) => ({
       ...row, facility_start: facilityDateParts(row.start_at), facility_end: facilityDateParts(row.end_at),
       profile: row.user_id ? profileMap.get(row.user_id) || null : null,
+      creator: row.created_by ? profileMap.get(row.created_by) || null : null,
       team: row.team_id ? teamMap.get(row.team_id) || null : null,
     })),
   }

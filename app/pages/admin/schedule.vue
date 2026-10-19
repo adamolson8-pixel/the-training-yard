@@ -14,8 +14,8 @@
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
       <div class="bg-white border border-gray-200 rounded-xl p-4"><div class="text-xs font-bold text-gray-400 uppercase">Upcoming</div><div class="text-2xl font-bold text-gray-900">{{ upcomingBookings }}</div></div>
       <div class="bg-white border border-gray-200 rounded-xl p-4"><div class="text-xs font-bold text-gray-400 uppercase">Active blocks</div><div class="text-2xl font-bold text-gray-900">{{ calendar.blocks.length }}</div></div>
-      <div class="bg-white border border-gray-200 rounded-xl p-4"><div class="text-xs font-bold text-gray-400 uppercase">Facility capacity</div><div class="font-bold text-gray-900">4 cages</div></div>
-      <div class="bg-white border border-gray-200 rounded-xl p-4"><div class="text-xs font-bold text-gray-400 uppercase">Turf capacity</div><div class="font-bold text-gray-900">2 halves</div></div>
+      <div class="bg-white border border-gray-200 rounded-xl p-4"><div class="text-xs font-bold text-gray-400 uppercase">Facility capacity</div><div class="font-bold text-gray-900">{{ FACILITY_CAPACITY.cageUnits }} cages</div></div>
+      <div class="bg-white border border-gray-200 rounded-xl p-4"><div class="text-xs font-bold text-gray-400 uppercase">Turf capacity</div><div class="font-bold text-gray-900">{{ FACILITY_CAPACITY.turfUnits }} turf field</div></div>
     </div>
 
     <div class="bg-white border border-gray-200 rounded-xl shadow-sm mb-5 p-3 flex flex-wrap items-center gap-2">
@@ -46,8 +46,8 @@
                   <div class="text-[10px] font-bold mb-1" :class="remaining(day, hour).cages === 0 && remaining(day, hour).turf === 0 ? 'text-red-700' : 'text-gray-500'">
                     {{ remaining(day, hour).cages }}/{{ FACILITY_CAPACITY.cageUnits }} cages · {{ remaining(day, hour).turf }}/{{ FACILITY_CAPACITY.turfUnits }} turf open
                   </div>
-                  <button v-for="event in slotEvents(day, hour)" :key="`${event.kind}-${event.id}`" class="w-full text-left text-[10px] leading-tight rounded px-1.5 py-1 mb-1 truncate" :class="event.kind === 'block' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'" :title="eventTitle(event)">
-                    {{ event.kind === 'block' ? 'BLOCK' : event.team?.name || event.customer_name || 'Booking' }} · {{ event.cage_units }}C/{{ event.turf_units }}T
+                  <button v-for="event in slotEvents(day, hour)" :key="`${event.kind}-${event.id}`" class="w-full text-left text-[10px] leading-tight rounded px-1.5 py-1 mb-1 truncate" :class="event.kind === 'block' ? 'bg-red-100 text-red-800 hover:bg-red-200' : 'bg-blue-100 text-blue-800 hover:bg-blue-200'" :title="eventTitle(event)" @click="openDetail(event)">
+                    {{ whoLabel(event) }} · {{ event.cage_units }}C/{{ event.turf_units }}T
                   </button>
                 </div>
               </td>
@@ -61,11 +61,33 @@
       <div class="px-5 py-4 border-b border-gray-200"><h2 class="font-bold text-gray-900">Upcoming Bookings & Blocks</h2></div>
       <div class="divide-y divide-gray-100 max-h-96 overflow-auto">
         <div v-if="!upcomingEvents.length" class="p-8 text-center text-gray-400">No upcoming events.</div>
-        <div v-for="event in upcomingEvents" :key="`${event.kind}-${event.id}`" class="p-4 flex flex-wrap items-center gap-4">
+        <div v-for="event in upcomingEvents" :key="`${event.kind}-${event.id}`" class="p-4 flex flex-wrap items-center gap-4 cursor-pointer hover:bg-gray-50" @click="openDetail(event)">
           <span class="text-xs font-bold px-2 py-1 rounded-full" :class="event.kind === 'block' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'">{{ event.kind === 'block' ? 'BLOCK' : 'BOOKING' }}</span>
           <div class="min-w-44"><div class="font-semibold text-gray-800">{{ fmtDateTime(event.start_at) }}</div><div class="text-xs text-gray-400">to {{ fmtDateTime(event.end_at) }}</div></div>
           <div class="flex-1"><div class="font-semibold text-gray-800">{{ eventTitle(event) }}</div><div class="text-xs text-gray-500">{{ event.cage_units }} cage · {{ event.turf_units }} turf units</div></div>
         </div>
+      </div>
+    </div>
+
+    <div v-if="detail" class="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" @click.self="detail = null">
+      <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg max-h-[92vh] overflow-y-auto">
+        <div class="flex items-start justify-between gap-4 mb-1">
+          <span class="text-xs font-bold px-2 py-1 rounded-full" :class="detail.kind === 'block' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'">{{ detail.kind === 'block' ? 'BLOCK' : 'BOOKING' }}</span>
+          <button class="text-gray-400 hover:text-gray-700 text-xl leading-none" aria-label="Close" @click="detail = null">×</button>
+        </div>
+        <h2 class="text-xl font-bold text-gray-900 mt-2">{{ whoLabel(detail) }}</h2>
+        <p class="text-sm text-gray-500 mb-5">{{ fmtDateTime(detail.start_at) }} to {{ fmtTime(detail.end_at) }} CT</p>
+        <dl class="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
+          <template v-for="row in detailRows(detail)" :key="row[0]">
+            <dt class="font-bold text-gray-500">{{ row[0] }}</dt>
+            <dd class="text-gray-900 break-words">
+              <a v-if="row[0] === 'Email'" :href="`mailto:${row[1]}`" class="text-red-600 hover:underline">{{ row[1] }}</a>
+              <a v-else-if="row[0] === 'Phone'" :href="`tel:${row[1]}`" class="text-red-600 hover:underline">{{ row[1] }}</a>
+              <span v-else class="whitespace-pre-line">{{ row[1] }}</span>
+            </dd>
+          </template>
+        </dl>
+        <div v-if="detail.team_id" class="mt-6"><NuxtLink to="/admin/teams" class="text-sm font-bold text-red-600 hover:underline">View team →</NuxtLink></div>
       </div>
     </div>
 
@@ -117,6 +139,7 @@ const savingReservation = ref(false)
 const reservationError = ref('')
 const emptyReservation = () => ({ service_id: '', user_id: '', team_id: '', date: selectedDate.value, time: '17:00', amount: 0, customer_name: '', customer_email: '', customer_phone: '', player_name: '', admin_notes: '' })
 const reservation = reactive(emptyReservation())
+const detail = ref<any>(null)
 
 const weekDays = computed(() => {
   const base = new Date(`${selectedDate.value}T12:00:00Z`)
@@ -143,6 +166,23 @@ function remaining(day: string, hour: number) {
 }
 function slotClass(day: string, hour: number) { const r = remaining(day, hour); return r.cages === 0 && r.turf === 0 ? 'bg-red-50' : r.cages < FACILITY_CAPACITY.cageUnits || r.turf < FACILITY_CAPACITY.turfUnits ? 'bg-amber-50' : 'bg-green-50/60' }
 function eventTitle(event: any) { return event.kind === 'block' ? `${event.reason || 'Admin block'}${event.team?.name ? ` — ${event.team.name}` : ''}${event.profile?.full_name ? ` — ${event.profile.full_name}` : ''}` : `${event.service_label || 'Reservation'} — ${event.team?.name || event.customer_name || event.profile?.full_name || 'Customer'}` }
+function whoLabel(event: any) {
+  if (event.kind === 'block') return event.team?.name || event.profile?.full_name || event.reason || 'Admin block'
+  return event.team?.name || event.customer_name || event.profile?.full_name || 'Booking'
+}
+function openDetail(event: any) { detail.value = event }
+function money(cents: any) { return cents == null ? '' : `$${(Number(cents) / 100).toFixed(2)}` }
+function detailRows(event: any): [string, string][] {
+  const rows: [string, any][] = []
+  const space = `${event.cage_units} cage${Number(event.cage_units) === 1 ? '' : 's'} · ${event.turf_units} turf`
+  if (event.kind === 'block') {
+    rows.push(['Reason', event.reason], ['Team', event.team?.name], ['Organization', event.team?.organization_name], ['Account', event.profile ? `${event.profile.full_name || ''} ${event.profile.email ? `(${event.profile.email})` : ''}`.trim() : ''], ['Space', space], ['Recurring', event.recurrence_id ? 'Yes, part of a series' : ''], ['All day', event.all_day ? 'Yes' : ''], ['Blocked by', event.creator?.full_name || event.creator?.email])
+  } else {
+    rows.push(['Service', event.service_label], ['Team', event.team?.name], ['Customer', event.customer_name || event.profile?.full_name], ['Email', event.customer_email || event.profile?.email], ['Phone', event.customer_phone], ['Player / group', [event.player_name, event.player_age ? `age ${event.player_age}` : ''].filter(Boolean).join(', ')], ['Sport', event.sport], ['Space', space], ['Status', event.status], ['Payment', [event.payment_status, money(event.amount_cents)].filter(Boolean).join(' · ')], ['Waiver', event.waiver_accepted ? `Signed${event.waiver_signer_name ? ` by ${event.waiver_signer_name}` : ''}` : 'Not signed'], ['Source', event.created_by_admin ? 'Admin entry' : event.booking_source], ['Customer notes', event.notes], ['Internal notes', event.admin_notes])
+  }
+  return rows.filter(row => row[1] !== undefined && row[1] !== null && String(row[1]).trim() !== '') as [string, string][]
+}
+function fmtTime(value: string) { return new Date(value).toLocaleTimeString('en-US', { timeZone: 'America/Chicago', hour: 'numeric', minute: '2-digit' }) }
 function hourLabel(hour: number) { return `${hour % 12 || 12}:00 ${hour >= 12 ? 'PM' : 'AM'}` }
 function dayLabel(day: string) { return new Date(`${day}T12:00:00Z`).toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' }) }
 function shortDate(day: string) { return new Date(`${day}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }) }
