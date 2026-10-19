@@ -98,7 +98,9 @@
               <td class="px-4 py-3 text-xs">
                 <div v-if="p.team" class="font-bold text-gray-800">🥎 {{ p.team.name }}</div>
                 <div v-if="p.profile" class="text-gray-600">{{ p.profile.full_name || p.profile.email }}</div>
-                <div v-if="!p.team && !p.profile" class="font-bold text-red-600">Unmatched</div>
+                <div v-if="!p.team && !p.profile && p.booking_id" class="text-gray-600">Guest booking</div>
+                <div v-if="!p.team && !p.profile && !p.booking_id" class="font-bold text-red-600">Unmatched</div>
+                <div v-if="p.match_method" class="text-gray-400 mt-0.5">via {{ p.match_method }}</div>
                 <div v-if="p.verification_note" class="text-amber-600 mt-0.5">{{ p.verification_note }}</div>
               </td>
               <td class="px-4 py-3 text-right font-bold" :class="p.amount_cents < 0 ? 'text-red-500' : 'text-amber-600'">
