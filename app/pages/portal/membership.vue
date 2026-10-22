@@ -215,9 +215,23 @@
         </div>
 
         <div class="space-y-4">
-          <!-- Member Name -->
+          <!-- Who is filling this out -->
           <div>
-            <label class="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Member's Full Name <span class="text-red-400">*</span></label>
+            <label class="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Who Is Filling This Out? <span class="text-red-400">*</span></label>
+            <select
+              v-model="memberRelationship"
+              class="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 [color-scheme:dark]"
+            >
+              <option value="parent">I'm the player's parent or legal guardian</option>
+              <option value="self">I'm the player (18 or older)</option>
+              <option value="spouse">I'm the player's spouse</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <!-- Player Name -->
+          <div>
+            <label class="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Player's Full Name <span class="text-red-400">*</span></label>
             <input
               v-model="memberName"
               type="text"
@@ -227,29 +241,52 @@
             <p class="text-gray-500 text-xs mt-1">The athlete who will be using this membership.</p>
           </div>
 
-          <!-- Date of Birth -->
+          <!-- Player Date of Birth -->
           <div>
-            <label class="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Member's Date of Birth</label>
+            <label class="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Player's Date of Birth <span class="text-red-400">*</span></label>
             <input
               v-model="memberDob"
               type="date"
+              :max="todayIso"
               class="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 [color-scheme:dark]"
+            />
+            <p v-if="minorSigningSelf" class="text-red-400 text-xs mt-1">Players under 18 must be signed up by a parent or legal guardian. Choose “parent or legal guardian” above.</p>
+            <p v-else-if="minorNeedsParent" class="text-red-400 text-xs mt-1">Players under 18 must be signed up by a parent or legal guardian.</p>
+          </div>
+
+          <!-- Parent / Guardian Name -->
+          <div v-if="memberRelationship !== 'self'">
+            <label class="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1.5">{{ memberRelationship === 'parent' ? 'Parent / Guardian Full Name' : 'Your Full Name' }} <span class="text-red-400">*</span></label>
+            <input
+              v-model="guardianName"
+              type="text"
+              placeholder="e.g. Sarah Smith"
+              class="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 placeholder:text-gray-600"
             />
           </div>
 
-          <!-- Relationship -->
-          <div>
-            <label class="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Your Relationship to Member</label>
-            <select
-              v-model="memberRelationship"
-              class="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 [color-scheme:dark]"
-            >
-              <option value="self">This is for myself</option>
-              <option value="parent">I'm their parent/guardian</option>
-              <option value="spouse">I'm their spouse</option>
-              <option value="coach">I'm their coach</option>
-              <option value="other">Other</option>
-            </select>
+          <!-- Liability waiver for the player, signed before payment -->
+          <div class="rounded-xl border border-white/10 bg-black/20 p-4">
+            <div class="text-white font-bold text-sm mb-1">Liability Waiver <span class="text-red-400">*</span></div>
+            <p class="text-gray-400 text-xs mb-3">
+              Required for {{ memberName.trim() || 'the player' }}{{ memberRelationship === 'self' ? '' : ', signed by their parent or legal guardian' }}.
+            </p>
+            <div class="h-48 overflow-y-auto bg-black/40 border border-white/10 rounded-lg p-4 mb-3 text-xs text-gray-300 leading-relaxed custom-scrollbar">
+              <WaiverText />
+            </div>
+            <label class="flex items-start gap-2 text-sm text-white cursor-pointer">
+              <input v-model="waiverChecked" type="checkbox" class="mt-0.5 accent-amber-500" />
+              <span>
+                I have read and agree to the Release of Liability and Waiver Agreement{{ memberRelationship === 'self' ? '' : ` on behalf of ${memberName.trim() || 'the player'} as their parent or legal guardian` }}.
+              </span>
+            </label>
+            <label class="block text-gray-400 text-xs font-semibold uppercase tracking-wider mt-3 mb-1.5">Signature <span class="text-red-400">*</span></label>
+            <input
+              v-model="waiverSignature"
+              type="text"
+              placeholder="Type your full legal name"
+              class="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 placeholder:text-gray-600"
+            />
           </div>
 
           <button
@@ -257,7 +294,7 @@
             :class="selectedPlan?.includes('family')
               ? 'bg-gradient-to-r from-amber-500 to-red-500 text-white hover:from-amber-600 hover:to-red-600 shadow-lg'
               : 'bg-white/10 text-white hover:bg-white/20 border border-white/10 hover:border-white/30'"
-            :disabled="!memberName.trim() || checkoutLoading || !codeReady"
+            :disabled="checkoutLoading || !formReady"
             @click="startCheckout"
           >
             <span v-if="checkoutLoading" class="flex items-center justify-center gap-2">
@@ -316,9 +353,38 @@ const checkoutSuccess = ref(false)
 
 // Plan selection & member info
 const selectedPlan = ref<string | null>(null)
-const memberName = ref(profile.value?.full_name || '')
+const memberName = ref('')
 const memberDob = ref('')
-const memberRelationship = ref('self')
+// Players are usually minors, so a parent or guardian fills this out by default
+const memberRelationship = ref('parent')
+const guardianName = ref(profile.value?.full_name || '')
+const waiverChecked = ref(false)
+const waiverSignature = ref('')
+const todayIso = new Date().toISOString().slice(0, 10)
+
+// Player's age today, from their birth date
+const playerAge = computed(() => {
+  if (!memberDob.value) return null
+  const dob = new Date(`${memberDob.value}T12:00:00`)
+  const now = new Date()
+  let age = now.getFullYear() - dob.getFullYear()
+  if (now.getMonth() < dob.getMonth() || (now.getMonth() === dob.getMonth() && now.getDate() < dob.getDate())) age--
+  return age
+})
+const isMinor = computed(() => playerAge.value !== null && playerAge.value < 18)
+const minorSigningSelf = computed(() => isMinor.value && memberRelationship.value === 'self')
+const minorNeedsParent = computed(() => isMinor.value && !['self', 'parent'].includes(memberRelationship.value))
+
+// The account holder is the player when signing up for themselves, otherwise the parent/guardian
+watch(memberRelationship, (relationship, previous) => {
+  const accountName = profile.value?.full_name || ''
+  if (relationship === 'self') {
+    if (!memberName.value.trim()) memberName.value = accountName
+  } else {
+    if (previous === 'self' && memberName.value === accountName) memberName.value = ''
+    if (!guardianName.value.trim()) guardianName.value = accountName
+  }
+})
 
 // Team or promo code: checked as it's typed so team rate terms show before payment
 const teamCode = ref('')
@@ -371,6 +437,13 @@ async function applyTeamCode(code = codeEntry.value.trim()) {
 
 const codeReady = computed(() => !teamCode.value.trim()
   || (!codeChecking.value && codeInfo.value?.valid && (!codeInfo.value.requiresAgreement || termsAccepted.value)))
+
+// Player, birth date, parent (unless signing up themselves as an adult), waiver, and any code terms
+const formReady = computed(() => Boolean(selectedPlan.value && memberName.value.trim() && memberDob.value
+  && (memberRelationship.value === 'self' || guardianName.value.trim())
+  && !minorSigningSelf.value && !minorNeedsParent.value
+  && waiverChecked.value && waiverSignature.value.trim().length >= 2
+  && codeReady.value))
 
 // Always sync membership status on page load (catches webhook misses, dev mode, etc.)
 onMounted(async () => {
@@ -469,16 +542,16 @@ const memberFormEl = ref<HTMLElement | null>(null)
 function selectPlan(planId: string) {
   selectedPlan.value = planId
   checkoutError.value = ''
-  // Pre-fill member name with account holder name
-  if (!memberName.value) {
-    memberName.value = profile.value?.full_name || ''
-  }
+  // Pre-fill the account holder as the player (adult signing up) or as the parent
+  const accountName = profile.value?.full_name || ''
+  if (memberRelationship.value === 'self' && !memberName.value) memberName.value = accountName
+  if (memberRelationship.value !== 'self' && !guardianName.value) guardianName.value = accountName
   // The form opens below the plan cards, usually off-screen; bring it into view
   nextTick(() => memberFormEl.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
 }
 
 async function startCheckout() {
-  if (!selectedPlan.value || !memberName.value.trim()) return
+  if (!formReady.value) return
   checkoutLoading.value = true
   checkoutError.value = ''
   try {
@@ -489,6 +562,9 @@ async function startCheckout() {
         memberName: memberName.value.trim(),
         memberDob: memberDob.value,
         memberRelationship: memberRelationship.value,
+        guardianName: memberRelationship.value === 'self' ? '' : guardianName.value.trim(),
+        waiverAccepted: waiverChecked.value,
+        waiverSignerName: waiverSignature.value.trim(),
         teamCode: teamCode.value.trim(),
         teamTermsAccepted: termsAccepted.value,
       },

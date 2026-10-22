@@ -171,7 +171,8 @@ export async function endExpiredTeamDiscounts(supabase: any, stripe: Stripe, now
 /**
  * Adds a member who joined with a team code to that team's roster (Admin >
  * Teams > Roster & waivers), unless the same player is already on it. The
- * account holder is recorded as guardian when the membership is for someone else.
+ * parent/guardian named at signup is recorded, and the waiver signed at signup
+ * is attached so the roster shows it as current.
  */
 export async function addMemberToTeamRoster(supabase: any, subscription: Stripe.Subscription) {
   const meta = subscription.metadata || {}
@@ -179,26 +180,40 @@ export async function addMemberToTeamRoster(supabase: any, subscription: Stripe.
   const fullName = String(meta.member_name || '').trim()
   if (!teamId || !fullName) return null
   const dob = /^\d{4}-\d{2}-\d{2}$/.test(meta.member_dob || '') ? meta.member_dob : null
+  const waiverSignatureId = meta.waiver_signature_id || null
+  const now = new Date().toISOString()
 
-  const { data: roster, error } = await supabase.from('team_participants').select('id,full_name,date_of_birth,status').eq('team_id', teamId)
+  const { data: roster, error } = await supabase.from('team_participants').select('id,full_name,date_of_birth,status,waiver_signature_id').eq('team_id', teamId)
   if (error) throw error
   const same = (roster || []).find((p: any) => p.full_name.trim().toLowerCase() === fullName.toLowerCase()
     && (!dob || !p.date_of_birth || p.date_of_birth === dob))
+
+  let participantId: string
   if (same) {
-    if (same.status !== 'active') await supabase.from('team_participants').update({ status: 'active', updated_at: new Date().toISOString() }).eq('id', same.id)
-    return same.id
+    const updates: Record<string, any> = {}
+    if (same.status !== 'active') updates.status = 'active'
+    if (waiverSignatureId) updates.waiver_signature_id = waiverSignatureId
+    if (!same.date_of_birth && dob) updates.date_of_birth = dob
+    if (Object.keys(updates).length) await supabase.from('team_participants').update({ ...updates, updated_at: now }).eq('id', same.id)
+    participantId = same.id
+  } else {
+    const { data: account } = await supabase.from('profiles').select('full_name,email').eq('id', meta.supabase_user_id).maybeSingle()
+    const relationship = meta.member_relationship && meta.member_relationship !== 'self' ? meta.member_relationship : null
+    const { data: added, error: insertError } = await supabase.from('team_participants').insert({
+      team_id: teamId,
+      full_name: fullName,
+      date_of_birth: dob,
+      guardian_name: relationship ? String(meta.guardian_name || account?.full_name || '').trim() || null : null,
+      guardian_email: account?.email ? String(account.email).toLowerCase() : null,
+      guardian_relationship: relationship,
+      waiver_signature_id: waiverSignatureId,
+    }).select('id').single()
+    if (insertError) throw insertError
+    participantId = added.id
   }
 
-  const { data: account } = await supabase.from('profiles').select('full_name,email').eq('id', meta.supabase_user_id).maybeSingle()
-  const relationship = meta.member_relationship && meta.member_relationship !== 'self' ? meta.member_relationship : null
-  const { data: added, error: insertError } = await supabase.from('team_participants').insert({
-    team_id: teamId,
-    full_name: fullName,
-    date_of_birth: dob,
-    guardian_name: relationship ? account?.full_name || null : null,
-    guardian_email: account?.email ? String(account.email).toLowerCase() : null,
-    guardian_relationship: relationship,
-  }).select('id').single()
-  if (insertError) throw insertError
-  return added.id
+  if (waiverSignatureId) {
+    await supabase.from('waiver_signatures').update({ participant_id: participantId, team_id: teamId }).eq('id', waiverSignatureId)
+  }
+  return participantId
 }
