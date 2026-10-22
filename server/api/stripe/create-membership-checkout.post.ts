@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
 
   // --- Validate player, parent/guardian and waiver ---
   const signup = validateMemberSignup(body)
-  const { memberName, memberDob, relationship: memberRelationship, guardianName } = signup
+  const { memberName, memberDob, relationshipLabel: memberRelationship, guardianName } = signup
 
   // --- Stripe setup ---
   const isTestMode = String(config.stripeTestMode) === 'true'

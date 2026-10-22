@@ -22,6 +22,7 @@ export function validateMemberSignup(body: any, today: string = facilityDatePart
   const relationship = String(body.memberRelationship || '').trim()
   const guardianName = String(body.guardianName || '').trim()
   const signerName = String(body.waiverSignerName || '').trim()
+  const relationshipDetail = String(body.relationshipDetail || '').trim().slice(0, 60)
   const fail = (message: string) => { throw createError({ statusCode: 400, message }) }
 
   if (memberName.length < 2) fail("Enter the player's full name.")
@@ -29,12 +30,15 @@ export function validateMemberSignup(body: any, today: string = facilityDatePart
     fail("Enter the player's date of birth.")
   }
   if (!RELATIONSHIPS.includes(relationship)) fail('Choose who is filling this out.')
+  if (relationship === 'other' && relationshipDetail.length < 2) fail('Enter your relationship to the player.')
   if (relationship !== 'self' && guardianName.length < 2) fail("Enter the parent or guardian's full name.")
   const minor = ageOn(memberDob, today) < 18
   if (minor && relationship !== 'parent') fail('Players under 18 must be signed up by a parent or legal guardian.')
   if (body.waiverAccepted !== true || signerName.length < 2) fail('Please read and sign the liability waiver.')
 
-  return { memberName, memberDob, relationship, guardianName: relationship === 'self' ? '' : guardianName, signerName, minor }
+  // What's recorded as the relationship: the typed one for "Other"
+  const relationshipLabel = relationship === 'other' ? relationshipDetail : relationship
+  return { memberName, memberDob, relationship, relationshipLabel, guardianName: relationship === 'self' ? '' : guardianName, signerName, minor }
 }
 
 /** Records the facility waiver for a membership's player (valid one year), returning its id. */
@@ -50,7 +54,7 @@ export async function signMembershipWaiver(supabase: any, event: H3Event, signup
     participant_name: signup.memberName,
     participant_date_of_birth: signup.memberDob,
     signer_name: signup.signerName,
-    guardian_relationship: signup.relationship === 'self' ? null : signup.relationship,
+    guardian_relationship: signup.relationship === 'self' ? null : signup.relationshipLabel,
     liability_accepted: true,
     ip_address: getRequestIP(event, { xForwardedFor: true }) || null,
     user_agent: getHeader(event, 'user-agent') || null,

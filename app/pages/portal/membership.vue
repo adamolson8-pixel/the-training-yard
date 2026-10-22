@@ -47,12 +47,39 @@
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     <div v-if="showPlanCards">
       <div class="mb-6">
-        <h2 class="text-xl font-bold text-white mb-1">Choose a Membership Plan</h2>
-        <p class="text-gray-400 text-sm">Save 25% on every session. Cancel anytime.</p>
+        <h2 class="text-xl font-bold text-white mb-1">{{ teamMode ? 'Your Team Membership' : 'Choose a Membership Plan' }}</h2>
+        <p class="text-gray-400 text-sm">{{ teamMode ? 'Complete the details below to finish signing up.' : 'Save 25% on every session. Cancel anytime.' }}</p>
+      </div>
+
+      <!-- Team rate applied (signup link or code): one plan, discounted price, straight to checkout -->
+      <div v-if="teamMode" class="mb-2 rounded-2xl border border-amber-500/40 bg-gradient-to-b from-amber-500/10 to-transparent p-6">
+        <div class="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <div class="text-xs font-bold uppercase tracking-widest text-amber-400 mb-1">{{ teamRate.team }} team rate</div>
+            <div class="text-white text-xl font-bold">{{ teamBasePlan === 'family' ? 'Family' : 'Individual' }} Membership</div>
+          </div>
+          <span v-if="teamRate.discount" class="px-3 py-1 rounded-full text-xs font-bold bg-green-500/20 text-green-400">{{ teamRate.discount }}</span>
+        </div>
+        <div class="mt-3 flex flex-wrap items-baseline gap-2">
+          <span v-if="teamPrice !== fullPrice" class="text-gray-500 line-through text-lg">{{ money(fullPrice) }}/{{ priceUnit }}</span>
+          <span class="text-white text-4xl font-bold">{{ money(teamPrice) }}</span><span class="text-gray-400">/{{ priceUnit }}</span>
+        </div>
+        <p class="text-gray-400 text-xs mt-1">
+          Code <span class="font-mono font-bold text-white">{{ teamRate.code }}</span> applied ·
+          <button type="button" class="underline hover:text-white" @click="removeTeamCode">Remove code</button>
+        </p>
+        <div class="mt-4 inline-flex rounded-xl border border-white/10 bg-black/30 p-1 text-xs font-bold">
+          <button type="button" class="px-3 py-1.5 rounded-lg" :class="selectedPlan?.includes('annual') ? 'text-gray-400 hover:text-white' : 'bg-amber-500 text-black'" @click="selectPlan(teamBasePlan, false)">Monthly</button>
+          <button type="button" class="px-3 py-1.5 rounded-lg" :class="selectedPlan?.includes('annual') ? 'bg-amber-500 text-black' : 'text-gray-400 hover:text-white'" @click="selectPlan(teamBasePlan + '_annual', false)">Annual</button>
+        </div>
+        <ul class="mt-4 space-y-2 text-sm text-gray-300">
+          <li v-for="benefit in teamBenefits" :key="benefit" class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> {{ benefit }}</li>
+        </ul>
+        <p class="text-amber-400/70 text-xs mt-4">Renews automatically each {{ selectedPlan?.includes('annual') ? 'year' : 'month' }} and charges your card until you cancel. Cancel anytime from the billing portal.</p>
       </div>
 
       <!-- Team code: players on a partner team start here -->
-      <div class="mb-6 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4">
+      <div v-if="!teamMode" class="mb-6 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
             <div class="text-white font-bold text-sm">Have a team code?</div>
@@ -85,7 +112,7 @@
         <p v-if="codeEntryError" class="text-red-400 text-xs mt-2">{{ codeEntryError }}</p>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+      <div v-if="!teamMode" class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
         <!-- Individual Plan -->
         <div class="relative rounded-2xl border border-white/10 bg-white/5 p-6 flex flex-col hover:border-white/20 transition-all">
           <div class="text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Individual</div>
@@ -150,8 +177,8 @@
         </div>
       </div>
 
-      <!-- Team CTA -->
-      <div class="rounded-2xl border border-white/10 bg-white/5 p-5">
+      <!-- Team CTA (coaches) -->
+      <div v-if="!teamMode" class="rounded-2xl border border-white/10 bg-white/5 p-5">
         <div class="flex items-center justify-between flex-wrap gap-3">
           <div>
             <div class="text-white font-bold text-sm">Training with a Team?</div>
@@ -172,10 +199,10 @@
             <h3 class="text-lg font-bold text-white">Member Information</h3>
             <p class="text-gray-400 text-sm mt-0.5">Who is this membership for?</p>
           </div>
-          <button @click="selectedPlan = null" class="text-gray-500 hover:text-white text-sm">✕ Cancel</button>
+          <button v-if="!teamMode" @click="selectedPlan = null" class="text-gray-500 hover:text-white text-sm">✕ Cancel</button>
         </div>
 
-        <div class="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 mb-5 flex items-center gap-3">
+        <div v-if="!teamMode" class="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 mb-5 flex items-center gap-3">
           <span class="text-xl">{{ selectedPlan?.includes('family') ? '👨‍👩‍👧‍👦' : '⚡' }}</span>
           <div>
             <div class="text-white font-bold text-sm">
@@ -188,6 +215,7 @@
         </div>
 
         <div class="mb-5">
+          <template v-if="!teamMode">
           <label class="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Team or Promo Code</label>
           <input
             v-model="teamCode"
@@ -200,18 +228,22 @@
           <p v-else-if="codeChecking" class="text-gray-500 text-xs mt-1">Checking code…</p>
           <p v-else-if="codeInfo && !codeInfo.valid" class="text-red-400 text-xs mt-1">{{ codeInfo.message || 'That code isn’t valid.' }}</p>
           <p v-else-if="codeInfo?.valid && !codeInfo.terms?.length" class="text-green-400 text-xs mt-1">✓ {{ codeInfo.discount || 'Discount' }} applied at checkout.</p>
+          </template>
 
-          <!-- Team rate terms: shown before payment, must be accepted -->
+          <!-- Team rate terms: must be accepted before payment; full text on request -->
           <div v-if="codeInfo?.valid && codeInfo.terms?.length" class="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
-            <div class="text-white font-bold text-sm mb-2">{{ codeInfo.team }} team rate — please read</div>
-            <ul class="space-y-1.5 text-xs text-gray-300 list-disc pl-4">
+            <label class="flex items-start gap-2 text-sm text-white cursor-pointer">
+              <input v-model="termsAccepted" type="checkbox" class="mt-0.5 accent-amber-500" />
+              <span>I agree to the {{ codeInfo.team }} team rate terms.</span>
+            </label>
+            <button type="button" class="mt-2 ml-6 text-xs font-bold text-amber-400 underline hover:text-amber-300" @click="showTerms = !showTerms">
+              {{ showTerms ? 'Hide terms' : 'View terms' }}
+            </button>
+            <ul v-if="showTerms" class="mt-2 ml-6 space-y-1.5 text-xs text-gray-300 list-disc pl-4">
               <li v-for="term in codeInfo.terms" :key="term">{{ term }}</li>
             </ul>
-            <label v-if="codeInfo.requiresAgreement" class="mt-3 flex items-start gap-2 text-sm text-white cursor-pointer">
-              <input v-model="termsAccepted" type="checkbox" class="mt-0.5 accent-amber-500" />
-              <span>I’ve read and agree to the {{ codeInfo.team }} team rate terms above.</span>
-            </label>
           </div>
+          <p v-else-if="teamMode && codeChecking" class="text-gray-500 text-xs">Loading team terms…</p>
         </div>
 
         <div class="space-y-4">
@@ -224,9 +256,15 @@
             >
               <option value="parent">I'm the player's parent or legal guardian</option>
               <option value="self">I'm the player (18 or older)</option>
-              <option value="spouse">I'm the player's spouse</option>
               <option value="other">Other</option>
             </select>
+            <input
+              v-if="memberRelationship === 'other'"
+              v-model="relationshipDetail"
+              type="text"
+              placeholder="Your relationship to the player (e.g. grandparent)"
+              class="mt-2 w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 placeholder:text-gray-600"
+            />
           </div>
 
           <!-- Player Name -->
@@ -357,6 +395,7 @@ const memberName = ref('')
 const memberDob = ref('')
 // Players are usually minors, so a parent or guardian fills this out by default
 const memberRelationship = ref('parent')
+const relationshipDetail = ref('') // typed relationship when "Other"
 const guardianName = ref(profile.value?.full_name || '')
 const waiverChecked = ref(false)
 const waiverSignature = ref('')
@@ -426,6 +465,7 @@ async function applyTeamCode(code = codeEntry.value.trim()) {
       codeEntryError.value = result.message || 'That code isn’t valid.'
       return
     }
+    if (result.team) teamRate.value = result
     selectPlan(result.plan)
     teamCode.value = result.code
   } catch {
@@ -435,12 +475,46 @@ async function applyTeamCode(code = codeEntry.value.trim()) {
   }
 }
 
+// Team view: once a team code is applied (link, button, or typed in the form)
+// the page shows just that team's plan at its discounted price.
+const teamRate = ref<any>(null)
+const teamMode = computed(() => Boolean(teamRate.value))
+const showTerms = ref(false)
+watch(codeInfo, (info) => { if (info?.valid && info.team) teamRate.value = { ...teamRate.value, ...info } })
+function removeTeamCode() {
+  teamRate.value = null
+  teamCode.value = ''
+  codeEntry.value = ''
+  showCodeEntry.value = false
+  selectedPlan.value = null
+}
+
+const PLAN_PRICE_CENTS: Record<string, number> = { individual: 8900, individual_annual: 89000, family: 12900, family_annual: 129000 }
+const teamBasePlan = computed(() => (selectedPlan.value || teamRate.value?.plan || 'individual').replace('_annual', ''))
+const priceUnit = computed(() => (selectedPlan.value?.includes('annual') ? 'yr' : 'mo'))
+const fullPrice = computed(() => PLAN_PRICE_CENTS[selectedPlan.value || teamBasePlan.value] || 0)
+const teamPrice = computed(() => {
+  const rate = teamRate.value
+  if (rate?.percentOff) return Math.round(fullPrice.value * (1 - rate.percentOff / 100))
+  if (rate?.amountOffCents) return Math.max(0, fullPrice.value - rate.amountOffCents)
+  return fullPrice.value
+})
+const money = (cents: number) => `${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: cents % 100 ? 2 : 0, maximumFractionDigits: 2 })}`
+const teamBenefits = computed(() => {
+  const family = teamBasePlan.value === 'family'
+  if (teamRate.value?.includesTurf === false) {
+    return [family ? 'Shared daily 1-hour cage access' : 'Daily 1-hour cage access included', '25% off additional cage rentals', 'Parent/coach helpers are free', 'Cage access only: turf is not included']
+  }
+  return [family ? 'Shared daily 1-hour cage access' : 'Daily 1-hour cage access included', 'One turf session per week', 'Walk-On Access to unreserved turf', '25% off additional rentals', 'Parent/coach helpers are free']
+})
+
 const codeReady = computed(() => !teamCode.value.trim()
   || (!codeChecking.value && codeInfo.value?.valid && (!codeInfo.value.requiresAgreement || termsAccepted.value)))
 
 // Player, birth date, parent (unless signing up themselves as an adult), waiver, and any code terms
 const formReady = computed(() => Boolean(selectedPlan.value && memberName.value.trim() && memberDob.value
   && (memberRelationship.value === 'self' || guardianName.value.trim())
+  && (memberRelationship.value !== 'other' || relationshipDetail.value.trim().length >= 2)
   && !minorSigningSelf.value && !minorNeedsParent.value
   && waiverChecked.value && waiverSignature.value.trim().length >= 2
   && codeReady.value))
@@ -539,7 +613,7 @@ const statusBadgeClass = computed(() => {
 
 const memberFormEl = ref<HTMLElement | null>(null)
 
-function selectPlan(planId: string) {
+function selectPlan(planId: string, scroll = true) {
   selectedPlan.value = planId
   checkoutError.value = ''
   // Pre-fill the account holder as the player (adult signing up) or as the parent
@@ -547,7 +621,7 @@ function selectPlan(planId: string) {
   if (memberRelationship.value === 'self' && !memberName.value) memberName.value = accountName
   if (memberRelationship.value !== 'self' && !guardianName.value) guardianName.value = accountName
   // The form opens below the plan cards, usually off-screen; bring it into view
-  nextTick(() => memberFormEl.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+  if (scroll) nextTick(() => memberFormEl.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
 }
 
 async function startCheckout() {
@@ -563,6 +637,7 @@ async function startCheckout() {
         memberDob: memberDob.value,
         memberRelationship: memberRelationship.value,
         guardianName: memberRelationship.value === 'self' ? '' : guardianName.value.trim(),
+        relationshipDetail: memberRelationship.value === 'other' ? relationshipDetail.value.trim() : '',
         waiverAccepted: waiverChecked.value,
         waiverSignerName: waiverSignature.value.trim(),
         teamCode: teamCode.value.trim(),
