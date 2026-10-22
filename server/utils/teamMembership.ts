@@ -1,5 +1,6 @@
 import type Stripe from 'stripe'
 import { facilityDateParts } from './booking'
+import { MEMBERSHIP_PLANS, regularRateText } from './membershipPlans'
 import { membershipDiscountCode, retrieveMembershipSubscription, syncMembershipProfile } from './stripeMembership'
 
 /**
@@ -74,25 +75,27 @@ export function promotionDiscountText(promotionCode: any): string | null {
 }
 
 /**
- * The team rate terms a member must see and accept before checkout: which
- * benefits are left out and when the rate ends. Shown on our membership page,
- * printed on Stripe's checkout page, and saved on the Stripe subscription.
+ * The team rate terms a member must see and accept before checkout, for the
+ * plan they chose: benefits left out, when the rate ends and what is charged
+ * after, automatic renewal, and who the rate is for. Shown on our membership
+ * page, printed on Stripe's checkout page, and saved on the Stripe subscription.
  */
-export function teamCodeTerms(team: TeamMembershipCode, discountText: string | null) {
+export function teamCodeTerms(team: TeamMembershipCode, discountText: string | null, planId: string) {
+  const interval = MEMBERSHIP_PLANS[planId]?.interval
+  const annual = interval === 'year'
   const terms = [`${team.name} team rate${discountText ? ` (${discountText})` : ''} for ${PLAN_NAMES[team.membership_code_plan] || PLAN_NAMES.any}.`]
   if (team.membership_includes_turf === false) {
     terms.push('Cage access only: the weekly turf session and Walk-On Access to unreserved turf are not included, and turf rentals are charged at the regular non-member price.')
   }
   if (team.membership_discount_ends_on) {
-    terms.push(`The team rate ends after ${longDate(team.membership_discount_ends_on)} unless ${team.name} renews its agreement with The Training Yard. After that, your membership continues at the regular rate with all standard benefits unless you cancel.`)
+    terms.push(`The team rate ends after ${longDate(team.membership_discount_ends_on)} unless ${team.name} renews its agreement with The Training Yard. Your membership then stays active and your card on file is charged automatically at the regular ${regularRateText(planId)}${annual ? ' at your next annual renewal' : ''}, with all standard benefits, until you cancel.`)
+    if (annual) terms.push('An annual payment made at the team rate covers its full year.')
   }
-  terms.push('Team rates follow the team agreement and are not covered by the membership price lock. You can cancel anytime from the billing portal.')
+  terms.push(`Your membership renews automatically each ${interval || 'billing period'} and your card on file is charged until you cancel. Cancel anytime from the billing portal; cancellation takes effect at the end of the current billing period.`)
+  terms.push(`The team rate is only for ${team.name} players. The Training Yard may remove it from anyone not on the ${team.name} roster; the membership then continues at the regular rate unless you cancel.`)
+  terms.push('Team rates follow the team agreement and are not covered by the membership price lock.')
   return terms
 }
-
-/** Members must accept the terms when the team rate leaves out benefits or has an end date. */
-export const teamCodeNeedsAgreement = (team: TeamMembershipCode) =>
-  team.membership_includes_turf === false || Boolean(team.membership_discount_ends_on)
 
 /**
  * Checks a code typed on the membership page for the chosen plan: a team code
@@ -116,8 +119,9 @@ export async function resolveMembershipCode(supabase: any, stripe: Stripe, rawCo
     team: team || null,
     promotionCodeId: promotionCode.id,
     discount,
-    terms: team ? teamCodeTerms(team, discount) : [],
-    requiresAgreement: team ? teamCodeNeedsAgreement(team) : false,
+    terms: team ? teamCodeTerms(team, discount, planId) : [],
+    // Every team rate has terms to accept (at least who it's for); plain promo codes don't
+    requiresAgreement: Boolean(team),
   }
 }
 
