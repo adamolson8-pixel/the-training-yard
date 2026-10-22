@@ -212,6 +212,11 @@ const passwordSuccess = ref(false)
 async function changePassword() {
   passwordError.value = ''
   passwordSuccess.value = false
+  // Goes straight to Supabase with the admin's own session, so the server can't block it
+  if (profile.value?.viewing_as) {
+    passwordError.value = "Read-only: you're viewing the portal as another account."
+    return
+  }
   if (newPassword.value.length < 8) {
     passwordError.value = 'Password must be at least 8 characters.'
     return

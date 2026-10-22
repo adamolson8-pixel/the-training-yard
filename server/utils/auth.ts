@@ -47,10 +47,17 @@ export async function requireAdmin(event: H3Event) {
   return user
 }
 
+/** Cookie an admin sets to see the customer portal as another account (read-only). */
+export const VIEW_AS_COOKIE = 'tty_view_as'
+
 /**
  * Verifies the current request is from any authenticated user.
  * Throws 401 if not logged in.
  * Returns the user object on success (with normalized `id`).
+ *
+ * When an admin is viewing the portal as someone else (VIEW_AS_COOKIE), this
+ * returns that account instead, flagged with `viewAs`. Changes are blocked for
+ * the whole session by server/middleware/view-as.ts.
  */
 export async function requireAuth(event: H3Event) {
   const user = await serverSupabaseUser(event)
@@ -67,5 +74,22 @@ export async function requireAuth(event: H3Event) {
     throw createError({ statusCode: 500, statusMessage: 'Cannot determine user identity.' })
   }
 
+  const viewAsId = getCookie(event, VIEW_AS_COOKIE)
+  if (viewAsId && viewAsId !== uid) {
+    const viewed = await viewedAccount(event, uid, viewAsId)
+    if (viewed) return viewed
+  }
+
   return user
+}
+
+/** The account an admin is viewing as, or null if the requester isn't an admin or it doesn't exist. */
+async function viewedAccount(event: H3Event, adminId: string, viewAsId: string) {
+  const { serverSupabaseServiceRole } = await import('#supabase/server')
+  const supabase = serverSupabaseServiceRole(event)
+  const { data: admin } = await (supabase as any).from('profiles').select('role').eq('id', adminId).maybeSingle()
+  if (admin?.role !== 'admin') return null
+  const { data: viewed } = await (supabase as any).from('profiles').select('id,email,full_name').eq('id', viewAsId).maybeSingle()
+  if (!viewed) return null
+  return { id: viewed.id, email: viewed.email, viewAs: { adminId, fullName: viewed.full_name, email: viewed.email } } as any
 }

@@ -56,5 +56,7 @@ export default defineEventHandler(async (event) => {
   data.team_buyout_hours = packages.filter((pkg: any) => pkg.package_type === 'buyout').reduce((sum: number, pkg: any) => sum + Number(pkg.hours_remaining), 0)
   // False for cage-only team memberships (e.g. a team code without turf benefits)
   data.membership_includes_turf = await membershipIncludesTurf(supabase, data)
+  // An admin viewing the portal as this account (read-only banner in the portal)
+  data.viewing_as = (user as any).viewAs ? { full_name: data.full_name, email: data.email } : null
   return data
 })
