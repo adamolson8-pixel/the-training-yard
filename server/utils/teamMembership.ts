@@ -5,9 +5,12 @@ import { membershipDiscountCode, retrieveMembershipSubscription, syncMembershipP
 /**
  * Team membership codes (e.g. DUCKS2627). Each code is a Stripe promotion code that
  * carries the discount; the team row says which plans it covers, whether turf
- * benefits are included, and the last day of the team's contract. A member's
- * code comes from their Stripe subscription (profiles.membership_discount_code),
- * so once Stripe drops the discount they are a regular member again.
+ * benefits are included, and the last day of the team's contract. Checkout tags
+ * the subscription with the team (profiles.membership_team_id), so team rules
+ * follow the member even if the team later switches to a new season code. The
+ * team rate applies while their Stripe subscription has a discount
+ * (profiles.membership_discount_code); once Stripe drops it they are a regular
+ * member again.
  */
 
 export const normalizeCode = (code: any) => String(code || '').trim().toUpperCase()
@@ -23,13 +26,29 @@ export type TeamMembershipCode = {
 
 const TEAM_CODE_COLUMNS = 'id,name,membership_code,membership_code_plan,membership_includes_turf,membership_discount_ends_on'
 
-/** Teams that have a membership code, keyed by the upper-cased code. */
-export async function teamsByMembershipCode(supabase: any) {
+/** Team rate settings for every team, by id and by upper-cased membership code. */
+export async function loadTeamRates(supabase: any) {
   const { data, error } = await supabase.from('teams').select(TEAM_CODE_COLUMNS)
   if (error) throw error
-  return new Map<string, TeamMembershipCode>((data || [])
-    .filter((team: any) => team.membership_code)
-    .map((team: any) => [normalizeCode(team.membership_code), team]))
+  const teams: TeamMembershipCode[] = data || []
+  return {
+    byId: new Map(teams.map(team => [team.id, team])),
+    byCode: new Map(teams.filter(team => team.membership_code).map(team => [normalizeCode(team.membership_code), team])),
+  }
+}
+export type TeamRates = Awaited<ReturnType<typeof loadTeamRates>>
+
+/** Teams that have a membership code, keyed by the upper-cased code. */
+export async function teamsByMembershipCode(supabase: any) {
+  return (await loadTeamRates(supabase)).byCode
+}
+
+type MemberRate = { membership_discount_code?: any; membership_team_id?: any }
+
+/** The team whose rate a member is on: their linked team, or the team owning their code. */
+export function memberTeam(rates: TeamRates, profile: MemberRate) {
+  if (!profile?.membership_discount_code) return undefined
+  return rates.byId.get(profile.membership_team_id) ?? rates.byCode.get(normalizeCode(profile.membership_discount_code))
 }
 
 /** True while the team's contract runs (through its end date, Central time). */
@@ -102,15 +121,14 @@ export async function resolveMembershipCode(supabase: any, stripe: Stripe, rawCo
   }
 }
 
-/** Whether a member's turf benefits apply, given the discount code on their membership. */
-export function codeIncludesTurf(teams: Map<string, TeamMembershipCode>, discountCode: any) {
-  const team = discountCode ? teams.get(normalizeCode(discountCode)) : undefined
-  return team ? team.membership_includes_turf !== false : true
+/** Whether a member's turf benefits apply (false while on a cage-only team rate). */
+export function memberIncludesTurf(rates: TeamRates, profile: MemberRate) {
+  return memberTeam(rates, profile)?.membership_includes_turf !== false
 }
 
-export async function membershipIncludesTurf(supabase: any, discountCode: any) {
-  if (!discountCode) return true
-  return codeIncludesTurf(await teamsByMembershipCode(supabase), discountCode)
+export async function membershipIncludesTurf(supabase: any, profile: MemberRate | null) {
+  if (!profile?.membership_discount_code) return true
+  return memberIncludesTurf(await loadTeamRates(supabase), profile)
 }
 
 /**
@@ -120,21 +138,20 @@ export async function membershipIncludesTurf(supabase: any, discountCode: any) {
  * date before it passes keeps the discount going.
  */
 export async function endExpiredTeamDiscounts(supabase: any, stripe: Stripe, now: Date = new Date()) {
-  const expired = new Set([...(await teamsByMembershipCode(supabase)).entries()]
-    .filter(([, team]) => !teamCodeActive(team, now))
-    .map(([code]) => code))
+  const rates = await loadTeamRates(supabase)
   const result = { ended: 0, errors: [] as string[] }
-  if (!expired.size) return result
+  if (![...rates.byId.values()].some(team => !teamCodeActive(team, now))) return result
 
   const { data: profiles, error } = await supabase.from('profiles')
-    .select('id,stripe_subscription_id,membership_discount_code')
+    .select('id,stripe_subscription_id,membership_discount_code,membership_team_id')
     .not('membership_discount_code', 'is', null)
   if (error) throw error
-  for (const profile of (profiles || []).filter((p: any) => p.stripe_subscription_id && expired.has(normalizeCode(p.membership_discount_code)))) {
+  const contractOver = (profile: any) => { const team = memberTeam(rates, profile); return Boolean(team && !teamCodeActive(team, now)) }
+  for (const profile of (profiles || []).filter((p: any) => p.stripe_subscription_id && contractOver(p))) {
     try {
       let subscription = await retrieveMembershipSubscription(stripe, profile.stripe_subscription_id)
-      // Only a live subscription still carrying the team's code (staff may have changed it).
-      if (['active', 'trialing', 'past_due', 'unpaid'].includes(subscription.status) && expired.has(normalizeCode(membershipDiscountCode(subscription)))) {
+      // Only a live subscription that still has a discount (the team code, or a coupon staff applied for the team).
+      if (['active', 'trialing', 'past_due', 'unpaid'].includes(subscription.status) && membershipDiscountCode(subscription)) {
         await stripe.subscriptions.deleteDiscount(subscription.id)
         subscription = await retrieveMembershipSubscription(stripe, subscription.id)
         result.ended++
@@ -145,4 +162,39 @@ export async function endExpiredTeamDiscounts(supabase: any, stripe: Stripe, now
     }
   }
   return result
+}
+
+/**
+ * Adds a member who joined with a team code to that team's roster (Admin >
+ * Teams > Roster & waivers), unless the same player is already on it. The
+ * account holder is recorded as guardian when the membership is for someone else.
+ */
+export async function addMemberToTeamRoster(supabase: any, subscription: Stripe.Subscription) {
+  const meta = subscription.metadata || {}
+  const teamId = meta.team_id
+  const fullName = String(meta.member_name || '').trim()
+  if (!teamId || !fullName) return null
+  const dob = /^\d{4}-\d{2}-\d{2}$/.test(meta.member_dob || '') ? meta.member_dob : null
+
+  const { data: roster, error } = await supabase.from('team_participants').select('id,full_name,date_of_birth,status').eq('team_id', teamId)
+  if (error) throw error
+  const same = (roster || []).find((p: any) => p.full_name.trim().toLowerCase() === fullName.toLowerCase()
+    && (!dob || !p.date_of_birth || p.date_of_birth === dob))
+  if (same) {
+    if (same.status !== 'active') await supabase.from('team_participants').update({ status: 'active', updated_at: new Date().toISOString() }).eq('id', same.id)
+    return same.id
+  }
+
+  const { data: account } = await supabase.from('profiles').select('full_name,email').eq('id', meta.supabase_user_id).maybeSingle()
+  const relationship = meta.member_relationship && meta.member_relationship !== 'self' ? meta.member_relationship : null
+  const { data: added, error: insertError } = await supabase.from('team_participants').insert({
+    team_id: teamId,
+    full_name: fullName,
+    date_of_birth: dob,
+    guardian_name: relationship ? account?.full_name || null : null,
+    guardian_email: account?.email ? String(account.email).toLowerCase() : null,
+    guardian_relationship: relationship,
+  }).select('id').single()
+  if (insertError) throw insertError
+  return added.id
 }

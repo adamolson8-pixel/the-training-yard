@@ -1,6 +1,6 @@
 import { serverSupabaseServiceRole } from '#supabase/server'
 import { requireAdmin } from '../../utils/auth'
-import { codeIncludesTurf, teamsByMembershipCode } from '../../utils/teamMembership'
+import { loadTeamRates, memberIncludesTurf } from '../../utils/teamMembership'
 
 export default defineEventHandler(async (event) => {
   await requireAdmin(event)
@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
 
   let req = (supabase as any)
     .from('profiles')
-    .select('id, email, full_name, phone, role, membership_type, membership_status, membership_expires, membership_discount_code, waiver_signed, waiver_signed_at, waiver_override_by, created_at, team_standard_hours, team_buyout_hours', { count: 'exact' })
+    .select('id, email, full_name, phone, role, membership_type, membership_status, membership_expires, membership_discount_code, membership_team_id, waiver_signed, waiver_signed_at, waiver_override_by, created_at, team_standard_hours, team_buyout_hours', { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(from, to)
 
@@ -30,8 +30,8 @@ export default defineEventHandler(async (event) => {
   }
 
   // Flag cage-only team memberships (a team code without turf benefits).
-  const teams = await teamsByMembershipCode(supabase)
-  const users = (data || []).map((u: any) => ({ ...u, membership_includes_turf: codeIncludesTurf(teams, u.membership_discount_code) }))
+  const rates = await loadTeamRates(supabase)
+  const users = (data || []).map((u: any) => ({ ...u, membership_includes_turf: memberIncludesTurf(rates, u) }))
 
   return { users, total: count, page, limit }
 })
