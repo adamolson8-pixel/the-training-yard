@@ -1,6 +1,8 @@
 import { serverSupabaseServiceRole } from '#supabase/server'
 import { requireAdmin } from '../../utils/auth'
 import { recordAdminAction } from '../../utils/adminAudit'
+import { stripeClient } from '../../utils/stripeVerify'
+import { normalizeCode } from '../../utils/teamMembership'
 
 export default defineEventHandler(async (event) => {
   const admin = await requireAdmin(event)
@@ -83,6 +85,35 @@ export default defineEventHandler(async (event) => {
     })
     await recordAdminAction(supabase, admin.id, 'team.hours_adjusted', 'team', teamId, { package_type: packageType, hours_delta: delta })
     return { success: true }
+  }
+
+  if (action === 'set-membership-code') {
+    const code = normalizeCode(body.membership_code)
+    if (code && !/^[A-Z0-9_-]{3,30}$/.test(code)) throw createError({ statusCode: 400, statusMessage: 'Codes are 3–30 letters, numbers, dashes, or underscores.' })
+    const endsOn = String(body.membership_discount_ends_on || '').trim() || null
+    if (endsOn && !/^\d{4}-\d{2}-\d{2}$/.test(endsOn)) throw createError({ statusCode: 400, statusMessage: 'Enter the contract end date as a date.' })
+    const plan = ['individual', 'family'].includes(body.membership_code_plan) ? body.membership_code_plan : 'any'
+    const { error } = await (supabase as any).from('teams').update({
+      membership_code: code || null, membership_code_plan: plan,
+      membership_includes_turf: body.membership_includes_turf !== false, membership_discount_ends_on: endsOn,
+      updated_at: new Date().toISOString(),
+    }).eq('id', teamId)
+    if (error?.code === '23505') throw createError({ statusCode: 409, statusMessage: 'Another team already uses that code.' })
+    if (error) throw createError({ statusCode: 500, statusMessage: 'Unable to save the membership code.' })
+    await recordAdminAction(supabase, admin.id, 'team.membership_code_set', 'team', teamId, { code: code || null, plan, includes_turf: body.membership_includes_turf !== false, ends_on: endsOn })
+
+    // The discount comes from a Stripe promotion code with the same name; say so if it's missing.
+    let warning: string | null = null
+    if (code) {
+      try {
+        const { stripe } = stripeClient()
+        const { data } = await stripe.promotionCodes.list({ code, active: true, limit: 1 })
+        if (!data.length) warning = `Saved, but Stripe has no active promotion code "${code}" yet. Create it on the team's coupon so members get the discount.`
+      } catch {
+        warning = 'Saved, but Stripe could not be checked for the promotion code.'
+      }
+    }
+    return { success: true, warning }
   }
 
   throw createError({ statusCode: 400, statusMessage: 'Unknown team action.' })

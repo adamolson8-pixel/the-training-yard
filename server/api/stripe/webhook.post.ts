@@ -1,7 +1,7 @@
 import Stripe from 'stripe'
 import { serverSupabaseServiceRole } from '#supabase/server'
 import { sendBookingConfirmation, sendAdminNotification } from '../../utils/email'
-import { invoiceSubscriptionId, syncMembershipProfile } from '../../utils/stripeMembership'
+import { invoiceSubscriptionId, retrieveMembershipSubscription, syncMembershipProfile } from '../../utils/stripeMembership'
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
@@ -67,7 +67,7 @@ export default defineEventHandler(async (event) => {
       if (session.metadata?.type === 'membership' && session.mode === 'subscription') {
         const subscriptionId = typeof session.subscription === 'string' ? session.subscription : session.subscription?.id
         if (subscriptionId) {
-          const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+          const subscription = await retrieveMembershipSubscription(stripe, subscriptionId)
           await syncMembershipProfile(supabase, subscription, { extra: { membership_start: new Date(subscription.start_date * 1000).toISOString() } })
         }
       }
@@ -82,14 +82,14 @@ export default defineEventHandler(async (event) => {
     // Monthly/annual renewal paid: membership stays active through the new period.
     if (stripeEvent.type === 'invoice.paid' || stripeEvent.type === 'invoice.payment_succeeded') {
       const subscriptionId = invoiceSubscriptionId(stripeEvent.data.object as Stripe.Invoice)
-      if (subscriptionId) await syncMembershipProfile(supabase, await stripe.subscriptions.retrieve(subscriptionId))
+      if (subscriptionId) await syncMembershipProfile(supabase, await retrieveMembershipSubscription(stripe, subscriptionId))
     }
 
     // Failed renewals (past_due), plan changes, and cancellations. Re-read the
     // subscription so out-of-order events still leave the latest state.
     if (stripeEvent.type === 'customer.subscription.updated' || stripeEvent.type === 'customer.subscription.deleted') {
       const deleted = stripeEvent.type === 'customer.subscription.deleted'
-      const subscription = await stripe.subscriptions.retrieve((stripeEvent.data.object as Stripe.Subscription).id)
+      const subscription = await retrieveMembershipSubscription(stripe, (stripeEvent.data.object as Stripe.Subscription).id)
       await syncMembershipProfile(supabase, subscription, { onlyIfCurrent: true, status: deleted ? 'canceled' : undefined })
     }
 

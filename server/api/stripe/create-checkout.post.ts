@@ -1,6 +1,7 @@
 import Stripe from 'stripe'
 import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
 import { bookingPrice, bookingWindow, displayTime, serviceCapacity } from '../../utils/booking'
+import { membershipIncludesTurf } from '../../utils/teamMembership'
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
@@ -19,13 +20,15 @@ export default defineEventHandler(async (event) => {
   const userId = (user as any)?.id || (user as any)?.sub || null
 
   let membershipStatus = 'none'
+  let includesTurf = true
   let customerEmail = String(body.customerEmail).trim().toLowerCase()
   if (userId) {
-    const { data: profile } = await (supabase as any).from('profiles').select('email,membership_status').eq('id', userId).single()
+    const { data: profile } = await (supabase as any).from('profiles').select('email,membership_status,membership_discount_code').eq('id', userId).single()
     membershipStatus = profile?.membership_status || 'none'
+    includesTurf = await membershipIncludesTurf(supabase, profile?.membership_discount_code)
     customerEmail = profile?.email || user?.email || customerEmail
   }
-  const amountCents = bookingPrice(service, membershipStatus)
+  const amountCents = bookingPrice(service, membershipStatus, includesTurf)
 
   const { data: waiverDocument, error: waiverDocumentError } = await (supabase as any)
     .from('waiver_documents').select('*').eq('slug', 'facility-liability-release').eq('active', true).order('version', { ascending: false }).limit(1).single()

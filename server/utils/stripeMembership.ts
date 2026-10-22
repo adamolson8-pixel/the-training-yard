@@ -40,6 +40,25 @@ export function invoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
   return stripeId((invoice as any).parent?.subscription_details?.subscription ?? (invoice as any).subscription)
 }
 
+/** Retrieves a subscription with its discounts' promotion codes expanded, for membershipDiscountCode. */
+export const retrieveMembershipSubscription = (stripe: Stripe, subscriptionId: string) =>
+  stripe.subscriptions.retrieve(subscriptionId, { expand: ['discounts.promotion_code'] })
+
+/**
+ * The team promotion code discounting a subscription (or the coupon, when staff
+ * applied one without a code). Null when it has no discount; undefined when its
+ * discounts were not expanded, so the saved code is left as it is.
+ */
+export function membershipDiscountCode(subscription: Stripe.Subscription): string | null | undefined {
+  const discounts = subscription.discounts || []
+  if (!discounts.length) return null
+  const discount = discounts[0]
+  if (!discount || typeof discount === 'string') return undefined
+  if (discount.promotion_code) return typeof discount.promotion_code === 'string' ? undefined : discount.promotion_code.code
+  const coupon = discount.source?.coupon ?? (discount as any).coupon
+  return typeof coupon === 'string' ? coupon : coupon?.name || coupon?.id || null
+}
+
 /** True for subscriptions our membership checkout created (they carry membership_type metadata). */
 export const isMembershipSubscription = (subscription: Stripe.Subscription) =>
   ['individual', 'family'].includes(subscription.metadata?.membership_type || '')
@@ -69,6 +88,7 @@ export async function syncMembershipProfile(
 
   const status = options.status ?? membershipStatusFor(subscription.status)
   const periodEnd = subscriptionPeriodEnd(subscription)
+  const discountCode = membershipDiscountCode(subscription)
   let updated = 0
   for (const profile of profiles || []) {
     const tracked = profile.stripe_subscription_id
@@ -81,6 +101,7 @@ export async function syncMembershipProfile(
       ...options.extra,
     }
     if (periodEnd) fields.membership_expires = periodEnd
+    if (discountCode !== undefined) fields.membership_discount_code = discountCode
     if (subscription.metadata?.membership_type) fields.membership_type = subscription.metadata.membership_type
     if (customerId) fields.stripe_customer_id = customerId
 

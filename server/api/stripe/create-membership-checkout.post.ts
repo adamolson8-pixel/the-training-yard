@@ -1,6 +1,7 @@
 import Stripe from 'stripe'
 import { serverSupabaseServiceRole } from '#supabase/server'
 import { requireAuth } from '../../utils/auth'
+import { normalizeCode, resolveMembershipCode } from '../../utils/teamMembership'
 
 const MEMBERSHIP_PLANS: Record<string, { name: string; priceCents: number; interval: 'month' | 'year'; membershipType: string }> = {
   individual: {
@@ -135,11 +136,26 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // --- Team or promo code ---
+  // Codes are entered on our membership page, not Stripe's, so team rules
+  // (plans, contract end) are checked before the discount is attached.
+  const code = normalizeCode(body.teamCode)
+  const resolved = code ? await resolveMembershipCode(supabase, stripe, code, planId) : null
+  if (resolved && !resolved.valid) throw createError({ statusCode: 400, message: resolved.message })
+  const team = resolved?.valid ? resolved.team : null
+  const terms = resolved?.valid ? resolved.terms.join(' ') : ''
+  if (resolved?.valid && resolved.requiresAgreement && body.teamTermsAccepted !== true) {
+    throw createError({ statusCode: 400, message: 'Please review and accept the team rate terms to continue.' })
+  }
+
   // --- Create Stripe Checkout Session (subscription mode) ---
   const session = await stripe.checkout.sessions.create({
     customer: stripeCustomerId,
     payment_method_types: ['card'],
     mode: 'subscription',
+    ...(resolved?.valid ? { discounts: [{ promotion_code: resolved.promotionCodeId }] } : {}),
+    // The team rate terms again, next to Stripe's pay button
+    ...(terms ? { custom_text: { submit: { message: terms.slice(0, 1200) } } } : {}),
     line_items: [
       {
         price_data: {
@@ -161,6 +177,9 @@ export default defineEventHandler(async (event) => {
         member_name: memberName,
         member_dob: memberDob,
         member_relationship: memberRelationship || 'self',
+        ...(team ? { team_id: team.id, team_code: code } : {}),
+        // Record of the team rate terms the member accepted
+        ...(team && resolved?.requiresAgreement ? { team_terms_accepted_at: new Date().toISOString(), team_terms: terms.slice(0, 500) } : {}),
       },
     },
     success_url: `${siteUrl}/portal/membership?checkout=success`,
