@@ -2,6 +2,7 @@ import Stripe from 'stripe'
 import { serverSupabaseServiceRole } from '#supabase/server'
 import { requireAuth } from '../../utils/auth'
 import { isMembershipSubscription, membershipDiscountCode, membershipStatusFor, subscriptionPeriodEnd } from '../../utils/stripeMembership'
+import { addMemberToTeamRoster } from '../../utils/teamMembership'
 
 /**
  * POST /api/stripe/sync-membership
@@ -115,6 +116,7 @@ export default defineEventHandler(async (event) => {
 
   const discountCode = membershipDiscountCode(activeSub)
   if (discountCode !== undefined) updates.membership_discount_code = discountCode
+  updates.membership_team_id = activeSub.metadata?.team_id || null
 
   const { error: updateError } = await (supabase as any)
     .from('profiles')
@@ -127,6 +129,11 @@ export default defineEventHandler(async (event) => {
   }
 
   console.log(`sync-membership: Updated profile for user ${user.id}: status=${membershipStatus}, type=${membershipType}`)
+
+  // Joined with a team code: make sure the player is on that team's roster (in case the webhook was missed)
+  if (membershipStatus === 'active') {
+    await addMemberToTeamRoster(supabase, activeSub).catch((e: any) => console.error('sync-membership: Roster add failed:', e?.message || e))
+  }
 
   return {
     synced: true,

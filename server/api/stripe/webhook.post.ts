@@ -2,6 +2,7 @@ import Stripe from 'stripe'
 import { serverSupabaseServiceRole } from '#supabase/server'
 import { sendBookingConfirmation, sendAdminNotification } from '../../utils/email'
 import { invoiceSubscriptionId, retrieveMembershipSubscription, syncMembershipProfile } from '../../utils/stripeMembership'
+import { addMemberToTeamRoster } from '../../utils/teamMembership'
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
@@ -69,6 +70,8 @@ export default defineEventHandler(async (event) => {
         if (subscriptionId) {
           const subscription = await retrieveMembershipSubscription(stripe, subscriptionId)
           await syncMembershipProfile(supabase, subscription, { extra: { membership_start: new Date(subscription.start_date * 1000).toISOString() } })
+          // Joined with a team code: put the player on that team's roster
+          await addMemberToTeamRoster(supabase, subscription)
         }
       }
     }

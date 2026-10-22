@@ -23,9 +23,9 @@ export default defineEventHandler(async (event) => {
   let includesTurf = true
   let customerEmail = String(body.customerEmail).trim().toLowerCase()
   if (userId) {
-    const { data: profile } = await (supabase as any).from('profiles').select('email,membership_status,membership_discount_code').eq('id', userId).single()
+    const { data: profile } = await (supabase as any).from('profiles').select('email,membership_status,membership_discount_code,membership_team_id').eq('id', userId).single()
     membershipStatus = profile?.membership_status || 'none'
-    includesTurf = await membershipIncludesTurf(supabase, profile?.membership_discount_code)
+    includesTurf = await membershipIncludesTurf(supabase, profile)
     customerEmail = profile?.email || user?.email || customerEmail
   }
   const amountCents = bookingPrice(service, membershipStatus, includesTurf)

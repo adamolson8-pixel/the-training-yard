@@ -102,6 +102,8 @@ export async function syncMembershipProfile(
     }
     if (periodEnd) fields.membership_expires = periodEnd
     if (discountCode !== undefined) fields.membership_discount_code = discountCode
+    // The team this membership was bought through (team code checkouts tag the subscription)
+    fields.membership_team_id = subscription.metadata?.team_id || null
     if (subscription.metadata?.membership_type) fields.membership_type = subscription.metadata.membership_type
     if (customerId) fields.stripe_customer_id = customerId
 

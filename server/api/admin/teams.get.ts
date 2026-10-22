@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
     (supabase as any).from('blocked_times').select('id,team_id,reason,resource_id,start_at,end_at,all_day,cage_units,turf_units,recurrence_id').in('team_id', ids).gte('end_at', now).order('start_at'),
     (supabase as any).from('payments').select('id,team_id,user_id,booking_id,amount_cents,amount_refunded_cents,status,description,paid_at,created_at,verified_at,stripe_charge_id,customer_email,customer_name').in('team_id', ids).order('paid_at', { ascending: false, nullsFirst: false }),
     // Members whose Stripe membership carries a team code.
-    (supabase as any).from('profiles').select('id,full_name,email,membership_type,membership_status,membership_discount_code').not('membership_discount_code', 'is', null),
+    (supabase as any).from('profiles').select('id,full_name,email,membership_type,membership_status,membership_discount_code,membership_team_id').not('membership_discount_code', 'is', null),
   ])
   return {
     teams: (teams || []).map((team: any) => ({
@@ -30,7 +30,9 @@ export default defineEventHandler(async (event) => {
       bookings: (bookings || []).filter((row: any) => row.team_id === team.id),
       blocks: (blocks || []).filter((row: any) => row.team_id === team.id),
       payments: (payments || []).filter((row: any) => row.team_id === team.id),
-      code_members: team.membership_code ? (codeMembers || []).filter((row: any) => normalizeCode(row.membership_discount_code) === normalizeCode(team.membership_code)) : [],
+      // On this team's rate: joined through the team, or (older signups) holding its current code
+      code_members: (codeMembers || []).filter((row: any) => row.membership_team_id ? row.membership_team_id === team.id
+        : Boolean(team.membership_code) && normalizeCode(row.membership_discount_code) === normalizeCode(team.membership_code)),
     })),
   }
 })
