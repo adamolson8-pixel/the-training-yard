@@ -93,7 +93,7 @@ export function teamCodeTerms(team: TeamMembershipCode, discountText: string | n
   }
   terms.push(`Your membership renews automatically each ${interval || 'billing period'} and your card on file is charged until you cancel. Cancel anytime from the billing portal; cancellation takes effect at the end of the current billing period.`)
   terms.push(`The team rate is only for ${team.name} players. The Training Yard may remove it from anyone not on the ${team.name} roster; the membership then continues at the regular rate unless you cancel.`)
-  terms.push('Team rates follow the team agreement and are not covered by the membership price lock.')
+  terms.push("Team rates follow the team agreement. Regular membership rates may change with at least 30 days' email notice, and you can cancel before a change takes effect.")
   return terms
 }
 
