@@ -73,8 +73,8 @@ const faqs = [
     answer: 'Absolutely. We offer standard team setups, full-facility rentals, and recurring practice arrangements. Because every roster and season is different, we work directly with teams to create custom discounted pricing. Call 515.441.0528 or request a team quote online.',
   },
   {
-    question: 'Do members get discounts or priority booking?',
-    answer: 'Yes. Individual and Family memberships include priority booking (up to 14 days in advance), 25% off all additional rentals, and Walk-On Access to unreserved turf. Team pricing is customized around the roster, schedule, space, and season.',
+    question: 'Do members get discounts?',
+    answer: 'Yes. Individual and Family memberships include 25% off all additional rentals and Walk-On Access to unreserved turf. Anyone can book online up to 7 days in advance. Team pricing is customized around the roster, schedule, space, and season.',
   },
   {
     question: 'What ages is the facility best for?',

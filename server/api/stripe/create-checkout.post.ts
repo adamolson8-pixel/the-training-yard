@@ -1,6 +1,6 @@
 import Stripe from 'stripe'
 import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
-import { bookingPrice, bookingWindow, displayTime, serviceCapacity } from '../../utils/booking'
+import { assertWithinBookingHorizon, bookingPrice, bookingWindow, displayTime, serviceCapacity } from '../../utils/booking'
 import { membershipIncludesTurf } from '../../utils/teamMembership'
 
 export default defineEventHandler(async (event) => {
@@ -15,6 +15,7 @@ export default defineEventHandler(async (event) => {
   const { service, cageUnits, turfUnits } = serviceCapacity(String(body.serviceId))
   if (service.isTeam) throw createError({ statusCode: 400, statusMessage: 'Team sessions must be redeemed through a team account.' })
   const window = bookingWindow(String(body.date), String(body.time), service.durationMinutes)
+  assertWithinBookingHorizon(String(body.date))
   const supabase = serverSupabaseServiceRole(event)
   const user = await serverSupabaseUser(event).catch(() => null)
   const userId = (user as any)?.id || (user as any)?.sub || null

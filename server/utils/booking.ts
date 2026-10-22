@@ -61,6 +61,17 @@ export function facilityWindow(date: string, time: string, durationMinutes: numb
   return { startAt, endAt, normalizedTime }
 }
 
+/** How far ahead customers (members or not) can book online. Team hour redemptions are exempt. */
+export const BOOKING_HORIZON_DAYS = 7
+
+/** Throws when a customer booking date is past the online booking horizon (facility dates). */
+export function assertWithinBookingHorizon(date: string, now: Date = new Date()) {
+  const lastDate = addFacilityDays(facilityDateParts(now).date, BOOKING_HORIZON_DAYS)
+  if (date > lastDate) {
+    throw createError({ statusCode: 400, statusMessage: `Online bookings open ${BOOKING_HORIZON_DAYS} days in advance. Please choose a date on or before ${lastDate}.` })
+  }
+}
+
 export function bookingWindow(date: string, time: string, durationMinutes: number) {
   const window = facilityWindow(date, time, durationMinutes)
   const hour = Number(window.normalizedTime.split(':')[0])

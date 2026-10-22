@@ -37,7 +37,6 @@
           <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> Walk-On Access to unreserved turf</li>
         </template>
         <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> 25% off all additional {{ cageOnly ? 'cage ' : '' }}rentals</li>
-        <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> 14-day advance booking priority</li>
         <li v-if="profile?.membership_type?.includes('family')" class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> Covers all immediate family members</li>
       </ul>
     </div>

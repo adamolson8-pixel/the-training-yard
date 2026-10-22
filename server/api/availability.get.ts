@@ -1,5 +1,5 @@
 import { serverSupabaseServiceRole } from '#supabase/server'
-import { bookingWindow, displayTime, serviceCapacity, OPENING_HOUR, LAST_START_HOUR, CAGE_CAPACITY, TURF_CAPACITY } from '../utils/booking'
+import { assertWithinBookingHorizon, bookingWindow, displayTime, serviceCapacity, OPENING_HOUR, LAST_START_HOUR, CAGE_CAPACITY, TURF_CAPACITY } from '../utils/booking'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
@@ -17,6 +17,7 @@ export default defineEventHandler(async (event) => {
       let window
       try {
         window = bookingWindow(date, time, service.durationMinutes)
+        if (!service.isTeam) assertWithinBookingHorizon(date)
       } catch {
         slots.push({ time: displayTime(time), raw_time: `${date}T${time}:00`, available: false })
         continue

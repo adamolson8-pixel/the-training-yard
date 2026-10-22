@@ -85,7 +85,7 @@ Every batting cage rental at The Training Yard includes:
 
 ## How to Book a Cage Session
 
-Individual cage rentals start at $30 for 30 minutes or $50 for a full hour. [Members](/training) get discounted rates and priority booking. [Book your cage session](/training) online or call us at 515.441.0528.
+Individual cage rentals start at $30 for 30 minutes or $50 for a full hour. [Members](/training) get discounted rates. [Book your cage session](/training) online or call us at 515.441.0528.
 
 ## Indoor Hitting Training in Des Moines
 
@@ -325,7 +325,7 @@ After completing this warm-up, you're ready for your full pitching session — w
 
 Our batting cages double as pitching lanes. The 60-foot distance accommodates full fastpitch pitching mechanics. Book a [single cage for $30/half hour or $50/hour](/training), and bring your catcher or use our backstop net.
 
-[Individual and Family members](/training) receive discounted cage rates and priority booking for peak afternoon and evening slots. Coaches can also request [custom discounted team pricing](/teams) for recurring fastpitch practices.`,
+[Individual and Family members](/training) receive discounted cage rates. Coaches can also request [custom discounted team pricing](/teams) for recurring fastpitch practices.`,
     },
     {
       slug: 'agility-cone-drills-multi-sport-athletes',
@@ -422,7 +422,7 @@ Iowa weather limits outdoor agility training to roughly 5 months of the year. In
 
 ## Book Turf Time for Agility Training
 
-Turf rentals (60' × 50') provide enough space for a full cone circuit, while the full facility adds all four batting cages for team-sized groups. [Individual and Family members](/training) receive discounted rates and priority booking, and organized teams can request [custom discounted team pricing](/teams).`,
+Turf rentals (60' × 50') provide enough space for a full cone circuit, while the full facility adds all four batting cages for team-sized groups. [Individual and Family members](/training) receive discounted rates, and organized teams can request [custom discounted team pricing](/teams).`,
     },
     {
       slug: 'coaching-101-managing-indoor-practice-time',
