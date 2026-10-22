@@ -98,6 +98,7 @@
             <div>
               <div class="font-bold text-gray-900 text-lg">{{ drawer.full_name || 'Unnamed User' }}</div>
               <div class="text-gray-400 text-sm">{{ drawer.email }}</div>
+              <button class="mt-2 text-xs font-bold text-red-600 hover:text-red-700 disabled:opacity-50" :disabled="viewingId === drawer.id" @click="viewPortalAs(drawer.id)">{{ viewingId === drawer.id ? 'Opening…' : '👁 View portal as this user' }}</button>
             </div>
             <button @click="drawer = null" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
           </div>
@@ -291,6 +292,7 @@ const users = ref<any[]>([])
 const total = ref(0)
 const pending = ref(false)
 const drawer = ref<any>(null)
+const { viewPortalAs, viewingId } = useViewAs()
 const drawerRole = ref('')
 const drawerBookings = ref<any[]>([])
 const drawerBookingsPending = ref(false)

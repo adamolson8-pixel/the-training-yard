@@ -58,6 +58,7 @@
               <td class="px-4 py-3">
                 <div class="font-semibold text-gray-800">{{ u.full_name || '—' }}</div>
                 <div class="text-gray-400 text-xs">{{ u.email }}</div>
+                <button class="text-[11px] font-bold text-red-600 hover:text-red-700 disabled:opacity-50" :disabled="viewingId === u.id" @click="viewPortalAs(u.id)">{{ viewingId === u.id ? 'Opening…' : '👁 View portal' }}</button>
               </td>
               <td class="px-4 py-3 text-gray-600 text-xs">{{ planLabel(u.membership_type) }}</td>
               <td class="px-4 py-3">
@@ -100,6 +101,7 @@ const pending = ref(false)
 const page = ref(1)
 const filterStatus = ref('')
 const filterType = ref('')
+const { viewPortalAs, viewingId } = useViewAs()
 
 const stats = computed(() => ({
   active: users.value.filter(u => u.membership_status === 'active').length,

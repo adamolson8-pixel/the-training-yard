@@ -97,6 +97,13 @@
 
     <!-- Main content -->
     <main class="flex-1 min-w-0 overflow-x-hidden relative">
+      <!-- Admin viewing the portal as this account -->
+      <div v-if="profile?.viewing_as" class="sticky top-0 z-30 bg-amber-500 text-black px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-sm font-semibold shadow-lg">
+        <span>👁 Viewing the portal as <b>{{ profile.viewing_as.full_name || profile.viewing_as.email }}</b>{{ profile.viewing_as.full_name ? ` (${profile.viewing_as.email})` : '' }}. Read-only: changes are blocked.</span>
+        <button class="px-3 py-1 rounded-lg bg-black text-white text-xs font-bold hover:bg-gray-800" :disabled="exitingView" @click="exitViewAs">
+          {{ exitingView ? 'Exiting…' : 'Exit view' }}
+        </button>
+      </div>
       <NuxtPage />
     </main>
 
@@ -119,31 +126,16 @@ onMounted(() => {
   })
 })
 
-const profileError = ref('')
-const { data: profile } = await useAsyncData('portal-layout-profile', async () => {
-  if (!user.value) {
-    profileError.value = 'user.value is falsy'
-    return null
-  }
-  // Debug: some versions of supabase wrap the user or have it in user.value.user.id
-  const uid = user.value.id || (user.value.user && user.value.user.id) || user.value.sub
-  if (!uid) {
-    profileError.value = 'uid is missing. user is: ' + JSON.stringify(user.value)
-    return null
-  }
-  
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('full_name, membership_status, membership_type, waiver_signed, role')
-    .eq('id', uid)
-    .single()
-  
-  if (error) {
-    profileError.value = error.message
-    return null
-  }
-  return data
-})
+// From the server so it follows "view as" (an admin seeing the portal as another account)
+const { data: profile } = await useFetch<any>('/api/portal/me', { key: 'portal-layout-profile' })
+
+const exitingView = ref(false)
+async function exitViewAs() {
+  exitingView.value = true
+  await $fetch('/api/admin/view-as', { method: 'DELETE' }).catch(() => {})
+  // Full reload so no page keeps the viewed account's data
+  window.location.href = '/admin/users'
+}
 
 const userInitial = computed(() => {
   const name = profile.value?.full_name || user.value?.email || '?'
