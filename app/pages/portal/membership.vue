@@ -51,6 +51,40 @@
         <p class="text-gray-400 text-sm">Save 25% on every session. Cancel anytime.</p>
       </div>
 
+      <!-- Team code: players on a partner team start here -->
+      <div class="mb-6 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div class="text-white font-bold text-sm">Have a team code?</div>
+            <p class="text-gray-400 text-xs mt-0.5">Players on a partner team: enter the code from your coach to get your team’s membership rate.</p>
+          </div>
+          <button
+            v-if="!showCodeEntry"
+            class="px-4 py-2 rounded-xl font-bold text-sm bg-gradient-to-r from-amber-500 to-red-500 text-white hover:from-amber-600 hover:to-red-600"
+            @click="showCodeEntry = true"
+          >
+            Enter Team Code
+          </button>
+          <form v-else class="flex gap-2 w-full sm:w-auto" @submit.prevent="applyTeamCode()">
+            <input
+              v-model="codeEntry"
+              type="text"
+              autocapitalize="characters"
+              placeholder="e.g. DUCKS2627"
+              class="flex-1 sm:w-44 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white text-sm uppercase focus:outline-none focus:ring-2 focus:ring-amber-500 placeholder:normal-case placeholder:text-gray-600"
+            />
+            <button
+              type="submit"
+              :disabled="!codeEntry.trim() || applyingCode"
+              class="px-4 py-2 rounded-xl font-bold text-sm bg-gradient-to-r from-amber-500 to-red-500 text-white disabled:opacity-50"
+            >
+              {{ applyingCode ? 'Checking…' : 'Apply' }}
+            </button>
+          </form>
+        </div>
+        <p v-if="codeEntryError" class="text-red-400 text-xs mt-2">{{ codeEntryError }}</p>
+      </div>
+
       <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
         <!-- Individual Plan -->
         <div class="relative rounded-2xl border border-white/10 bg-white/5 p-6 flex flex-col hover:border-white/20 transition-all">
@@ -310,6 +344,31 @@ watch([teamCode, selectedPlan], () => {
     }
   }, 400)
 })
+// "Have a team code?" button (or a ?team= link from the coach): the code
+// picks its plan and opens that plan's signup form with the code filled in.
+const showCodeEntry = ref(false)
+const codeEntry = ref('')
+const codeEntryError = ref('')
+const applyingCode = ref(false)
+async function applyTeamCode(code = codeEntry.value.trim()) {
+  if (!code) return
+  applyingCode.value = true
+  codeEntryError.value = ''
+  try {
+    const result = await $fetch<any>('/api/portal/membership-code', { query: { code } })
+    if (!result.valid) {
+      codeEntryError.value = result.message || 'That code isn’t valid.'
+      return
+    }
+    selectPlan(result.plan)
+    teamCode.value = result.code
+  } catch {
+    codeEntryError.value = 'Unable to check that code right now. Please try again.'
+  } finally {
+    applyingCode.value = false
+  }
+}
+
 const codeReady = computed(() => !teamCode.value.trim()
   || (!codeChecking.value && codeInfo.value?.valid && (!codeInfo.value.requiresAgreement || termsAccepted.value)))
 
@@ -330,6 +389,15 @@ onMounted(async () => {
     } catch (e: any) {
       console.warn('Membership sync failed:', e)
     }
+  }
+
+  // Signup link from a coach, e.g. /portal/membership?team=DUCKS2627
+  // (not ?code=, which Supabase reads as its own sign-in code)
+  const linkCode = typeof route.query.team === 'string' ? route.query.team.trim() : ''
+  if (linkCode && showPlanCards.value) {
+    showCodeEntry.value = true
+    codeEntry.value = linkCode
+    await applyTeamCode(linkCode)
   }
 })
 

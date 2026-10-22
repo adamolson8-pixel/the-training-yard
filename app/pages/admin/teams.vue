@@ -48,6 +48,7 @@
             <template v-else>
               <div class="row"><div><b class="font-mono">{{ team.membership_code }}</b><small>{{ codePlanLabel(team.membership_code_plan) }} · {{ team.membership_includes_turf === false ? 'Cage only, no turf benefits' : 'All member benefits' }}</small></div><span class="badge" :class="codeEnded(team) ? 'bad' : 'good'">{{ codeEnded(team) ? 'Ended' : 'Active' }}</span></div>
               <div class="row"><div><b>{{ team.membership_discount_ends_on ? `Through ${fmtDay(team.membership_discount_ends_on)}` : 'No end date' }}</b><small>Discount is removed from members' Stripe billing after this date. Extend it when the team renews.</small></div></div>
+              <div class="row"><div><b>Player signup link</b><small class="break-all">{{ signupLink(team) }}</small></div><button class="text-xs font-bold text-red-600 whitespace-nowrap" @click="copySignupLink(team)">{{ copiedLink === team.id ? 'Copied ✓' : 'Copy link' }}</button></div>
               <div class="text-[10px] uppercase font-bold text-gray-400 mt-3 mb-1">Members using {{ team.membership_code }} ({{ team.code_members.length }})</div>
               <div v-for="m in team.code_members" :key="m.id" class="row"><div><b>{{ m.full_name || m.email }}</b><small>{{ m.email }}</small></div><span class="badge" :class="m.membership_status === 'active' ? 'good' : ''">{{ m.membership_status }}</span></div>
               <div v-if="!team.code_members.length" class="empty">No members have used this code yet.</div>
@@ -90,6 +91,11 @@ const codePlanLabel = (plan: string) => ({ individual: 'Individual plans only', 
 /** Team codes run through their end date in Central time. */
 function codeEnded(team: any) { return Boolean(team.membership_discount_ends_on) && centralDate(new Date().toISOString()) > team.membership_discount_ends_on }
 function fmtDay(date: string) { return new Date(`${date}T12:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) }
+/** Link a coach can send players: opens the membership page with the team code applied (after login/sign-up). */
+const siteOrigin = useRequestURL().origin
+function signupLink(team: any) { return `${siteOrigin}/portal/membership?team=${encodeURIComponent(team.membership_code)}` }
+const copiedLink = ref('')
+async function copySignupLink(team: any) { try { await navigator.clipboard.writeText(signupLink(team)); copiedLink.value = team.id; setTimeout(() => { if (copiedLink.value === team.id) copiedLink.value = '' }, 2000) } catch { notice.value = signupLink(team) } }
 function money(cents: any) { return `$${(Number(cents || 0) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` }
 function centralDate(value: string) { const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date(value)).map(x => [x.type, x.value])); return `${p.year}-${p.month}-${p.day}` }
 function clock(value: string) { return new Date(value).toLocaleTimeString('en-US', { timeZone: TZ, hour: 'numeric', minute: '2-digit' }) }
