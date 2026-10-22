@@ -255,8 +255,9 @@ onMounted(async () => {
     checkoutSuccess.value = true
   }
 
-  // Always attempt to sync membership from Stripe
-  if (!profile.value?.membership_status || profile.value.membership_status === 'none') {
+  // Sync from Stripe when there is no membership on file or its renewal date has passed
+  const expires = profile.value?.membership_expires
+  if (!profile.value?.membership_status || profile.value.membership_status === 'none' || (expires && new Date(expires) < new Date())) {
     try {
       const result = await $fetch<any>('/api/stripe/sync-membership', { method: 'POST' })
       if (result.synced) {

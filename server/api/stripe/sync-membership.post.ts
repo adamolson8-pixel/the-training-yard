@@ -1,6 +1,7 @@
 import Stripe from 'stripe'
 import { serverSupabaseServiceRole } from '#supabase/server'
 import { requireAuth } from '../../utils/auth'
+import { isMembershipSubscription, membershipStatusFor, subscriptionPeriodEnd } from '../../utils/stripeMembership'
 
 /**
  * POST /api/stripe/sync-membership
@@ -23,7 +24,7 @@ export default defineEventHandler(async (event) => {
   // Fetch profile to get stripe_customer_id
   const { data: profile, error: profileError } = await (supabase as any)
     .from('profiles')
-    .select('stripe_customer_id, membership_status, membership_type, email')
+    .select('stripe_customer_id, stripe_subscription_id, membership_status, membership_type, email')
     .eq('id', user.id)
     .single()
 
@@ -81,37 +82,21 @@ export default defineEventHandler(async (event) => {
 
   console.log('sync-membership: Found', subscriptions.data.length, 'subscriptions for customer', stripeCustomerId)
 
-  if (!subscriptions.data.length) {
-    return { synced: false, reason: 'No subscriptions found for this customer.' }
+  // Only membership subscriptions (or the one the profile already tracks, for
+  // memberships bought before checkout tagged them).
+  const memberships = subscriptions.data.filter(s => isMembershipSubscription(s) || s.id === profile.stripe_subscription_id)
+  if (!memberships.length) {
+    return { synced: false, reason: 'No membership subscriptions found for this customer.' }
   }
 
   // Find the most recent active (or trialing) subscription
-  const activeSub = subscriptions.data.find(s => ['active', 'trialing'].includes(s.status))
-    || subscriptions.data[0] // fallback to most recent
+  const activeSub = memberships.find(s => ['active', 'trialing'].includes(s.status))
+    || memberships[0]! // fallback to most recent
 
   console.log('sync-membership: Using subscription', activeSub.id, 'status:', activeSub.status)
 
-  const statusMap: Record<string, string> = {
-    active: 'active',
-    past_due: 'past_due',
-    canceled: 'canceled',
-    unpaid: 'past_due',
-    trialing: 'active',
-    incomplete: 'none',
-    incomplete_expired: 'none',
-    paused: 'canceled',
-  }
-
-  const membershipStatus = statusMap[activeSub.status] ?? activeSub.status
-
-  // Stripe API may return dates as Unix timestamps (number) or ISO strings
-  function parseStripeDate(val: any): string {
-    if (!val) return new Date().toISOString()
-    if (typeof val === 'number') return new Date(val * 1000).toISOString()
-    return new Date(val).toISOString()
-  }
-
-  const periodEnd = parseStripeDate((activeSub as any).current_period_end)
+  const membershipStatus = membershipStatusFor(activeSub.status)
+  const periodEnd = subscriptionPeriodEnd(activeSub)
 
   // Determine membership type from subscription metadata
   const membershipType = activeSub.metadata?.membership_type || profile.membership_type || 'individual'
@@ -123,9 +108,8 @@ export default defineEventHandler(async (event) => {
     stripe_subscription_id: activeSub.id,
   }
 
-  // Only set membership_start if not already set
   if (membershipStatus === 'active') {
-    updates.membership_start = parseStripeDate((activeSub as any).start_date)
+    updates.membership_start = new Date(activeSub.start_date * 1000).toISOString()
   }
 
   const { error: updateError } = await (supabase as any)
