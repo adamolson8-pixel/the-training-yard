@@ -74,7 +74,7 @@ const faqs = [
   },
   {
     question: 'Do members get discounts or priority booking?',
-    answer: 'Yes. Individual and Family memberships include priority online booking, discounted hourly rates, and access to member-only open gym sessions. Team pricing is customized around the roster, schedule, space, and season.',
+    answer: 'Yes. Individual and Family memberships include priority booking (up to 14 days in advance), 25% off all additional rentals, and Walk-On Access to unreserved turf. Team pricing is customized around the roster, schedule, space, and season.',
   },
   {
     question: 'What ages is the facility best for?',
