@@ -145,7 +145,7 @@ useJsonLd([
   ]),
   getFaqSchema([
     { question: 'What is included with a cage rental?', answer: 'Each cage rental includes pitching machine, tee, balls, L-screen, and helmets.' },
-    { question: 'Do members get discounts?', answer: 'Yes. All tiers get priority booking (up to 14 days in advance), 25% off all additional rentals, and Walk-On Access to unreserved turf.' },
+    { question: 'Do members get discounts?', answer: 'Yes. All tiers get 25% off all additional rentals and Walk-On Access to unreserved turf. Anyone can book online up to 7 days in advance.' },
     { question: 'Are outside instructors allowed?', answer: 'Yes. They must sign a waiver and follow facility guidelines.' },
     { question: 'What is the cancellation policy?', answer: '24+ hours advance: full refund. Same-day: 50% fee. Rescheduling free with 12+ hours notice.' },
   ]),
@@ -186,7 +186,7 @@ function smoothScroll(hash: string) {
 
 const faqs = [
   { q: 'What is included with a cage rental?', a: 'Each cage rental includes access to an automated pitching machine, batting tee, bucket of baseballs or softballs, and an L-screen. Helmets are available to borrow.' },
-  { q: 'Do members get discounts or priority booking?', a: 'Yes. All membership tiers receive priority booking (up to 14 days in advance), 25% off all additional rentals, and Walk-On Access to unreserved turf.' },
+  { q: 'Do members get discounts?', a: 'Yes. All membership tiers receive 25% off all additional rentals and Walk-On Access to unreserved turf. Anyone can book online up to 7 days in advance.' },
   { q: 'Can non-members or guests train with me?', a: 'Yes. There is a $15 fee for any non-member guest actively training or hitting with an active member.' },
   { q: 'Are outside instructors allowed?', a: 'Yes. They must sign our standard waiver and follow all facility guidelines.' },
   { q: 'What is the cancellation policy?', a: 'Cancellations 24+ hours in advance get a full refund. Same-day cancellations incur a 50% fee. Rescheduling is free with 12+ hours notice.' },

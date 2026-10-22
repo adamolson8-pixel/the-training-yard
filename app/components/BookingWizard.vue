@@ -137,6 +137,7 @@
             class="form-input max-w-xs"
             @change="onDateChange"
           />
+          <p v-if="!store.service?.isTeam" class="text-gray-500 text-xs mt-2">Bookings open up to {{ BOOKING_HORIZON_DAYS }} days in advance.</p>
           <p v-if="selectedDate && !isOpenDaySelected" class="text-red-400 text-sm mt-2">
             Sorry, we're closed on this day. Please pick another day.
           </p>
@@ -499,10 +500,14 @@ const stepLabels = ['Select Service', 'Date & Time', 'Your Info', 'Sign Waiver',
 const selectedDate = ref('')
 const selectedTime = ref('')
 const minDate = computed(() => new Date().toISOString().split('T')[0])
+// Customers book up to 7 days out (same limit as BOOKING_HORIZON_DAYS on the server);
+// team hour bookings can be scheduled further ahead.
+const BOOKING_HORIZON_DAYS = 7
 const maxDate = computed(() => {
   const d = new Date()
-  d.setMonth(d.getMonth() + 3)
-  return d.toISOString().split('T')[0]
+  if (store.service?.isTeam) d.setMonth(d.getMonth() + 3)
+  else d.setDate(d.getDate() + BOOKING_HORIZON_DAYS)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 })
 const isOpenDaySelected = computed(() => {
   if (!selectedDate.value) return true

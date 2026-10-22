@@ -9,7 +9,7 @@
         <span class="badge-primary mb-4 inline-block">Memberships</span>
         <h2 class="heading-lg text-white mb-4">Train Consistently. Save Significantly.</h2>
         <p class="text-gray-400 max-w-2xl mx-auto text-lg">
-          Stop paying per visit. Memberships include daily cage time, a weekly turf session, priority booking, and 25% off additional rentals.
+          Stop paying per visit. Memberships include daily cage time, a weekly turf session, and 25% off additional rentals.
         </p>
       </div>
 
