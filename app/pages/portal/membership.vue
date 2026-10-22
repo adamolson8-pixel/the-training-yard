@@ -149,7 +149,7 @@
               — 
               {{ selectedPlan?.includes('annual') ? (selectedPlan?.includes('family') ? '$1,290/yr' : '$890/yr') : (selectedPlan?.includes('family') ? '$129/mo' : '$89/mo') }}
             </div>
-            <div class="text-amber-400/70 text-xs">You can cancel anytime from the billing portal.</div>
+            <div class="text-amber-400/70 text-xs">Renews automatically each {{ selectedPlan?.includes('annual') ? 'year' : 'month' }} and charges your card until you cancel. Cancel anytime from the billing portal.</div>
           </div>
         </div>
 

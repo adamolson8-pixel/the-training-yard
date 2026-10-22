@@ -2,33 +2,7 @@ import Stripe from 'stripe'
 import { serverSupabaseServiceRole } from '#supabase/server'
 import { requireAuth } from '../../utils/auth'
 import { normalizeCode, resolveMembershipCode } from '../../utils/teamMembership'
-
-const MEMBERSHIP_PLANS: Record<string, { name: string; priceCents: number; interval: 'month' | 'year'; membershipType: string }> = {
-  individual: {
-    name: 'Individual Monthly Membership',
-    priceCents: 8900,
-    interval: 'month',
-    membershipType: 'individual',
-  },
-  individual_annual: {
-    name: 'Individual Annual Membership',
-    priceCents: 89000,
-    interval: 'year',
-    membershipType: 'individual',
-  },
-  family: {
-    name: 'Family Monthly Membership',
-    priceCents: 12900,
-    interval: 'month',
-    membershipType: 'family',
-  },
-  family_annual: {
-    name: 'Family Annual Membership',
-    priceCents: 129000,
-    interval: 'year',
-    membershipType: 'family',
-  },
-}
+import { MEMBERSHIP_PLANS } from '../../utils/membershipPlans'
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
@@ -179,7 +153,11 @@ export default defineEventHandler(async (event) => {
         member_relationship: memberRelationship || 'self',
         ...(team ? { team_id: team.id, team_code: code } : {}),
         // Record of the team rate terms the member accepted
-        ...(team && resolved?.requiresAgreement ? { team_terms_accepted_at: new Date().toISOString(), team_terms: terms.slice(0, 500) } : {}),
+        // (Stripe metadata values max out at 500 characters, so the terms are split across team_terms_1, _2, ...)
+        ...(team && resolved?.requiresAgreement ? {
+          team_terms_accepted_at: new Date().toISOString(),
+          ...Object.fromEntries((terms.match(/[\s\S]{1,500}/g) || []).map((chunk, i) => [`team_terms_${i + 1}`, chunk])),
+        } : {}),
       },
     },
     success_url: `${siteUrl}/portal/membership?checkout=success`,
