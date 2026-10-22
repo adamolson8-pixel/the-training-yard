@@ -3,6 +3,7 @@ import { serverSupabaseServiceRole } from '#supabase/server'
 import { requireAuth } from '../../utils/auth'
 import { normalizeCode, resolveMembershipCode } from '../../utils/teamMembership'
 import { MEMBERSHIP_PLANS } from '../../utils/membershipPlans'
+import { signMembershipWaiver, validateMemberSignup } from '../../utils/membershipSignup'
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
@@ -18,14 +19,9 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: `Invalid plan: ${planId}. Must be "individual" or "family".` })
   }
 
-  // --- Validate member info ---
-  const memberName = (body.memberName || '').trim()
-  const memberDob = (body.memberDob || '').trim()
-  const memberRelationship = (body.memberRelationship || '').trim()
-
-  if (!memberName) {
-    throw createError({ statusCode: 400, message: 'Member name is required.' })
-  }
+  // --- Validate player, parent/guardian and waiver ---
+  const signup = validateMemberSignup(body)
+  const { memberName, memberDob, relationship: memberRelationship, guardianName } = signup
 
   // --- Stripe setup ---
   const isTestMode = String(config.stripeTestMode) === 'true'
@@ -122,6 +118,9 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Please review and accept the team rate terms to continue.' })
   }
 
+  // --- Liability waiver for the player, signed by the parent/guardian (or the adult player) ---
+  const waiverSignatureId = await signMembershipWaiver(supabase, event, signup, user.id, team?.id || null)
+
   // --- Create Stripe Checkout Session (subscription mode) ---
   const session = await stripe.checkout.sessions.create({
     customer: stripeCustomerId,
@@ -150,7 +149,9 @@ export default defineEventHandler(async (event) => {
         membership_type: plan.membershipType,
         member_name: memberName,
         member_dob: memberDob,
-        member_relationship: memberRelationship || 'self',
+        member_relationship: memberRelationship,
+        ...(guardianName ? { guardian_name: guardianName } : {}),
+        waiver_signature_id: waiverSignatureId,
         ...(team ? { team_id: team.id, team_code: code } : {}),
         // Record of the team rate terms the member accepted
         // (Stripe metadata values max out at 500 characters, so the terms are split across team_terms_1, _2, ...)
@@ -168,7 +169,8 @@ export default defineEventHandler(async (event) => {
       membership_type: plan.membershipType,
       member_name: memberName,
       member_dob: memberDob,
-      member_relationship: memberRelationship || 'self',
+      member_relationship: memberRelationship,
+      ...(guardianName ? { guardian_name: guardianName } : {}),
     },
   })
 
