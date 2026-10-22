@@ -113,12 +113,16 @@ export async function resolveMembershipCode(supabase: any, stripe: Stripe, rawCo
   const promotionCode = data[0]
   if (!promotionCode) return { valid: false as const, message: `"${code}" isn't a valid team or promo code.` }
   const discount = promotionDiscountText(promotionCode)
+  const coupon: any = (promotionCode as any).promotion?.coupon ?? (promotionCode as any).coupon
   return {
     valid: true as const,
     code,
     team: team || null,
     promotionCodeId: promotionCode.id,
     discount,
+    // For showing the discounted price before checkout
+    percentOff: typeof coupon === 'object' && coupon?.percent_off ? Number(coupon.percent_off) : null,
+    amountOffCents: typeof coupon === 'object' && coupon?.amount_off ? Number(coupon.amount_off) : null,
     terms: team ? teamCodeTerms(team, discount, planId) : [],
     // Every team rate has terms to accept (at least who it's for); plain promo codes don't
     requiresAgreement: Boolean(team),

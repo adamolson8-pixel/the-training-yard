@@ -23,5 +23,11 @@ export default defineEventHandler(async (event) => {
   const { stripe } = stripeClient()
   const result = await resolveMembershipCode(supabase, stripe, query.code, plan)
   if (!result.valid) return result
-  return { valid: true, code: result.code, plan, team: result.team?.name || null, discount: result.discount, terms: result.terms, requiresAgreement: result.requiresAgreement }
+  return {
+    valid: true, code: result.code, plan, team: result.team?.name || null,
+    discount: result.discount, percentOff: result.percentOff, amountOffCents: result.amountOffCents,
+    teamPlan: result.team?.membership_code_plan || null,
+    includesTurf: result.team ? result.team.membership_includes_turf !== false : true,
+    terms: result.terms, requiresAgreement: result.requiresAgreement,
+  }
 })
