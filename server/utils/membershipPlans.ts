@@ -26,10 +26,10 @@ export const MEMBERSHIP_PLANS: Record<string, { name: string; priceCents: number
   },
 }
 
-/** "Individual rate of $89/month", "Family rate of $1,290/year". */
+/** "Individual rate (currently $89/month)", "Family rate (currently $1,290/year)"; rates can change with notice. */
 export function regularRateText(planId: string) {
   const plan = MEMBERSHIP_PLANS[planId]
   if (!plan) return 'regular rate'
   const price = (plan.priceCents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
-  return `${plan.membershipType === 'family' ? 'Family' : 'Individual'} rate of ${price}/${plan.interval}`
+  return `${plan.membershipType === 'family' ? 'Family' : 'Individual'} rate (currently ${price}/${plan.interval})`
 }
