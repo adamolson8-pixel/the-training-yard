@@ -47,12 +47,13 @@
               <th class="text-left px-4 py-3 font-semibold text-gray-600">Plan</th>
               <th class="text-left px-4 py-3 font-semibold text-gray-600">Status</th>
               <th class="text-left px-4 py-3 font-semibold text-gray-600">Expires</th>
+              <th class="text-left px-4 py-3 font-semibold text-gray-600">Team Code</th>
               <th class="text-left px-4 py-3 font-semibold text-gray-600">Stripe</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100">
-            <tr v-if="pending"><td colspan="5" class="py-12 text-center text-gray-400">Loading...</td></tr>
-            <tr v-else-if="!users.length"><td colspan="5" class="py-12 text-center text-gray-400">No records found.</td></tr>
+            <tr v-if="pending"><td colspan="6" class="py-12 text-center text-gray-400">Loading...</td></tr>
+            <tr v-else-if="!users.length"><td colspan="6" class="py-12 text-center text-gray-400">No records found.</td></tr>
             <tr v-for="u in users" :key="u.id" class="hover:bg-gray-50">
               <td class="px-4 py-3">
                 <div class="font-semibold text-gray-800">{{ u.full_name || '—' }}</div>
@@ -65,6 +66,11 @@
                 </span>
               </td>
               <td class="px-4 py-3 text-gray-500 text-xs">{{ u.membership_expires ? fmtDate(u.membership_expires) : '—' }}</td>
+              <td class="px-4 py-3">
+                <span v-if="u.membership_discount_code" class="px-2 py-0.5 rounded bg-amber-50 text-amber-700 text-xs font-mono font-bold">{{ u.membership_discount_code }}</span>
+                <span v-if="u.membership_includes_turf === false" class="ml-1 px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-[10px] uppercase font-bold">Cage only</span>
+                <span v-else class="text-gray-300 text-xs">—</span>
+              </td>
               <td class="px-4 py-3">
                 <span v-if="u.stripe_subscription_id" class="text-gray-400 text-xs font-mono">{{ u.stripe_subscription_id.slice(0, 14) }}...</span>
                 <span v-else class="text-gray-300 text-xs">—</span>

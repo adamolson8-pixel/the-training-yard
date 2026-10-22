@@ -26,11 +26,17 @@
     <!-- Member benefits -->
     <div v-if="profile?.membership_status === 'active'" class="rounded-2xl border border-green-500/20 bg-green-500/5 p-5 mb-6">
       <div class="text-green-400 font-bold text-sm mb-3">Your Member Benefits</div>
+      <div v-if="profile?.membership_discount_code" class="text-gray-400 text-xs mb-3">
+        Team rate: <span class="font-mono font-bold text-white">{{ profile.membership_discount_code }}</span>
+        <span v-if="cageOnly"> · cage-only membership (turf not included)</span>
+      </div>
       <ul class="space-y-2 text-sm text-gray-300">
         <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> Up to 1 hour of single cage time per day</li>
-        <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> 1 booking of Open Turf (Half Facility) per week</li>
-        <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> Walk-On Access to unreserved turf</li>
-        <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> 25% off all additional rentals</li>
+        <template v-if="!cageOnly">
+          <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> 1 booking of Open Turf (Half Facility) per week</li>
+          <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> Walk-On Access to unreserved turf</li>
+        </template>
+        <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> 25% off all additional {{ cageOnly ? 'cage ' : '' }}rentals</li>
         <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> 14-day advance booking priority</li>
         <li v-if="profile?.membership_type?.includes('family')" class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> Covers all immediate family members</li>
       </ul>
@@ -62,12 +68,14 @@
             <button
               class="flex-1 py-3 rounded-xl font-bold text-sm transition-all bg-white/10 text-white hover:bg-white/20 border border-white/10 hover:border-white/30"
               @click="selectPlan('individual')"
+              :class="{ 'ring-2 ring-amber-400 ring-offset-2 ring-offset-black': selectedPlan === 'individual' }"
             >
               Monthly ($89)
             </button>
             <button
               class="flex-1 py-3 rounded-xl font-bold text-sm transition-all bg-white/10 text-white hover:bg-white/20 border border-white/10 hover:border-white/30 relative overflow-hidden"
               @click="selectPlan('individual_annual')"
+              :class="{ 'ring-2 ring-amber-400 ring-offset-2 ring-offset-black': selectedPlan === 'individual_annual' }"
             >
               Annual ($890)
               <div class="absolute -top-1 -right-4 bg-green-500 text-[9px] font-bold px-4 py-0.5 rotate-45">SAVE $178</div>
@@ -92,12 +100,14 @@
             <button
               class="flex-1 py-3 rounded-xl font-bold text-sm transition-all bg-gradient-to-r from-amber-500 to-red-500 text-white hover:from-amber-600 hover:to-red-600 shadow-lg"
               @click="selectPlan('family')"
+              :class="{ 'ring-2 ring-amber-400 ring-offset-2 ring-offset-black': selectedPlan === 'family' }"
             >
               Monthly ($129)
             </button>
             <button
               class="flex-1 py-3 rounded-xl font-bold text-sm transition-all bg-gradient-to-r from-amber-500 to-red-500 text-white hover:from-amber-600 hover:to-red-600 shadow-lg relative overflow-hidden"
               @click="selectPlan('family_annual')"
+              :class="{ 'ring-2 ring-amber-400 ring-offset-2 ring-offset-black': selectedPlan === 'family_annual' }"
             >
               Annual ($1,290)
               <div class="absolute -top-1 -right-4 bg-green-500 text-[9px] font-bold px-4 py-0.5 rotate-45">SAVE $258</div>
@@ -122,7 +132,7 @@
     <!-- Member Info Form (shown after selecting a plan)                    -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     <Transition name="slide-down">
-      <div v-if="selectedPlan && showPlanCards" class="mt-6 rounded-2xl border border-amber-500/30 bg-white/5 p-6">
+      <div v-if="selectedPlan && showPlanCards" ref="memberFormEl" class="mt-6 scroll-mt-6 rounded-2xl border border-amber-500/30 bg-white/5 p-6">
         <div class="flex items-center justify-between mb-4">
           <div>
             <h3 class="text-lg font-bold text-white">Member Information</h3>
@@ -140,6 +150,33 @@
               {{ selectedPlan?.includes('annual') ? (selectedPlan?.includes('family') ? '$1,290/yr' : '$890/yr') : (selectedPlan?.includes('family') ? '$129/mo' : '$89/mo') }}
             </div>
             <div class="text-amber-400/70 text-xs">You can cancel anytime from the billing portal.</div>
+          </div>
+        </div>
+
+        <div class="mb-5">
+          <label class="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Team or Promo Code</label>
+          <input
+            v-model="teamCode"
+            type="text"
+            autocapitalize="characters"
+            placeholder="Optional"
+            class="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white text-sm uppercase focus:outline-none focus:ring-2 focus:ring-amber-500 placeholder:normal-case placeholder:text-gray-600"
+          />
+          <p v-if="!teamCode.trim()" class="text-gray-500 text-xs mt-1">Playing for a partner team? Enter your team’s code for its discounted rate.</p>
+          <p v-else-if="codeChecking" class="text-gray-500 text-xs mt-1">Checking code…</p>
+          <p v-else-if="codeInfo && !codeInfo.valid" class="text-red-400 text-xs mt-1">{{ codeInfo.message || 'That code isn’t valid.' }}</p>
+          <p v-else-if="codeInfo?.valid && !codeInfo.terms?.length" class="text-green-400 text-xs mt-1">✓ {{ codeInfo.discount || 'Discount' }} applied at checkout.</p>
+
+          <!-- Team rate terms: shown before payment, must be accepted -->
+          <div v-if="codeInfo?.valid && codeInfo.terms?.length" class="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+            <div class="text-white font-bold text-sm mb-2">{{ codeInfo.team }} team rate — please read</div>
+            <ul class="space-y-1.5 text-xs text-gray-300 list-disc pl-4">
+              <li v-for="term in codeInfo.terms" :key="term">{{ term }}</li>
+            </ul>
+            <label v-if="codeInfo.requiresAgreement" class="mt-3 flex items-start gap-2 text-sm text-white cursor-pointer">
+              <input v-model="termsAccepted" type="checkbox" class="mt-0.5 accent-amber-500" />
+              <span>I’ve read and agree to the {{ codeInfo.team }} team rate terms above.</span>
+            </label>
           </div>
         </div>
 
@@ -186,7 +223,7 @@
             :class="selectedPlan?.includes('family')
               ? 'bg-gradient-to-r from-amber-500 to-red-500 text-white hover:from-amber-600 hover:to-red-600 shadow-lg'
               : 'bg-white/10 text-white hover:bg-white/20 border border-white/10 hover:border-white/30'"
-            :disabled="!memberName.trim() || checkoutLoading"
+            :disabled="!memberName.trim() || checkoutLoading || !codeReady"
             @click="startCheckout"
           >
             <span v-if="checkoutLoading" class="flex items-center justify-center gap-2">
@@ -249,6 +286,33 @@ const memberName = ref(profile.value?.full_name || '')
 const memberDob = ref('')
 const memberRelationship = ref('self')
 
+// Team or promo code: checked as it's typed so team rate terms show before payment
+const teamCode = ref('')
+const codeInfo = ref<any>(null)
+const codeChecking = ref(false)
+const termsAccepted = ref(false)
+let codeTimer: ReturnType<typeof setTimeout> | undefined
+watch([teamCode, selectedPlan], () => {
+  clearTimeout(codeTimer)
+  codeInfo.value = null
+  termsAccepted.value = false
+  const code = teamCode.value.trim()
+  if (!code || !selectedPlan.value) { codeChecking.value = false; return }
+  codeChecking.value = true
+  codeTimer = setTimeout(async () => {
+    try {
+      const result = await $fetch<any>('/api/portal/membership-code', { query: { code, plan: selectedPlan.value } })
+      if (code === teamCode.value.trim()) codeInfo.value = result
+    } catch {
+      codeInfo.value = { valid: false, message: 'Unable to check that code right now.' }
+    } finally {
+      if (code === teamCode.value.trim()) codeChecking.value = false
+    }
+  }, 400)
+})
+const codeReady = computed(() => !teamCode.value.trim()
+  || (!codeChecking.value && codeInfo.value?.valid && (!codeInfo.value.requiresAgreement || termsAccepted.value)))
+
 // Always sync membership status on page load (catches webhook misses, dev mode, etc.)
 onMounted(async () => {
   if (route.query.checkout === 'success') {
@@ -273,6 +337,9 @@ const showPlanCards = computed(() => {
   const s = profile.value?.membership_status
   return !s || s === 'none' || s === 'canceled'
 })
+
+// Cage-only team membership: the team's code excludes turf benefits
+const cageOnly = computed(() => profile.value?.membership_includes_turf === false)
 
 const hasStripeSubscription = computed(() =>
   profile.value?.stripe_subscription_id &&
@@ -329,6 +396,8 @@ const statusBadgeClass = computed(() => {
   return 'bg-white/10 text-gray-400'
 })
 
+const memberFormEl = ref<HTMLElement | null>(null)
+
 function selectPlan(planId: string) {
   selectedPlan.value = planId
   checkoutError.value = ''
@@ -336,6 +405,8 @@ function selectPlan(planId: string) {
   if (!memberName.value) {
     memberName.value = profile.value?.full_name || ''
   }
+  // The form opens below the plan cards, usually off-screen; bring it into view
+  nextTick(() => memberFormEl.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
 }
 
 async function startCheckout() {
@@ -350,6 +421,8 @@ async function startCheckout() {
         memberName: memberName.value.trim(),
         memberDob: memberDob.value,
         memberRelationship: memberRelationship.value,
+        teamCode: teamCode.value.trim(),
+        teamTermsAccepted: termsAccepted.value,
       },
     })
     if (url) {

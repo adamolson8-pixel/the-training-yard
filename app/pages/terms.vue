@@ -29,7 +29,8 @@
             <ul class="text-gray-400 space-y-2 list-disc list-inside">
               <li>All bookings are subject to availability and confirmation.</li>
               <li>Prices displayed on the website are current at the time of posting and may change without notice.</li>
-              <li>Membership pricing is locked for the duration of your active subscription period.</li>
+              <li>Standard membership pricing is locked for the duration of your active subscription period. Team rates are excluded (see below).</li>
+              <li>Team rates: members of a partner team may join at a team rate using the team's code. A team rate follows that team's agreement with The Training Yard, may leave out standard membership benefits (for example, turf access), and ends when the team's agreement ends. The benefits, discount, and end date that apply are shown at signup and must be accepted before payment. When a team rate ends, the membership continues at the regular rate with all standard benefits unless you cancel.</li>
               <li>We reserve the right to refuse service to anyone for any reason.</li>
             </ul>
           </div>

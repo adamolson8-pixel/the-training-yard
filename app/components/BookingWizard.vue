@@ -354,7 +354,7 @@
           </div>
           <div class="border-t border-white/10 pt-3 flex justify-between items-center">
             <span class="font-bold text-white text-base">Total Due</span>
-            <template v-if="isMember && store.service?.memberPriceCents">
+            <template v-if="memberRateApplies">
               <div class="text-right">
                 <span class="text-3xl font-bold text-green-400">{{ formatPrice(store.service.memberPriceCents) }}</span>
                 <div class="text-xs text-gray-500 mt-0.5"><span class="line-through">{{ formatPrice(store.service.priceCents) }}</span> · Member discount applied ✓</div>
@@ -394,7 +394,7 @@
               <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" /><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
               Processing...
             </span>
-            <span v-else>🔒 Secure Checkout — {{ formatPrice(isMember && store.service?.memberPriceCents ? store.service.memberPriceCents : (store.service?.priceCents ?? 0)) }}</span>
+            <span v-else>🔒 Secure Checkout — {{ formatPrice(memberRateApplies ? (store.service?.memberPriceCents ?? 0) : (store.service?.priceCents ?? 0)) }}</span>
           </button>
         </div>
         <p v-if="!store.service?.isTeam" class="text-xs text-gray-500 mt-3 text-center">Payments processed securely by Stripe. You'll be redirected to complete payment.</p>
@@ -414,6 +414,9 @@ const user = useSupabaseUser()
 const profileData = ref<any>(null)
 
 const isMember = computed(() => profileData.value?.membership_status === 'active')
+// Cage-only team members (no turf benefits) get the member rate on cages only
+const memberRateApplies = computed(() => isMember.value && Boolean(store.service?.memberPriceCents)
+  && (profileData.value?.membership_includes_turf !== false || store.service?.facilityType === 'cage'))
 function remainingHoursForService(service: { id: string }) {
   return Number(service.id.startsWith('full_buyout') ? profileData.value?.team_buyout_hours || 0 : profileData.value?.team_standard_hours || 0)
 }

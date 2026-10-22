@@ -145,7 +145,7 @@ useJsonLd([
   ]),
   getFaqSchema([
     { question: 'What is included with a cage rental?', answer: 'Each cage rental includes pitching machine, tee, balls, L-screen, and helmets.' },
-    { question: 'Do members get discounts?', answer: 'Yes. All tiers get priority booking, discounted rates, and member-only sessions.' },
+    { question: 'Do members get discounts?', answer: 'Yes. All tiers get priority booking (up to 14 days in advance), 25% off all additional rentals, and Walk-On Access to unreserved turf.' },
     { question: 'Are outside instructors allowed?', answer: 'Yes. They must sign a waiver and follow facility guidelines.' },
     { question: 'What is the cancellation policy?', answer: '24+ hours advance: full refund. Same-day: 50% fee. Rescheduling free with 12+ hours notice.' },
   ]),

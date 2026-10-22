@@ -91,7 +91,9 @@ export function displayTime(time: string) {
   return `${hour % 12 || 12}:${minute} ${hour >= 12 ? 'PM' : 'AM'}`
 }
 
-export function bookingPrice(service: ReturnType<typeof getServiceById>, membershipStatus?: string) {
+/** Member rate for active members; cage-only team members (no turf benefits) pay full price off the cages. */
+export function bookingPrice(service: ReturnType<typeof getServiceById>, membershipStatus?: string, includesTurf = true) {
   if (!service) throw createError({ statusCode: 400, statusMessage: 'Invalid service.' })
-  return membershipStatus === 'active' ? service.memberPriceCents : service.priceCents
+  const memberRate = membershipStatus === 'active' && (includesTurf || service.facilityType === 'cage')
+  return memberRate ? service.memberPriceCents : service.priceCents
 }

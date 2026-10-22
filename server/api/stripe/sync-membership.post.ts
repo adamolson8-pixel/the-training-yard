@@ -1,7 +1,7 @@
 import Stripe from 'stripe'
 import { serverSupabaseServiceRole } from '#supabase/server'
 import { requireAuth } from '../../utils/auth'
-import { isMembershipSubscription, membershipStatusFor, subscriptionPeriodEnd } from '../../utils/stripeMembership'
+import { isMembershipSubscription, membershipDiscountCode, membershipStatusFor, subscriptionPeriodEnd } from '../../utils/stripeMembership'
 
 /**
  * POST /api/stripe/sync-membership
@@ -78,6 +78,7 @@ export default defineEventHandler(async (event) => {
     customer: stripeCustomerId,
     status: 'all',
     limit: 5,
+    expand: ['data.discounts.promotion_code'],
   })
 
   console.log('sync-membership: Found', subscriptions.data.length, 'subscriptions for customer', stripeCustomerId)
@@ -111,6 +112,9 @@ export default defineEventHandler(async (event) => {
   if (membershipStatus === 'active') {
     updates.membership_start = new Date(activeSub.start_date * 1000).toISOString()
   }
+
+  const discountCode = membershipDiscountCode(activeSub)
+  if (discountCode !== undefined) updates.membership_discount_code = discountCode
 
   const { error: updateError } = await (supabase as any)
     .from('profiles')

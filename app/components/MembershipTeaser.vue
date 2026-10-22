@@ -9,7 +9,7 @@
         <span class="badge-primary mb-4 inline-block">Memberships</span>
         <h2 class="heading-lg text-white mb-4">Train Consistently. Save Significantly.</h2>
         <p class="text-gray-400 max-w-2xl mx-auto text-lg">
-          Stop paying per visit. Our membership tiers give you priority booking, discounted rates, and unlimited access to build real skills.
+          Stop paying per visit. Memberships include daily cage time, a weekly turf session, priority booking, and 25% off additional rentals.
         </p>
       </div>
 
@@ -86,27 +86,28 @@ const tiers = [
     popular: false,
     cta: 'Get Started',
     features: [
-      'Off-peak cage access included',
-      'Discounted peak-hour rates',
-      '10% off turf rentals',
-      'Online booking priority',
-      'Member-only open gym hours',
+      'Daily 1-hour cage access included',
+      'One turf session per week',
+      'Walk-On Access to unreserved turf',
+      '25% off additional rentals',
+      'Parent/coach helpers are free',
+      'Annual Billing: $890/yr (Save $178)',
     ],
   },
   {
     name: 'Family Pass',
-    target: 'Household members (up to 4)',
+    target: 'Household members',
     price: 129,
     period: 'mo',
     popular: true,
     cta: 'Join Now',
     features: [
-      'Up to 4 family members',
-      'Shared cage & turf hours',
-      '15% off additional cage rentals',
-      'Priority peak-hour booking',
-      'Free equipment rentals',
-      'Exclusive member events',
+      'Shared daily 1-hour cage access',
+      'One turf session per week',
+      'Walk-On Access to unreserved turf',
+      '25% off additional rentals',
+      'Parent/coach helpers are free',
+      'Annual Billing: $1,290/yr (Save $258)',
     ],
   },
   {
