@@ -27,6 +27,42 @@
           <div v-if="!team.packages.length" class="rounded-xl bg-black/20 border border-white/10 p-4 text-gray-400 text-sm">No active hours. Contact us to create a custom practice plan for your team.</div>
         </div>
 
+        <!-- Team code: the link coaches share so players join at the team rate -->
+        <div v-if="team.signup" class="mb-7 rounded-xl border border-amber-500/40 bg-amber-500/10 p-5">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h3 class="text-xs font-bold uppercase tracking-widest text-amber-400">Player Membership Signup</h3>
+              <p class="text-gray-300 text-sm mt-1">Share this link with your players. They get the {{ team.name }} team rate and are added to your roster automatically.</p>
+            </div>
+            <span class="px-3 py-1 rounded-full text-xs font-bold" :class="team.signup.active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-300'">{{ team.signup.active ? (team.signup.discount || 'Active') : 'Ended' }}</span>
+          </div>
+          <div class="mt-4 grid sm:grid-cols-3 gap-3">
+            <div class="rounded-lg bg-black/20 p-3">
+              <div class="text-gray-400 text-xs uppercase tracking-wider">Team code</div>
+              <div class="font-mono font-bold text-white text-lg mt-1">{{ team.signup.code }}</div>
+            </div>
+            <div v-for="plan in team.signup.plans" :key="plan.planId" class="rounded-lg bg-black/20 p-3">
+              <div class="text-gray-400 text-xs uppercase tracking-wider">{{ plan.name.replace(' Membership', '') }}</div>
+              <div class="mt-1">
+                <span v-if="plan.teamCents !== plan.regularCents" class="text-gray-500 line-through text-sm mr-1">{{ money(plan.regularCents) }}</span>
+                <span class="text-white text-lg font-bold">{{ money(plan.teamCents) }}</span><span class="text-gray-400 text-sm">/{{ plan.interval === 'year' ? 'yr' : 'mo' }}</span>
+              </div>
+            </div>
+          </div>
+          <template v-if="team.signup.active">
+            <div class="mt-4 flex flex-col sm:flex-row gap-2">
+              <label class="sr-only" :for="`signup-link-${team.id}`">Player signup link</label>
+              <input :id="`signup-link-${team.id}`" :value="signupLink(team.signup.code)" readonly class="form-input flex-1 font-mono text-xs" @focus="($event.target as HTMLInputElement).select()">
+              <button type="button" class="btn-primary text-sm whitespace-nowrap" @click="copySignupLink(team)">{{ copiedLink === team.id ? 'Copied ✓' : 'Copy Link' }}</button>
+            </div>
+            <p class="text-gray-400 text-xs mt-3">
+              <template v-if="!team.signup.includesTurf">Cage access only (turf benefits not included). </template>
+              <template v-if="team.signup.endsOn">Team rate runs through {{ longDate(team.signup.endsOn) }}; after that, members continue at the regular rate unless {{ team.name }} renews with us.</template>
+            </p>
+          </template>
+          <p v-else class="text-red-300 text-sm mt-4">This team rate ended<template v-if="team.signup.endsOn"> after {{ longDate(team.signup.endsOn) }}</template>. Contact us to renew it for your players.</p>
+        </div>
+
         <div class="grid lg:grid-cols-2 gap-6">
           <div>
             <h3 class="font-bold text-white mb-3">Coaches & Managers</h3>
@@ -102,6 +138,25 @@ async function requestWaiver(teamId: string, participantId: string) {
   finally { busy.value = false }
 }
 function formatDate(value: string) { return new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) }
+function longDate(date: string) { return new Date(`${date}T12:00:00Z`).toLocaleDateString('en-US', { timeZone: 'UTC', month: 'long', day: 'numeric', year: 'numeric' }) }
+function money(cents: number) { return `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: cents % 100 ? 2 : 0, maximumFractionDigits: 2 })}` }
+
+// Player signup link for the team code (same link as Admin > Teams)
+const siteOrigin = useRequestURL().origin
+const copiedLink = ref('')
+function signupLink(code: string) { return `${siteOrigin}/portal/membership?team=${encodeURIComponent(code)}` }
+async function copySignupLink(team: any) {
+  try {
+    await navigator.clipboard.writeText(signupLink(team.signup.code))
+    copiedLink.value = team.id
+    setTimeout(() => { if (copiedLink.value === team.id) copiedLink.value = '' }, 2000)
+  } catch {
+    // Clipboard blocked: select the link so it can be copied by hand
+    const input = document.getElementById(`signup-link-${team.id}`) as HTMLInputElement | null
+    input?.select()
+    noticeError.value = false; notice.value = 'Press Ctrl+C (or ⌘C) to copy the selected link.'
+  }
+}
 </script>
 
 <style scoped>.form-input { @apply bg-black/30 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500; }</style>
