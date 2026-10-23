@@ -56,6 +56,9 @@
                 </div>
               </div>
 
+              <div v-if="isMember && service.facilityType === 'cage'" class="mb-3 rounded-lg bg-green-500/15 border border-green-500/30 px-2.5 py-1.5 text-xs font-bold text-green-400">
+                ✓ Your first hour of cage time each day is included with your membership — no charge
+              </div>
               <div class="text-gray-400 text-xs mb-3">{{ service.description }}</div>
               <div class="flex gap-3 text-xs text-gray-500">
                 <span>⏱ {{ service.durationMinutes }} min</span>
@@ -356,7 +359,8 @@
           <div class="border-t border-white/10 pt-3 flex justify-between items-center">
             <span class="font-bold text-white text-base">Total Due</span>
             <!-- Member's included daily cage hour (from the server quote) -->
-            <template v-if="quote && quote.includedMinutes > 0">
+            <span v-if="quoteLoading" class="text-sm text-gray-400">Checking your membership…</span>
+            <template v-else-if="quote && quote.includedMinutes > 0">
               <div class="text-right">
                 <span class="text-3xl font-bold text-green-400">{{ quote.amountCents === 0 ? 'Included' : formatPrice(quote.amountCents) }}</span>
                 <div class="text-xs text-gray-500 mt-0.5">{{ quote.includedMinutes }} min included with your membership today ✓</div>
@@ -395,7 +399,7 @@
           <button
             v-else
             class="btn-primary flex-1"
-            :disabled="isCheckingOut"
+            :disabled="isCheckingOut || quoteLoading"
             @click="startCheckout"
           >
             <span v-if="isCheckingOut" class="flex items-center justify-center gap-2">
@@ -406,7 +410,8 @@
             <span v-else>🔒 Secure Checkout — {{ formatPrice(quote ? quote.amountCents : memberRateApplies ? (store.service?.memberPriceCents ?? 0) : (store.service?.priceCents ?? 0)) }}</span>
           </button>
         </div>
-        <p v-if="!store.service?.isTeam" class="text-xs text-gray-500 mt-3 text-center">Payments processed securely by Stripe. You'll be redirected to complete payment.</p>
+        <p v-if="quote && quote.amountCents === 0" class="text-xs text-green-400 mt-3 text-center">No payment needed. This time is included with your membership and confirms right away.</p>
+        <p v-else-if="!store.service?.isTeam" class="text-xs text-gray-500 mt-3 text-center">Payments processed securely by Stripe. You'll be redirected to complete payment.</p>
         <p v-else class="text-xs text-gray-500 mt-3 text-center">Package hours are deducted atomically when the booking is confirmed.</p>
       </div>
     </div>
@@ -426,13 +431,17 @@ const isMember = computed(() => profileData.value?.membership_status === 'active
 // Cage-only team members (no turf benefits) get the member rate on cages only
 // Server quote for the selected service + date (logged-in members): includes the daily cage hour
 const quote = ref<any>(null)
+const quoteLoading = ref(false)
 watch(() => [store.step, store.service?.id, store.date, user.value?.id], async () => {
   quote.value = null
   if (store.step !== 5 || !store.service || store.service.isTeam || !store.date || !user.value) return
+  quoteLoading.value = true
   try {
     quote.value = await $fetch('/api/portal/booking-quote', { query: { service_id: store.service.id, date: store.date } })
   } catch {
     quote.value = null
+  } finally {
+    quoteLoading.value = false
   }
 }, { immediate: true })
 
