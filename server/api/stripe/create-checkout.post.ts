@@ -2,7 +2,7 @@ import Stripe from 'stripe'
 import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
 import { assertWithinBookingHorizon, bookingPrice, bookingWindow, displayTime, serviceCapacity } from '../../utils/booking'
 import { membershipIncludesTurf } from '../../utils/teamMembership'
-import { includedCoverage, includedMinutesUsed } from '../../utils/includedTime'
+import { includedCoverage, includedMinutesUsed, upcomingIncludedBookings } from '../../utils/includedTime'
 import { sendAdminNotification, sendBookingConfirmation } from '../../utils/email'
 
 export default defineEventHandler(async (event) => {
@@ -33,8 +33,8 @@ export default defineEventHandler(async (event) => {
   }
   // Members' included daily cage hour: covered minutes are free, the rest at the member rate
   const coverage = userId
-    ? includedCoverage(service, membershipStatus, await includedMinutesUsed(supabase, userId, String(body.date)))
-    : { includedMinutes: 0, chargedMinutes: service.durationMinutes, amountCents: null }
+    ? includedCoverage(service, membershipStatus, await includedMinutesUsed(supabase, userId, String(body.date)), await upcomingIncludedBookings(supabase, userId))
+    : { includedMinutes: 0, chargedMinutes: service.durationMinutes, amountCents: null, limitReached: false }
   const amountCents = coverage.amountCents ?? bookingPrice(service, membershipStatus, includesTurf)
 
   const { data: waiverDocument, error: waiverDocumentError } = await (supabase as any)

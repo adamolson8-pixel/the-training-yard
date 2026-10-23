@@ -1,7 +1,7 @@
 import { serverSupabaseServiceRole } from '#supabase/server'
 import { requireAuth } from '../../utils/auth'
 import { bookingPrice, serviceCapacity } from '../../utils/booking'
-import { includedCoverage, includedMinutesUsed } from '../../utils/includedTime'
+import { MAX_UPCOMING_INCLUDED_BOOKINGS, includedCoverage, includedMinutesUsed, upcomingIncludedBookings } from '../../utils/includedTime'
 import { membershipIncludesTurf } from '../../utils/teamMembership'
 
 /**
@@ -20,7 +20,8 @@ export default defineEventHandler(async (event) => {
     .select('membership_status,membership_discount_code,membership_team_id').eq('id', user.id).single()
   const membershipStatus = profile?.membership_status || 'none'
   const used = await includedMinutesUsed(supabase, user.id, date)
-  const coverage = includedCoverage(service, membershipStatus, used)
+  const upcoming = await upcomingIncludedBookings(supabase, user.id)
+  const coverage = includedCoverage(service, membershipStatus, used, upcoming)
   const amountCents = coverage.amountCents ?? bookingPrice(service, membershipStatus, await membershipIncludesTurf(supabase, profile))
   return {
     amountCents,
@@ -28,5 +29,8 @@ export default defineEventHandler(async (event) => {
     includedMinutes: coverage.includedMinutes,
     chargedMinutes: coverage.chargedMinutes,
     includedMinutesUsedToday: used,
+    upcomingIncludedBookings: upcoming,
+    maxUpcomingIncludedBookings: MAX_UPCOMING_INCLUDED_BOOKINGS,
+    includedLimitReached: coverage.limitReached,
   }
 })

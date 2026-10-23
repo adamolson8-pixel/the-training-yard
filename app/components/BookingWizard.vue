@@ -57,7 +57,7 @@
               </div>
 
               <div v-if="isMember && service.facilityType === 'cage'" class="mb-3 rounded-lg bg-green-500/15 border border-green-500/30 px-2.5 py-1.5 text-xs font-bold text-green-400">
-                ✓ Your first hour of cage time each day is included with your membership — no charge
+                ✓ Your first hour of cage time each day is included with your membership (up to 3 included bookings at a time)
               </div>
               <div class="text-gray-400 text-xs mb-3">{{ service.description }}</div>
               <div class="flex gap-3 text-xs text-gray-500">
@@ -410,6 +410,7 @@
             <span v-else>🔒 Secure Checkout — {{ formatPrice(quote ? quote.amountCents : memberRateApplies ? (store.service?.memberPriceCents ?? 0) : (store.service?.priceCents ?? 0)) }}</span>
           </button>
         </div>
+        <p v-if="quote?.includedLimitReached" class="text-xs text-amber-400 mt-3 text-center">You already have {{ quote.maxUpcomingIncludedBookings }} upcoming included bookings, so this one is at the member rate. Your included hour is available again once one of those sessions has happened or is cancelled.</p>
         <p v-if="quote && quote.amountCents === 0" class="text-xs text-green-400 mt-3 text-center">No payment needed. This time is included with your membership and confirms right away.</p>
         <p v-else-if="!store.service?.isTeam" class="text-xs text-gray-500 mt-3 text-center">Payments processed securely by Stripe. You'll be redirected to complete payment.</p>
         <p v-else class="text-xs text-gray-500 mt-3 text-center">Package hours are deducted atomically when the booking is confirmed.</p>
