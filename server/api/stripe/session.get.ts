@@ -11,9 +11,11 @@ export default defineEventHandler(async (event) => {
   let bookingId = ''
   let amountTotal = 0
   let paid = false
-  if (sessionId.startsWith('redeemed_')) {
+  // Bookings with no Stripe payment: team hours (redeemed_) and members' included hour (included_)
+  const noPaymentPrefix = ['redeemed_', 'included_'].find(prefix => sessionId.startsWith(prefix))
+  if (noPaymentPrefix) {
     const user = await requireAuth(event)
-    bookingId = sessionId.slice('redeemed_'.length)
+    bookingId = sessionId.slice(noPaymentPrefix.length)
     const { data: owned } = await (supabase as any).from('bookings').select('id').eq('id', bookingId).eq('user_id', user.id).maybeSingle()
     if (!owned) throw createError({ statusCode: 404, statusMessage: 'Booking not found.' })
     paid = true
