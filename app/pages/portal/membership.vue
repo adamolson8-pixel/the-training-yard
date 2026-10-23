@@ -498,7 +498,7 @@ const teamPrice = computed(() => {
   if (rate?.amountOffCents) return Math.max(0, fullPrice.value - rate.amountOffCents)
   return fullPrice.value
 })
-const money = (cents: number) => `${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: cents % 100 ? 2 : 0, maximumFractionDigits: 2 })}`
+const money = (cents: number) => `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: cents % 100 ? 2 : 0, maximumFractionDigits: 2 })}`
 const teamBenefits = computed(() => {
   const family = teamBasePlan.value === 'family'
   if (teamRate.value?.includesTurf === false) {

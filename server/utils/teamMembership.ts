@@ -129,6 +129,44 @@ export async function resolveMembershipCode(supabase: any, stripe: Stripe, rawCo
   }
 }
 
+/** A plan price after a coupon (percent or amount off), in cents. */
+export function discountedCents(priceCents: number, coupon: { percent_off?: number | null; amount_off?: number | null } | null) {
+  if (coupon?.percent_off) return Math.round(priceCents * (1 - Number(coupon.percent_off) / 100))
+  if (coupon?.amount_off) return Math.max(0, priceCents - Number(coupon.amount_off))
+  return priceCents
+}
+
+/**
+ * What a team's coaches see on My Team for sharing the team code: the code, its
+ * plans at the regular and team price, what's included, and when the rate ends.
+ * The price comes from the code's Stripe coupon; if Stripe can't be reached the
+ * code and dates are still returned, just without the discount.
+ */
+export async function teamSignupDetails(stripe: Stripe, team: TeamMembershipCode, now: Date = new Date()) {
+  let promotionCode: any = null
+  let lookedUp = false
+  try {
+    const { data } = await stripe.promotionCodes.list({ code: team.membership_code, active: true, limit: 1, expand: ['data.promotion.coupon'] })
+    promotionCode = data[0] || null
+    lookedUp = true
+  } catch (err: any) {
+    console.error('[team] Promotion code lookup failed:', team.membership_code, err?.message || err)
+  }
+  const coupon = promotionCode?.promotion?.coupon ?? promotionCode?.coupon
+  const couponObject = coupon && typeof coupon === 'object' ? coupon : null
+  return {
+    code: team.membership_code,
+    // Usable while the contract runs and Stripe still has the code active
+    active: teamCodeActive(team, now) && (!lookedUp || Boolean(promotionCode)),
+    discount: promotionDiscountText(promotionCode),
+    endsOn: team.membership_discount_ends_on,
+    includesTurf: team.membership_includes_turf !== false,
+    plans: Object.entries(MEMBERSHIP_PLANS)
+      .filter(([planId]) => teamCodeAllowsPlan(team, planId))
+      .map(([planId, plan]) => ({ planId, name: plan.name, interval: plan.interval, regularCents: plan.priceCents, teamCents: discountedCents(plan.priceCents, couponObject) })),
+  }
+}
+
 /** Whether a member's turf benefits apply (false while on a cage-only team rate). */
 export function memberIncludesTurf(rates: TeamRates, profile: MemberRate) {
   return memberTeam(rates, profile)?.membership_includes_turf !== false
