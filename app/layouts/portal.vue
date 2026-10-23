@@ -63,20 +63,32 @@
 
       <!-- Nav Links -->
       <nav class="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
-        <NuxtLink
-          v-for="link in navLinks"
-          :key="link.to"
-          :to="link.to"
-          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150"
-          :class="isActive(link.to)
-            ? 'bg-amber-500/15 text-amber-400 border border-amber-500/25 shadow-sm'
-            : 'text-gray-400 hover:text-white hover:bg-white/5'"
-          @click="mobileOpen = false"
-        >
-          <span class="text-base w-5 text-center shrink-0">{{ link.icon }}</span>
-          <span>{{ link.label }}</span>
-          <span v-if="link.badge" class="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400">{{ link.badge }}</span>
-        </NuxtLink>
+        <template v-for="link in navLinks" :key="link.to">
+          <!-- Not available yet for this account (team booking is coming soon) -->
+          <div
+            v-if="link.soon"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 cursor-not-allowed"
+            aria-disabled="true"
+            title="Online team booking is coming soon"
+          >
+            <span class="text-base w-5 text-center shrink-0 opacity-50">{{ link.icon }}</span>
+            <span>{{ link.label }}</span>
+            <span class="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-white/10 text-gray-400">Soon</span>
+          </div>
+          <NuxtLink
+            v-else
+            :to="link.to"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150"
+            :class="isActive(link.to)
+              ? 'bg-amber-500/15 text-amber-400 border border-amber-500/25 shadow-sm'
+              : 'text-gray-400 hover:text-white hover:bg-white/5'"
+            @click="mobileOpen = false"
+          >
+            <span class="text-base w-5 text-center shrink-0">{{ link.icon }}</span>
+            <span>{{ link.label }}</span>
+            <span v-if="link.badge" class="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400">{{ link.badge }}</span>
+          </NuxtLink>
+        </template>
       </nav>
 
       <!-- Bottom actions -->
@@ -143,10 +155,10 @@ const userInitial = computed(() => {
 })
 
 const navLinks = computed(() => {
-  const links = [
+  const links: { to: string; icon: string; label: string; badge?: string; soon?: boolean }[] = [
     { to: '/portal/dashboard', icon: '🏠', label: 'Dashboard' },
     { to: '/portal/bookings', icon: '📅', label: 'My Bookings' },
-    { to: '/portal/book', icon: '⚡', label: 'Book a Session' },
+    { to: '/portal/book', icon: '⚡', label: 'Book a Session', soon: Boolean(profile.value?.team_booking_soon) },
     { to: '/portal/team', icon: '🏆', label: 'My Team' },
     { to: '/portal/membership', icon: '🌟', label: 'Membership' },
     { to: '/portal/waiver', icon: '📋', label: 'Waiver', badge: profile.value?.waiver_signed ? undefined : '!' },

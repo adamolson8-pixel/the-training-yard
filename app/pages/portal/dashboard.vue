@@ -113,19 +113,33 @@
 
     <!-- Quick Action Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-      <NuxtLink
-        v-for="action in quickActions"
-        :key="action.to"
-        :to="action.to"
-        class="group flex items-center gap-4 p-5 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-amber-500/30 transition-all"
-      >
-        <span class="text-3xl">{{ action.icon }}</span>
-        <div>
-          <div class="text-white font-semibold text-sm group-hover:text-amber-400 transition-colors">{{ action.label }}</div>
-          <div class="text-gray-500 text-xs mt-0.5">{{ action.desc }}</div>
+      <template v-for="action in quickActions" :key="action.to">
+        <!-- Team accounts: online team booking is coming soon -->
+        <div
+          v-if="action.to === '/portal/book' && bookingSoon"
+          class="flex items-center gap-4 p-5 rounded-2xl border border-white/10 bg-white/5 opacity-60 cursor-not-allowed"
+          aria-disabled="true"
+        >
+          <span class="text-3xl grayscale">{{ action.icon }}</span>
+          <div>
+            <div class="text-gray-400 font-semibold text-sm">{{ action.label }}</div>
+            <div class="text-gray-500 text-xs mt-0.5">Online team booking is coming soon</div>
+          </div>
+          <span class="ml-auto text-[10px] font-bold uppercase px-1.5 py-0.5 rounded-full bg-white/10 text-gray-400">Soon</span>
         </div>
-        <span class="ml-auto text-gray-600 group-hover:text-amber-400 transition-colors">→</span>
-      </NuxtLink>
+        <NuxtLink
+          v-else
+          :to="action.to"
+          class="group flex items-center gap-4 p-5 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-amber-500/30 transition-all"
+        >
+          <span class="text-3xl">{{ action.icon }}</span>
+          <div>
+            <div class="text-white font-semibold text-sm group-hover:text-amber-400 transition-colors">{{ action.label }}</div>
+            <div class="text-gray-500 text-xs mt-0.5">{{ action.desc }}</div>
+          </div>
+          <span class="ml-auto text-gray-600 group-hover:text-amber-400 transition-colors">→</span>
+        </NuxtLink>
+      </template>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
@@ -150,7 +164,7 @@
           </NuxtLink>
         </div>
         <div v-else class="text-sm text-gray-500 py-4 bg-white/5 rounded-xl border border-white/10 text-center">
-          No upcoming sessions. <NuxtLink to="/portal/book" class="text-amber-400 hover:underline">Book one now</NuxtLink>.
+          No upcoming sessions.<template v-if="bookingSoon"> Online team booking is coming soon.</template><template v-else> <NuxtLink to="/portal/book" class="text-amber-400 hover:underline">Book one now</NuxtLink>.</template>
         </div>
       </div>
 
@@ -192,6 +206,7 @@ const supabase = useSupabaseClient()
 const { data: profile } = await useFetch('/api/portal/me', { server: false })
 const { data: bookingsData } = await useFetch<{ upcoming: any[], past: any[] }>('/api/portal/bookings', { server: false })
 
+const bookingSoon = computed(() => Boolean((profile.value as any)?.team_booking_soon))
 const upcomingBookings = computed(() => bookingsData.value?.upcoming ?? [])
 const upcomingCount = computed(() => upcomingBookings.value.length)
 const totalCount = computed(() => (bookingsData.value?.upcoming?.length ?? 0) + (bookingsData.value?.past?.length ?? 0))
