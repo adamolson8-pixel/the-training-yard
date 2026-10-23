@@ -32,7 +32,8 @@
       <div v-if="!upcoming.length" class="text-center py-16 text-gray-500">
         <div class="text-5xl mb-4">📅</div>
         <div class="font-semibold text-gray-400">No upcoming sessions</div>
-        <NuxtLink to="/portal/book" class="btn-primary mt-4 inline-block text-sm">Book a Session</NuxtLink>
+        <p v-if="bookingSoon" class="text-sm mt-2">Online booking for teams is coming soon.</p>
+        <NuxtLink v-else to="/portal/book" class="btn-primary mt-4 inline-block text-sm">Book a Session</NuxtLink>
       </div>
 
       <div v-else class="space-y-4">
@@ -46,12 +47,20 @@
               <span class="text-amber-400 text-xs font-bold uppercase">{{ formatMonth(b.booking_date) }}</span>
               <span class="text-white text-xl font-bold leading-none">{{ formatDay(b.booking_date) }}</span>
             </div>
-            <div class="flex-1 min-w-0">
+            <div v-if="isTeamReservation(b)" class="flex-1 min-w-0">
+              <div class="text-white font-bold">{{ b.service_label }}</div>
+              <div class="text-gray-400 text-sm">{{ formatDate(b.booking_date) }} · {{ b.all_day ? 'All day' : `${b.booking_time} – ${b.end_time}` }}</div>
+              <div class="text-gray-500 text-xs mt-0.5">{{ b.resource_label }}</div>
+            </div>
+            <div v-else class="flex-1 min-w-0">
               <div class="text-white font-bold">{{ b.service_label }}</div>
               <div class="text-gray-400 text-sm">{{ formatDate(b.booking_date) }} at {{ formatTime(b.booking_time) }}</div>
               <div v-if="b.duration_minutes" class="text-gray-500 text-xs mt-0.5">{{ b.duration_minutes }} min session</div>
             </div>
-            <div class="text-right shrink-0">
+            <div v-if="isTeamReservation(b)" class="text-right shrink-0">
+              <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">Team reservation</span>
+            </div>
+            <div v-else class="text-right shrink-0">
               <div class="text-amber-400 font-bold">${{ b.amount_cents ? (b.amount_cents / 100).toFixed(0) : '—' }}</div>
               <div class="mt-1">
                 <span class="text-xs font-semibold px-2 py-0.5 rounded-full" :class="paymentBadge(b.status)">
@@ -60,8 +69,12 @@
               </div>
             </div>
           </div>
+          <!-- Team reservations are view-only: staff manage them -->
+          <div v-if="isTeamReservation(b)" class="px-5 py-3 border-t border-white/10 bg-white/3">
+            <span class="text-gray-500 text-xs">Reserved for {{ b.team_name }} by The Training Yard. To change this time, contact us.</span>
+          </div>
           <!-- Cancel row -->
-          <div class="px-5 py-3 border-t border-white/10 bg-white/3 flex items-center justify-between gap-3">
+          <div v-else class="px-5 py-3 border-t border-white/10 bg-white/3 flex items-center justify-between gap-3">
             <span class="text-gray-500 text-xs">{{ cancelPolicy(b.booking_date, b.booking_time) }}</span>
             <button
               v-if="b.status !== 'cancelled'"
@@ -98,7 +111,7 @@
             <div class="text-gray-300 text-sm font-semibold">${{ b.amount_cents ? (b.amount_cents / 100).toFixed(0) : '—' }}</div>
             <span class="text-xs px-1.5 py-0.5 rounded-full" :class="paymentBadge(b.status)">{{ b.status || '—' }}</span>
           </div>
-          <NuxtLink to="/portal/book" class="text-xs text-amber-400/70 hover:text-amber-400 font-medium whitespace-nowrap transition-colors ml-2">
+          <NuxtLink v-if="!bookingSoon" to="/portal/book" class="text-xs text-amber-400/70 hover:text-amber-400 font-medium whitespace-nowrap transition-colors ml-2">
             Rebook →
           </NuxtLink>
         </div>
@@ -139,6 +152,9 @@ const cancelTarget = ref<any>(null)
 const { data, pending, refresh } = await useFetch<{ upcoming: any[], past: any[] }>('/api/portal/bookings', {
   server: false, // Only fetch on client-side where auth cookies are guaranteed
 })
+// Same profile the portal layout loads; team accounts can't book online yet
+const { data: profile } = await useFetch<any>('/api/portal/me', { key: 'portal-layout-profile' })
+const bookingSoon = computed(() => Boolean(profile.value?.team_booking_soon))
 const upcoming = computed(() => data.value?.upcoming ?? [])
 const past = computed(() => data.value?.past ?? [])
 
@@ -164,6 +180,11 @@ const isCancelFullRefund = computed(() => {
   const dt = parseBookingDateTime(cancelTarget.value.booking_date, cancelTarget.value.booking_time)
   return (dt.getTime() - Date.now()) >= 24 * 60 * 60 * 1000
 })
+
+// Time the facility reserved for a team this user coaches (from /api/portal/bookings)
+function isTeamReservation(booking: any) {
+  return booking.kind === 'team_reservation'
+}
 
 function cancelBooking(booking: any) {
   cancelTarget.value = booking

@@ -1,5 +1,47 @@
 import { serverSupabaseServiceRole } from '#supabase/server'
 import { requireAuth } from '../../utils/auth'
+import { displayTime, facilityDateParts } from '../../utils/booking'
+import { resourceLabel } from '../../../lib/facilityResources.mjs'
+
+const TEAM_MANAGER_ROLES = ['owner', 'coach', 'manager']
+
+/**
+ * Upcoming time the facility has reserved for teams this user coaches or
+ * manages (Admin > Schedule blocks tagged with the team). Shaped like a
+ * booking so the portal lists it alongside their own, but view-only: it has
+ * no price and only staff can change it.
+ */
+async function upcomingTeamReservations(supabase: any, userId: string, now: Date) {
+  const { data: memberships } = await supabase.from('team_members')
+    .select('team_id,role,teams(name)').eq('user_id', userId).eq('status', 'active')
+  const teams = (memberships || []).filter((m: any) => TEAM_MANAGER_ROLES.includes(m.role))
+  if (!teams.length) return []
+  const teamName = new Map(teams.map((m: any) => [m.team_id, m.teams?.name || 'Your team']))
+  const { data: blocks, error } = await supabase.from('blocked_times')
+    .select('id,team_id,start_at,end_at,all_day,resource_id')
+    .in('team_id', [...teamName.keys()]).gte('end_at', now.toISOString()).order('start_at')
+  if (error) {
+    console.error('Team reservations fetch error:', error)
+    return []
+  }
+  return (blocks || []).map((block: any) => {
+    const start = facilityDateParts(block.start_at)
+    return {
+      id: `team-${block.id}`,
+      kind: 'team_reservation',
+      team_name: teamName.get(block.team_id),
+      service_label: `Team Reservation — ${teamName.get(block.team_id)}`,
+      resource_label: resourceLabel(block.resource_id),
+      booking_date: start.date,
+      booking_time: block.all_day ? '' : displayTime(start.time),
+      end_time: block.all_day ? '' : displayTime(facilityDateParts(block.end_at).time),
+      all_day: Boolean(block.all_day),
+      duration_minutes: Math.round((Date.parse(block.end_at) - Date.parse(block.start_at)) / 60000),
+      start_at: block.start_at,
+      status: 'reserved',
+    }
+  })
+}
 
 export default defineEventHandler(async (event) => {
   const user = await requireAuth(event)
@@ -65,10 +107,10 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // Sort upcoming ascending (soonest first)
-  upcoming.sort((a, b) => {
-    return new Date(a.booking_date).getTime() - new Date(b.booking_date).getTime()
-  })
+  // The team's reserved practice times (coaches/managers), then soonest first
+  upcoming.push(...await upcomingTeamReservations(supabase, user.id, now))
+  const startsAt = (b: any) => (b.start_at ? Date.parse(b.start_at) : new Date(`${b.booking_date}T12:00:00`).getTime())
+  upcoming.sort((a, b) => startsAt(a) - startsAt(b))
 
   console.log(`Result: ${upcoming.length} upcoming, ${past.length} past`)
 
