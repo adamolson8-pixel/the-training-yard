@@ -29,24 +29,33 @@ export default defineEventHandler(async (event) => {
 
   const { data: bookings, error } = await (supabase as any)
     .from('bookings')
-    .select('*, profiles(full_name, email)')
+    .select('*')
     .eq('status', 'confirmed')
     .gte('start_at', windowStart.toISOString())
     .lte('start_at', windowEnd.toISOString())
     .is('reminder_sent_at', null)   // Only send once
 
   if (error) {
+    console.error('[reminder] Booking lookup failed:', error)
     throw createError({ statusCode: 500, statusMessage: 'DB error fetching bookings.' })
   }
+
+  // Customer names/emails from profiles (bookings.user_id points at auth.users, so no embed)
+  const userIds = [...new Set((bookings ?? []).map((b: any) => b.user_id).filter(Boolean))]
+  const { data: profiles } = userIds.length
+    ? await (supabase as any).from('profiles').select('id,full_name,email').in('id', userIds)
+    : { data: [] }
+  const profileById = new Map((profiles ?? []).map((p: any) => [p.id, p]))
 
   const results: { id: string; sent: boolean }[] = []
 
   for (const booking of bookings ?? []) {
     try {
+      const profile: any = profileById.get(booking.user_id)
       const enriched = {
         ...booking,
-        customer_name: booking.profiles?.full_name || booking.customer_name || 'Customer',
-        customer_email: booking.profiles?.email || booking.customer_email,
+        customer_name: profile?.full_name || booking.customer_name || 'Customer',
+        customer_email: profile?.email || booking.customer_email,
       }
       await sendBookingReminder(enriched)
 
