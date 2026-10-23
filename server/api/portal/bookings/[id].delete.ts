@@ -13,17 +13,23 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Booking ID is required.' })
   }
 
-  // Fetch the booking — must belong to this user
+  // Fetch the booking — must belong to this user. (bookings.user_id points at
+  // auth.users, not profiles, so the profile can't be embedded; load it apart.)
   const { data: booking, error: fetchError } = await (supabase as any)
     .from('bookings')
-    .select('*, profiles(full_name, email)')
+    .select('*')
     .eq('id', bookingId)
     .eq('user_id', user.id)
-    .single()
+    .maybeSingle()
 
-  if (fetchError || !booking) {
+  if (fetchError) {
+    console.error('[cancel] Booking lookup failed:', fetchError)
+    throw createError({ statusCode: 500, statusMessage: 'Unable to load that booking. Please try again.' })
+  }
+  if (!booking) {
     throw createError({ statusCode: 404, statusMessage: 'Booking not found.' })
   }
+  const { data: profile } = await (supabase as any).from('profiles').select('full_name,email').eq('id', user.id).maybeSingle()
 
   if (booking.status === 'cancelled') {
     throw createError({ statusCode: 400, statusMessage: 'Booking is already cancelled.' })
@@ -101,11 +107,11 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 500, statusMessage: 'Failed to cancel booking.' })
   }
 
-  // Send cancellation email — enrich with customer data from profile join
+  // Send cancellation email — enrich with customer data from the profile
   const enrichedBooking = {
     ...booking,
-    customer_name: booking.profiles?.full_name || booking.customer_name || 'Customer',
-    customer_email: booking.profiles?.email || booking.customer_email,
+    customer_name: profile?.full_name || booking.customer_name || 'Customer',
+    customer_email: profile?.email || booking.customer_email,
   }
   sendCancellationConfirmation(enrichedBooking, isFullRefund).catch(err =>
     console.error('[email] Cancellation email failed:', err)
