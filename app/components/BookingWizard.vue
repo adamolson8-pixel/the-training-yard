@@ -355,7 +355,14 @@
           </div>
           <div class="border-t border-white/10 pt-3 flex justify-between items-center">
             <span class="font-bold text-white text-base">Total Due</span>
-            <template v-if="memberRateApplies">
+            <!-- Member's included daily cage hour (from the server quote) -->
+            <template v-if="quote && quote.includedMinutes > 0">
+              <div class="text-right">
+                <span class="text-3xl font-bold text-green-400">{{ quote.amountCents === 0 ? 'Included' : formatPrice(quote.amountCents) }}</span>
+                <div class="text-xs text-gray-500 mt-0.5">{{ quote.includedMinutes }} min included with your membership today ✓</div>
+              </div>
+            </template>
+            <template v-else-if="memberRateApplies">
               <div class="text-right">
                 <span class="text-3xl font-bold text-green-400">{{ formatPrice(store.service.memberPriceCents) }}</span>
                 <div class="text-xs text-gray-500 mt-0.5"><span class="line-through">{{ formatPrice(store.service.priceCents) }}</span> · Member discount applied ✓</div>
@@ -395,7 +402,8 @@
               <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" /><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
               Processing...
             </span>
-            <span v-else>🔒 Secure Checkout — {{ formatPrice(memberRateApplies ? (store.service?.memberPriceCents ?? 0) : (store.service?.priceCents ?? 0)) }}</span>
+            <span v-else-if="quote && quote.amountCents === 0">✓ Confirm Booking — Included with Membership</span>
+            <span v-else>🔒 Secure Checkout — {{ formatPrice(quote ? quote.amountCents : memberRateApplies ? (store.service?.memberPriceCents ?? 0) : (store.service?.priceCents ?? 0)) }}</span>
           </button>
         </div>
         <p v-if="!store.service?.isTeam" class="text-xs text-gray-500 mt-3 text-center">Payments processed securely by Stripe. You'll be redirected to complete payment.</p>
@@ -416,6 +424,18 @@ const profileData = ref<any>(null)
 
 const isMember = computed(() => profileData.value?.membership_status === 'active')
 // Cage-only team members (no turf benefits) get the member rate on cages only
+// Server quote for the selected service + date (logged-in members): includes the daily cage hour
+const quote = ref<any>(null)
+watch(() => [store.step, store.service?.id, store.date, user.value?.id], async () => {
+  quote.value = null
+  if (store.step !== 5 || !store.service || store.service.isTeam || !store.date || !user.value) return
+  try {
+    quote.value = await $fetch('/api/portal/booking-quote', { query: { service_id: store.service.id, date: store.date } })
+  } catch {
+    quote.value = null
+  }
+}, { immediate: true })
+
 const memberRateApplies = computed(() => isMember.value && Boolean(store.service?.memberPriceCents)
   && (profileData.value?.membership_includes_turf !== false || store.service?.facilityType === 'cage'))
 function remainingHoursForService(service: { id: string }) {
@@ -566,7 +586,7 @@ async function startCheckout() {
   isCheckingOut.value = true
   checkoutError.value = ''
   try {
-    const res = await $fetch<{ url: string }>('/api/stripe/create-checkout', {
+    const res = await $fetch<{ url?: string; included?: boolean; bookingId?: string }>('/api/stripe/create-checkout', {
       method: 'POST',
       body: {
         serviceId: store.service.id,
@@ -583,7 +603,9 @@ async function startCheckout() {
         waiverSignerName: store.waiverSignerName,
       },
     })
-    window.location.assign(res.url)
+    // Fully covered by the member's included hour: already confirmed, no payment page
+    if (res.included && res.bookingId) window.location.assign(`/booking-success?session_id=included_${res.bookingId}`)
+    else if (res.url) window.location.assign(res.url)
   } catch (err: unknown) {
     const e = err as { data?: { message?: string } }
     checkoutError.value = e?.data?.message || 'Something went wrong. Please try again.'

@@ -2,6 +2,8 @@ import Stripe from 'stripe'
 import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
 import { assertWithinBookingHorizon, bookingPrice, bookingWindow, displayTime, serviceCapacity } from '../../utils/booking'
 import { membershipIncludesTurf } from '../../utils/teamMembership'
+import { includedCoverage, includedMinutesUsed } from '../../utils/includedTime'
+import { sendAdminNotification, sendBookingConfirmation } from '../../utils/email'
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
@@ -29,7 +31,11 @@ export default defineEventHandler(async (event) => {
     includesTurf = await membershipIncludesTurf(supabase, profile)
     customerEmail = profile?.email || user?.email || customerEmail
   }
-  const amountCents = bookingPrice(service, membershipStatus, includesTurf)
+  // Members' included daily cage hour: covered minutes are free, the rest at the member rate
+  const coverage = userId
+    ? includedCoverage(service, membershipStatus, await includedMinutesUsed(supabase, userId, String(body.date)))
+    : { includedMinutes: 0, chargedMinutes: service.durationMinutes, amountCents: null }
+  const amountCents = coverage.amountCents ?? bookingPrice(service, membershipStatus, includesTurf)
 
   const { data: waiverDocument, error: waiverDocumentError } = await (supabase as any)
     .from('waiver_documents').select('*').eq('slug', 'facility-liability-release').eq('active', true).order('version', { ascending: false }).limit(1).single()
@@ -85,7 +91,20 @@ export default defineEventHandler(async (event) => {
     const unavailable = /slot_(unavailable|blocked)/.test(holdError?.message || '')
     throw createError({ statusCode: unavailable ? 409 : 503, statusMessage: unavailable ? 'That time was just booked. Please choose another.' : 'Unable to reserve that time.' })
   }
-  await (supabase as any).from('bookings').update({ waiver_signature_id: signature.id }).eq('id', bookingId)
+  await (supabase as any).from('bookings').update({ waiver_signature_id: signature.id, included_minutes: coverage.includedMinutes }).eq('id', bookingId)
+
+  // Fully covered by the included hour: confirm now, no payment
+  if (amountCents === 0) {
+    const { data: booking, error: confirmError } = await (supabase as any).from('bookings').update({
+      status: 'confirmed', payment_status: 'paid', confirmed_at: new Date().toISOString(), hold_expires_at: null,
+    }).eq('id', bookingId).eq('status', 'pending').select().single()
+    if (confirmError || !booking) {
+      await (supabase as any).from('bookings').update({ status: 'expired', payment_status: 'failed', hold_expires_at: new Date().toISOString() }).eq('id', bookingId)
+      throw createError({ statusCode: 503, statusMessage: 'Unable to confirm that booking. Please try again.' })
+    }
+    await Promise.allSettled([sendBookingConfirmation(booking), sendAdminNotification(booking)])
+    return { included: true, bookingId }
+  }
 
   const isTestMode = String(config.stripeTestMode) === 'true'
   const stripeKey = isTestMode ? config.stripeTestSecretKey : config.stripeSecretKey
@@ -99,7 +118,7 @@ export default defineEventHandler(async (event) => {
       customer_email: customerEmail,
       line_items: [{ price_data: { currency: 'usd', unit_amount: amountCents, product_data: {
         name: service.label,
-        description: `${service.durationMinutes} minute session on ${body.date} at ${displayTime(window.normalizedTime)}`,
+        description: `${service.durationMinutes} minute session on ${body.date} at ${displayTime(window.normalizedTime)}${coverage.includedMinutes ? ` (${coverage.includedMinutes} min included with membership)` : ''}`,
       } }, quantity: 1 }],
       success_url: `${siteUrl}/booking-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}/training?checkout=cancelled`,

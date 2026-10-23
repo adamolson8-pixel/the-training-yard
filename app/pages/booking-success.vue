@@ -33,7 +33,7 @@
             </div>
             <div class="bg-gray-50 rounded-lg p-3">
               <div class="text-gray-500 text-xs mb-1">Amount Paid</div>
-              <div class="font-bold text-amber-600 text-lg">${{ (booking.amountTotal / 100).toFixed(0) }}</div>
+              <div class="font-bold text-amber-600 text-lg">{{ booking.amountTotal ? `${(booking.amountTotal / 100).toFixed(0)}` : sessionId.startsWith('included_') ? 'Included with membership' : '$0' }}</div>
             </div>
             <div class="bg-gray-50 rounded-lg p-3">
               <div class="text-gray-500 text-xs mb-1">Date</div>
@@ -99,7 +99,8 @@ const { data: booking, pending, error } = await useFetch<{
 // matches what actually cleared. Guarded so it fires at most once per page view.
 const purchaseTracked = ref(false)
 watch(booking, (b) => {
-  if (!b || purchaseTracked.value) return
+  // Only paid bookings are purchases (not team hours or a member's included hour)
+  if (!b || purchaseTracked.value || !b.amountTotal) return
   purchaseTracked.value = true
   useTrackEvent('purchase', {
     transaction_id: sessionId,
