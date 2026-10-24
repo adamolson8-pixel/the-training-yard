@@ -1,5 +1,13 @@
 <template>
   <div class="glass-card overflow-hidden">
+    <!-- Team accounts: online booking waits on custom team pricing (the server enforces it too) -->
+    <div v-if="profileData?.team_booking_soon" class="p-8 text-center">
+      <div class="text-4xl mb-3">🗓️</div>
+      <h2 class="text-xl font-bold text-white">Online team booking is coming soon</h2>
+      <p class="text-gray-400 mt-2">We're setting up custom team pricing. Contact us to schedule team time, and see your team's reserved times in your portal.</p>
+      <NuxtLink to="/portal/bookings" class="btn-primary mt-5 inline-block text-sm">View My Bookings</NuxtLink>
+    </div>
+    <template v-else>
     <!-- Progress Bar -->
     <div class="px-6 py-4 border-b border-white/10">
       <div class="flex items-center justify-between mb-3">
@@ -416,6 +424,7 @@
         <p v-else class="text-xs text-gray-500 mt-3 text-center">Package hours are deducted atomically when the booking is confirmed.</p>
       </div>
     </div>
+    </template>
   </div>
 </template>
 

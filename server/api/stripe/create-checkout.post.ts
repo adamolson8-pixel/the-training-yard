@@ -2,6 +2,7 @@ import Stripe from 'stripe'
 import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
 import { assertWithinBookingHorizon, bookingPrice, bookingWindow, displayTime, serviceCapacity } from '../../utils/booking'
 import { membershipIncludesTurf } from '../../utils/teamMembership'
+import { assertTeamBookingAllowed } from '../../utils/teamBooking'
 import { includedCoverage, includedMinutesUsed, upcomingIncludedBookings } from '../../utils/includedTime'
 import { sendAdminNotification, sendBookingConfirmation } from '../../utils/email'
 
@@ -31,6 +32,7 @@ export default defineEventHandler(async (event) => {
     includesTurf = await membershipIncludesTurf(supabase, profile)
     customerEmail = profile?.email || user?.email || customerEmail
   }
+  await assertTeamBookingAllowed(supabase, userId, membershipStatus)
   // Members' included daily cage hour: covered minutes are free, the rest at the member rate
   const coverage = userId
     ? includedCoverage(service, membershipStatus, await includedMinutesUsed(supabase, userId, String(body.date)), await upcomingIncludedBookings(supabase, userId))
