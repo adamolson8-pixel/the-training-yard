@@ -1,4 +1,5 @@
 import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
+import { assertTeamBookingAllowed } from '../../utils/teamBooking'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -14,6 +15,7 @@ export default defineEventHandler(async (event) => {
   if (!resource_id || !start_time) {
     throw createError({ statusCode: 400, statusMessage: 'Missing resource or start time' })
   }
+  await assertTeamBookingAllowed(serverSupabaseServiceRole(event), userId)
 
   // Calculate end_time if not provided (default 1 hour)
   const finalEndTime = end_time || new Date(new Date(start_time).getTime() + 60 * 60 * 1000).toISOString()

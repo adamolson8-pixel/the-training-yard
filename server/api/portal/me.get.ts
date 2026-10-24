@@ -1,6 +1,7 @@
 import { serverSupabaseServiceRole } from '#supabase/server'
 import { requireAuth } from '../../utils/auth'
 import { membershipIncludesTurf } from '../../utils/teamMembership'
+import { teamBookingPaused } from '../../utils/teamBooking'
 
 export default defineEventHandler(async (event) => {
   const user = await requireAuth(event)
@@ -54,11 +55,9 @@ export default defineEventHandler(async (event) => {
   data.default_team_id = memberships?.[0]?.team_id || null
   data.team_standard_hours = packages.filter((pkg: any) => pkg.package_type === 'standard').reduce((sum: number, pkg: any) => sum + Number(pkg.hours_remaining), 0)
   data.team_buyout_hours = packages.filter((pkg: any) => pkg.package_type === 'buyout').reduce((sum: number, pkg: any) => sum + Number(pkg.hours_remaining), 0)
-  // Team accounts (owners/coaches/managers) can't book online until custom team
-  // pricing is ready, so the portal shows booking as "coming soon" for them.
-  // Coaches who are also active members keep booking their own sessions.
-  data.team_booking_soon = (memberships || []).some((m: any) => ['owner', 'coach', 'manager'].includes(m.role))
-    && data.membership_status !== 'active'
+  // Team accounts can't book online until custom team pricing is ready, so the
+  // portal shows booking as "coming soon" (the booking endpoints enforce it too)
+  data.team_booking_soon = teamBookingPaused(memberships, data.membership_status)
   // False for cage-only team memberships (e.g. a team code without turf benefits)
   data.membership_includes_turf = await membershipIncludesTurf(supabase, data)
   // An admin viewing the portal as this account (read-only banner in the portal)

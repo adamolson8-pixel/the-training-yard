@@ -1,6 +1,7 @@
 import { serverSupabaseServiceRole } from '#supabase/server'
 import { requireAuth } from '../../utils/auth'
 import { bookingWindow, displayTime, serviceCapacity } from '../../utils/booking'
+import { assertTeamBookingAllowed } from '../../utils/teamBooking'
 
 export default defineEventHandler(async (event) => {
   const user = await requireAuth(event)
@@ -11,6 +12,7 @@ export default defineEventHandler(async (event) => {
   const hours = service.durationMinutes / 60
   const window = bookingWindow(String(body.date || ''), String(body.time || ''), service.durationMinutes)
   const supabase = serverSupabaseServiceRole(event)
+  await assertTeamBookingAllowed(supabase, user.id)
 
   const { data: profile } = await (supabase as any).from('profiles').select('full_name,email,phone,waiver_signed').eq('id', user.id).single()
   if (!profile?.waiver_signed) throw createError({ statusCode: 409, statusMessage: 'Sign the account waiver before booking a team session.' })
