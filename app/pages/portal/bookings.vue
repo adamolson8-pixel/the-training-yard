@@ -70,8 +70,8 @@
             </div>
           </div>
           <!-- Team reservations are view-only: staff manage them -->
-          <div v-if="isTeamReservation(b)" class="px-5 py-3 border-t border-white/10 bg-white/3">
-            <span class="text-gray-500 text-xs">Reserved for {{ b.team_name }} by The Training Yard. To change this time, contact us.</span>
+          <div v-if="isTeamItem(b)" class="px-5 py-3 border-t border-white/10 bg-white/3">
+            <span class="text-gray-500 text-xs">{{ isTeamReservation(b) ? 'Reserved' : 'Booked' }} for {{ b.team_name }} by The Training Yard. To change this time, contact us.</span>
           </div>
           <!-- Cancel row -->
           <div v-else class="px-5 py-3 border-t border-white/10 bg-white/3 flex items-center justify-between gap-3">
@@ -102,16 +102,23 @@
           :key="b.id"
           class="flex items-center gap-4 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/8 transition-colors"
         >
-          <div class="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center text-lg shrink-0">⚾</div>
-          <div class="flex-1 min-w-0">
+          <div class="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center text-lg shrink-0">{{ isTeamItem(b) ? '🏆' : '⚾' }}</div>
+          <div v-if="isTeamReservation(b)" class="flex-1 min-w-0">
             <div class="text-white text-sm font-semibold">{{ b.service_label }}</div>
-            <div class="text-gray-500 text-xs">{{ formatDate(b.booking_date) }} · {{ b.duration_minutes }} min</div>
+            <div class="text-gray-500 text-xs">{{ formatDate(b.booking_date) }} · {{ b.all_day ? 'All day' : `${b.booking_time} – ${b.end_time}` }} · {{ b.resource_label }}</div>
           </div>
-          <div class="text-right shrink-0">
+          <div v-else class="flex-1 min-w-0">
+            <div class="text-white text-sm font-semibold">{{ b.service_label }}</div>
+            <div class="text-gray-500 text-xs">{{ formatDate(b.booking_date) }}<template v-if="b.booking_time"> at {{ formatTime(b.booking_time) }}</template> · {{ b.duration_minutes }} min<template v-if="b.kind === 'team_booking'"> · {{ b.team_name }}</template></div>
+          </div>
+          <div v-if="isTeamReservation(b)" class="text-right shrink-0">
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">Team reservation</span>
+          </div>
+          <div v-else class="text-right shrink-0">
             <div class="text-gray-300 text-sm font-semibold">${{ b.amount_cents ? (b.amount_cents / 100).toFixed(0) : '—' }}</div>
             <span class="text-xs px-1.5 py-0.5 rounded-full" :class="paymentBadge(b.status)">{{ b.status || '—' }}</span>
           </div>
-          <NuxtLink v-if="!bookingSoon" to="/portal/book" class="text-xs text-amber-400/70 hover:text-amber-400 font-medium whitespace-nowrap transition-colors ml-2">
+          <NuxtLink v-if="!bookingSoon && !isTeamItem(b)" to="/portal/book" class="text-xs text-amber-400/70 hover:text-amber-400 font-medium whitespace-nowrap transition-colors ml-2">
             Rebook →
           </NuxtLink>
         </div>
@@ -184,6 +191,10 @@ const isCancelFullRefund = computed(() => {
 // Time the facility reserved for a team this user coaches (from /api/portal/bookings)
 function isTeamReservation(booking: any) {
   return booking.kind === 'team_reservation'
+}
+// Reservations and bookings staff made for the team: view-only (no cancel or rebook)
+function isTeamItem(booking: any) {
+  return booking.kind === 'team_reservation' || booking.kind === 'team_booking'
 }
 
 function cancelBooking(booking: any) {
