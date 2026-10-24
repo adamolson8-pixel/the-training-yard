@@ -5,21 +5,25 @@ import { resourceLabel } from '../../../lib/facilityResources.mjs'
 
 const TEAM_MANAGER_ROLES = ['owner', 'coach', 'manager']
 
-/**
- * Upcoming time the facility has reserved for teams this user coaches or
- * manages (Admin > Schedule blocks tagged with the team). Shaped like a
- * booking so the portal lists it alongside their own, but view-only: it has
- * no price and only staff can change it.
- */
-async function upcomingTeamReservations(supabase: any, userId: string, now: Date) {
+/** Teams this user coaches or manages, as team id -> team name. */
+async function managedTeams(supabase: any, userId: string) {
   const { data: memberships } = await supabase.from('team_members')
     .select('team_id,role,teams(name)').eq('user_id', userId).eq('status', 'active')
   const teams = (memberships || []).filter((m: any) => TEAM_MANAGER_ROLES.includes(m.role))
-  if (!teams.length) return []
-  const teamName = new Map(teams.map((m: any) => [m.team_id, m.teams?.name || 'Your team']))
+  return new Map<string, string>(teams.map((m: any) => [m.team_id, m.teams?.name || 'Your team']))
+}
+
+/**
+ * Time the facility has reserved for those teams, past and upcoming (Admin >
+ * Schedule blocks tagged with the team). Shaped like a booking so the portal
+ * lists it alongside their own, but view-only: it has no price and only staff
+ * can change it.
+ */
+async function teamReservations(supabase: any, teamName: Map<string, string>) {
+  if (!teamName.size) return []
   const { data: blocks, error } = await supabase.from('blocked_times')
     .select('id,team_id,start_at,end_at,all_day,resource_id')
-    .in('team_id', [...teamName.keys()]).gte('end_at', now.toISOString()).order('start_at')
+    .in('team_id', [...teamName.keys()]).order('start_at')
   if (error) {
     console.error('Team reservations fetch error:', error)
     return []
@@ -38,6 +42,7 @@ async function upcomingTeamReservations(supabase: any, userId: string, now: Date
       all_day: Boolean(block.all_day),
       duration_minutes: Math.round((Date.parse(block.end_at) - Date.parse(block.start_at)) / 60000),
       start_at: block.start_at,
+      end_at: block.end_at,
       status: 'reserved',
     }
   })
@@ -47,17 +52,28 @@ export default defineEventHandler(async (event) => {
   const user = await requireAuth(event)
   const supabase = serverSupabaseServiceRole(event)
 
-  // Fetch bookings for this user
-  const { data, error } = await (supabase as any)
-    .from('bookings')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('booking_date', { ascending: false })
+  // Fetch bookings for this user, plus bookings staff made for teams they coach
+  const teamName = await managedTeams(supabase, user.id)
+  const [{ data: own, error }, { data: teamRows, error: teamError }] = await Promise.all([
+    (supabase as any).from('bookings').select('*').eq('user_id', user.id),
+    teamName.size
+      ? (supabase as any).from('bookings').select('*').in('team_id', [...teamName.keys()])
+      : Promise.resolve({ data: [], error: null }),
+  ])
 
   if (error) {
     console.error('Bookings Fetch Error:', error)
     throw createError({ statusCode: 500, statusMessage: 'Failed to fetch bookings.' })
   }
+  if (teamError) console.error('Team bookings fetch error:', teamError)
+
+  // A team booking under another account (or none) is view-only here: cancelling is per account
+  const ownIds = new Set((own || []).map((b: any) => b.id))
+  const data = [
+    ...(own || []),
+    ...(teamRows || []).filter((b: any) => !ownIds.has(b.id))
+      .map((b: any) => ({ ...b, kind: 'team_booking', team_name: teamName.get(b.team_id) })),
+  ]
 
   console.log(`Fetched ${data?.length} bookings for ${user.email}`)
 
@@ -107,10 +123,15 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // The team's reserved practice times (coaches/managers), then soonest first
-  upcoming.push(...await upcomingTeamReservations(supabase, user.id, now))
+  // The team's reserved practice times (coaches/managers): upcoming until they end
+  for (const reservation of await teamReservations(supabase, teamName)) {
+    (Date.parse(reservation.end_at) >= now.getTime() ? upcoming : past).push(reservation)
+  }
+
+  // Upcoming soonest first, past most recent first
   const startsAt = (b: any) => (b.start_at ? Date.parse(b.start_at) : new Date(`${b.booking_date}T12:00:00`).getTime())
   upcoming.sort((a, b) => startsAt(a) - startsAt(b))
+  past.sort((a, b) => startsAt(b) - startsAt(a))
 
   console.log(`Result: ${upcoming.length} upcoming, ${past.length} past`)
 
