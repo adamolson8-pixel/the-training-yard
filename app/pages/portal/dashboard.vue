@@ -214,7 +214,8 @@ const quickActions = computed(() => isTeamAccount.value
 
 function formatDate(dateStr: string): string {
   if (!dateStr) return ''
-  const d = new Date(dateStr)
+  // A bare "YYYY-MM-DD" parses as UTC midnight, which shows the day before in Central Time
+  const d = new Date(/^\d{4}-\d{2}-\d{2}$/.test(dateStr) ? `${dateStr}T12:00:00` : dateStr)
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
