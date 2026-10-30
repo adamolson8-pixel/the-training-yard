@@ -2,6 +2,7 @@ import { serverSupabaseServiceRole } from '#supabase/server'
 import { requireAuth } from '../../utils/auth'
 import { stripeClient } from '../../utils/stripeVerify'
 import { teamSignupDetails } from '../../utils/teamMembership'
+import { loadTeamHourlyRates } from '../../utils/teamRates'
 
 const MANAGER_ROLES = ['owner', 'coach', 'manager']
 
@@ -29,6 +30,8 @@ export default defineEventHandler(async (event) => {
   }
 
   return {
+    // Hourly rates for additional team hours (shown to coaches and managers)
+    rates: (memberships || []).some((m: any) => MANAGER_ROLES.includes(m.role)) ? await loadTeamHourlyRates(supabase) : [],
     teams: (memberships || []).map((membership: any) => ({
       ...membership.teams,
       currentUserRole: membership.role,

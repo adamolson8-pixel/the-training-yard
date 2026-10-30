@@ -1,8 +1,8 @@
 <template>
   <div class="p-6 md:p-10 max-w-5xl mx-auto w-full">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-      <div><h1 class="text-2xl md:text-3xl font-bold text-white">My Team</h1><p class="text-gray-400 mt-1">Coaches, roster, package balances, and booking access.</p></div>
-      <NuxtLink to="/teams" class="btn-primary text-center">Request Custom Team Pricing</NuxtLink>
+      <div><h1 class="text-2xl md:text-3xl font-bold text-white">My Team</h1><p class="text-gray-400 mt-1">Coaches, roster, player signups, and additional hours.</p></div>
+      <NuxtLink v-if="!pending && !data?.teams?.length" to="/teams" class="btn-primary text-center">Request Custom Team Pricing</NuxtLink>
     </div>
     <p v-if="notice" class="mb-5 rounded-xl border p-3 text-sm" :class="noticeError ? 'border-red-500/30 bg-red-500/10 text-red-300' : 'border-green-500/30 bg-green-500/10 text-green-300'" role="status">{{ notice }}</p>
     <div v-if="pending" class="text-gray-400" role="status">Loading team account…</div>
@@ -29,6 +29,7 @@
         </div>
 
         <TeamSignupCard v-if="team.signup" :team="team" class="mb-7" />
+        <TeamHoursCard v-if="data.rates?.length && ['owner', 'coach', 'manager'].includes(team.currentUserRole)" :team-id="team.id" :rates="data.rates" class="mb-7" />
 
         <div class="grid lg:grid-cols-2 gap-6">
           <div>

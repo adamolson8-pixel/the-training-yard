@@ -1,9 +1,11 @@
 import { createHash, randomBytes } from 'node:crypto'
 import { serverSupabaseServiceRole } from '#supabase/server'
 import { requireAuth } from '../../utils/auth'
-import { sendEmail } from '../../utils/email'
+import { getAdminEmail, sendEmail } from '../../utils/email'
 import { escapeHtml } from '../../utils/sanitize'
 import { teamCodeActive } from '../../utils/teamMembership'
+import { loadTeamHourlyRates } from '../../utils/teamRates'
+import { facilityDateParts } from '../../utils/booking'
 
 const SIGNUP_LINK_MAX_EMAILS = 30
 
@@ -98,9 +100,52 @@ export default defineEventHandler(async (event) => {
       + `<p>Create your account (or log in), fill in the player's details and waiver, and you'll be added to the ${teamName} roster automatically.</p>`
       + `<p>The Training Yard<br>2519 NW 66th Ave, Des Moines</p>`
     const results = await Promise.allSettled(emails.map(to => sendEmail({ to, subject: `${team.name} player membership at The Training Yard`, html })))
-    const failed = emails.filter((_, i) => results[i].status === 'rejected')
+    const failed = emails.filter((_, i) => results[i]?.status === 'rejected')
     if (failed.length === emails.length) throw createError({ statusCode: 502, statusMessage: 'Unable to send the email right now. Please try again.' })
     return { success: true, sent: emails.length - failed.length, failed }
+  }
+
+  if (action === 'request-hours') {
+    // Coach asks for hours beyond the team agreement at the team hourly rate; staff confirm by email
+    const rates = await loadTeamHourlyRates(supabase)
+    const rate = rates.find(r => r.id === String(body.rateId || ''))
+    if (!rate) throw createError({ statusCode: 400, statusMessage: 'Choose what you need.' })
+    const date = String(body.date || '')
+    const time = String(body.time || '')
+    const hours = Number(body.hours)
+    const extraCages = Math.max(0, Math.min(4, Math.floor(Number(body.extraCages) || 0)))
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date < facilityDateParts(new Date()).date) throw createError({ statusCode: 400, statusMessage: 'Choose a date today or later.' })
+    if (!/^\d{2}:\d{2}$/.test(time)) throw createError({ statusCode: 400, statusMessage: 'Choose a start time.' })
+    if (!Number.isFinite(hours) || hours < 0.5 || hours > 8 || (hours * 2) % 1 !== 0) throw createError({ statusCode: 400, statusMessage: 'Hours must be between 0.5 and 8, in half hours.' })
+    const notes = String(body.notes || '').trim().slice(0, 1000)
+    const cageRate = rates.find(r => r.id === 'cage')
+    const addCages = rate.id === 'full' || rate.id === 'cage' ? 0 : extraCages
+    const totalCents = Math.round((rate.cents + addCages * (cageRate?.cents || 0)) * hours)
+
+    const [{ data: team }, { data: sender }] = await Promise.all([
+      (supabase as any).from('teams').select('name').eq('id', teamId).single(),
+      (supabase as any).from('profiles').select('full_name,email,phone').eq('id', user.id).maybeSingle(),
+    ])
+    const [hh = 0, mm = 0] = time.split(':').map(Number)
+    const startLabel = `${hh % 12 || 12}:${String(mm).padStart(2, '0')} ${hh >= 12 ? 'PM' : 'AM'}`
+    const dateLabel = new Date(`${date}T12:00:00Z`).toLocaleDateString('en-US', { timeZone: 'UTC', weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+    const money = (cents: number) => `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: cents % 100 ? 2 : 0, maximumFractionDigits: 2 })}`
+    const what = `${rate.label}${addCages ? ` + ${addCages} additional cage${addCages > 1 ? 's' : ''}` : ''}`
+    const row = (k: string, v: string) => `<tr><td style="padding:4px 12px 4px 0;color:#666">${k}</td><td style="padding:4px 0"><strong>${escapeHtml(v)}</strong></td></tr>`
+    await sendEmail({
+      to: getAdminEmail(),
+      subject: `Additional hours request: ${team?.name || 'Team'} on ${dateLabel}`,
+      html: `<p><strong>${escapeHtml(team?.name || 'A team')}</strong> requested additional hours at the team rate.</p><table>`
+        + row('Team', team?.name || '')
+        + row('Requested by', `${sender?.full_name || ''} (${sender?.email || user.email || ''}${sender?.phone ? `, ${sender.phone}` : ''})`)
+        + row('What', what)
+        + row('When', `${dateLabel} at ${startLabel}`)
+        + row('Hours', String(hours))
+        + row('Estimated total', `${money(totalCents)} (${money(rate.cents + addCages * (cageRate?.cents || 0))}/hr)`)
+        + (notes ? row('Notes', notes) : '')
+        + `</table><p>Confirm availability and reply to the coach to schedule it.</p>`,
+    })
+    return { success: true, totalCents }
   }
 
   if (action === 'request-waiver') {

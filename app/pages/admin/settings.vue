@@ -32,6 +32,28 @@
       <button @click="saveHours" class="mt-5 px-5 py-2 bg-gray-900 hover:bg-gray-700 text-white text-sm font-bold rounded-xl transition-colors">Save Hours</button>
     </div>
 
+    <!-- Team hourly rates (additional hours requested from the team portal) -->
+    <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mb-6">
+      <h2 class="font-bold text-gray-800 mb-1">Team Hourly Rates</h2>
+      <p class="text-gray-400 text-xs mb-5">Rates teams see on My Team for hours beyond their agreement. Requests email the admin inbox for confirmation.</p>
+      <div class="space-y-3">
+        <div v-for="rate in teamRates" :key="rate.id" class="flex items-center gap-4">
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-semibold text-gray-700">{{ rate.label }}</div>
+            <div class="text-xs text-gray-400">{{ rate.description }}</div>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="text-gray-500 text-sm">$</span>
+            <input v-model.number="rate.dollars" type="number" min="1" step="1" class="w-24 border border-gray-200 rounded-lg px-2 py-1 text-sm" style="color-scheme:light" />
+            <span class="text-gray-400 text-xs">/hr</span>
+          </div>
+        </div>
+      </div>
+      <button class="mt-5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold rounded-lg transition-colors disabled:opacity-50" :disabled="isSavingRates" @click="saveTeamRates">
+        {{ isSavingRates ? 'Saving…' : ratesSaved ? 'Saved ✓' : 'Save Team Rates' }}
+      </button>
+    </div>
+
     <!-- Email Notification Templates (Resend prep) -->
     <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mb-6">
       <h2 class="font-bold text-gray-800 mb-1">Email Notification Templates</h2>
@@ -157,7 +179,38 @@ async function saveTemplates() {
   }
 }
 
+// Team hourly rates (stored in cents under system_settings.team_hourly_rates)
+const teamRates = ref<{ id: string; label: string; description: string; dollars: number }[]>([])
+const isSavingRates = ref(false)
+const ratesSaved = ref(false)
+async function saveTeamRates() {
+  if (teamRates.value.some(r => !Number.isFinite(r.dollars) || r.dollars <= 0)) {
+    alert('Every rate needs a price above $0.')
+    return
+  }
+  isSavingRates.value = true
+  try {
+    await $fetch('/api/admin/settings', {
+      method: 'POST',
+      body: { key: 'team_hourly_rates', value: Object.fromEntries(teamRates.value.map(r => [r.id, Math.round(r.dollars * 100)])) },
+    })
+    ratesSaved.value = true
+    setTimeout(() => { ratesSaved.value = false }, 2500)
+  } catch (err) {
+    console.error('Failed to save team rates:', err)
+    alert('Failed to save team rates.')
+  } finally {
+    isSavingRates.value = false
+  }
+}
+
 onMounted(async () => {
+  try {
+    const { rates } = await $fetch<any>('/api/admin/team-rates')
+    teamRates.value = rates.map((r: any) => ({ id: r.id, label: r.label, description: r.description, dollars: r.cents / 100 }))
+  } catch (e) {
+    console.error('Could not load team rates:', e)
+  }
   try {
     const data = await $fetch('/api/admin/settings')
     if (data && Array.isArray(data)) {
