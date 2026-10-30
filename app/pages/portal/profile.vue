@@ -67,7 +67,7 @@
             <span class="text-xl">🏆</span>
             <div class="flex-1 min-w-0">
               <div class="text-white text-sm font-semibold">{{ team.name }}</div>
-              <div class="text-gray-400 text-xs mt-0.5 capitalize">{{ team.role }} • {{ team.roster_count }} {{ team.roster_count === 1 ? 'player' : 'players' }} on roster</div>
+              <div class="text-gray-400 text-xs mt-0.5"><span class="capitalize">{{ team.role }}</span> • {{ team.roster_count }} {{ team.roster_count === 1 ? 'player' : 'players' }} on roster</div>
             </div>
           </NuxtLink>
         </div>

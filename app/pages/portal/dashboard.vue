@@ -126,7 +126,7 @@
             <div class="w-12 h-12 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-xl shrink-0">🏆</div>
             <div class="flex-1 min-w-0">
               <div class="text-white font-semibold text-sm group-hover:text-amber-400 transition-colors">{{ team.name }}</div>
-              <div class="text-gray-400 text-xs mt-0.5 capitalize">{{ team.role }} • {{ team.roster_count }} {{ team.roster_count === 1 ? 'player' : 'players' }} on roster</div>
+              <div class="text-gray-400 text-xs mt-0.5"><span class="capitalize">{{ team.role }}</span> • {{ team.roster_count }} {{ team.roster_count === 1 ? 'player' : 'players' }} on roster</div>
             </div>
             <span class="text-gray-600 group-hover:text-amber-400 transition-colors">→</span>
           </NuxtLink>
@@ -220,6 +220,8 @@ function formatDate(dateStr: string): string {
 
 function formatTime(timeStr: string): string {
   if (!timeStr) return ''
+  // Team reservations already store a display time like "9:00 AM"
+  if (/[ap]m/i.test(timeStr)) return timeStr
   const [h, m] = timeStr.split(':')
   const hour = parseInt(h)
   const period = hour >= 12 ? 'PM' : 'AM'
