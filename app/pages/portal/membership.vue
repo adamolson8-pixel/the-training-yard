@@ -10,9 +10,10 @@
     <div class="rounded-2xl border p-6 mb-6" :class="statusCardClass">
       <div class="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <div class="text-xs font-bold uppercase tracking-widest mb-1" :class="statusTextClass">Current Plan</div>
+          <div class="text-xs font-bold uppercase tracking-widest mb-1" :class="statusTextClass">{{ isTeamAccount ? 'Membership' : 'Current Plan' }}</div>
           <div class="text-white text-2xl font-bold">{{ planLabel }}</div>
-          <div class="text-gray-400 text-sm mt-1" v-if="profile?.membership_type">{{ membershipTypeLabel }}</div>
+          <div class="text-gray-400 text-sm mt-1" v-if="isTeamAccount">Your team’s pricing is set in your team agreement with The Training Yard.</div>
+          <div class="text-gray-400 text-sm mt-1" v-else-if="profile?.membership_type">{{ membershipTypeLabel }}</div>
         </div>
         <span class="px-4 py-1.5 rounded-full text-sm font-bold" :class="statusBadgeClass">{{ statusLabel }}</span>
       </div>
@@ -39,6 +40,27 @@
         <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> 25% off all additional {{ cageOnly ? 'cage ' : '' }}rentals</li>
         <li v-if="profile?.membership_type?.includes('family')" class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> Covers all immediate family members</li>
       </ul>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- Team accounts: custom pricing, so only the player signup link     -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div v-if="isTeamAccount" class="space-y-5">
+      <div>
+        <h2 class="text-xl font-bold text-white mb-1">Player Membership</h2>
+        <p class="text-gray-400 text-sm">Players sign up for their own membership at your team rate. Copy the link or email it to them below.</p>
+      </div>
+      <div v-if="teamPending" class="text-gray-400 text-sm" role="status">Loading team signup…</div>
+      <template v-else-if="signupTeams.length">
+        <div v-for="team in signupTeams" :key="team.id">
+          <div v-if="signupTeams.length > 1" class="text-white font-bold text-sm mb-2">{{ team.name }}</div>
+          <TeamSignupCard :team="team" />
+        </div>
+      </template>
+      <div v-else class="rounded-2xl border border-white/10 bg-white/5 p-5 text-sm text-gray-400">
+        Your team’s player signup code isn’t set up yet. Contact us at
+        <a href="mailto:info@trainingyarddsm.com" class="text-amber-400 hover:underline">info@trainingyarddsm.com</a> and we’ll add it.
+      </div>
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════════ -->
@@ -547,7 +569,26 @@ onMounted(async () => {
   }
 })
 
+// Team account (owner/coach/manager, no membership of its own): pricing is custom,
+// so individual and family plans are hidden and only the player signup link shows
+const isTeamAccount = computed(() => Boolean(profile.value?.is_team_account))
+const teamData = ref<any>(null)
+const teamPending = ref(false)
+const signupTeams = computed(() => (teamData.value?.teams || []).filter((team: any) => team.signup))
+async function loadTeamSignup() {
+  teamPending.value = true
+  try {
+    teamData.value = await $fetch<any>('/api/portal/team')
+  } catch (e) {
+    console.warn('Team signup load failed:', e)
+  } finally {
+    teamPending.value = false
+  }
+}
+onMounted(() => { if (isTeamAccount.value) loadTeamSignup() })
+
 const showPlanCards = computed(() => {
+  if (isTeamAccount.value) return false
   const s = profile.value?.membership_status
   return !s || s === 'none' || s === 'canceled'
 })
@@ -561,6 +602,7 @@ const hasStripeSubscription = computed(() =>
 )
 
 const planLabel = computed(() => {
+  if (isTeamAccount.value) return 'Custom Pricing'
   if (!profile.value?.membership_status || profile.value?.membership_status === 'none') return 'No Membership'
   if (profile.value?.membership_status === 'canceled') return 'Membership Canceled'
   return profile.value?.membership_type
@@ -582,6 +624,7 @@ const membershipTypeLabel = computed(() => {
 })
 
 const statusLabel = computed(() => {
+  if (isTeamAccount.value) return 'Team Account'
   const s = profile.value?.membership_status
   if (s === 'active') return 'Active'
   if (s === 'past_due') return 'Past Due'
@@ -590,6 +633,7 @@ const statusLabel = computed(() => {
 })
 
 const statusCardClass = computed(() => {
+  if (isTeamAccount.value) return 'border-amber-500/30 bg-amber-500/5'
   const s = profile.value?.membership_status
   if (s === 'active') return 'border-green-500/30 bg-green-500/5'
   if (s === 'past_due') return 'border-red-500/30 bg-red-500/5'
@@ -597,6 +641,7 @@ const statusCardClass = computed(() => {
 })
 
 const statusTextClass = computed(() => {
+  if (isTeamAccount.value) return 'text-amber-400'
   const s = profile.value?.membership_status
   if (s === 'active') return 'text-green-400'
   if (s === 'past_due') return 'text-red-400'
@@ -604,6 +649,7 @@ const statusTextClass = computed(() => {
 })
 
 const statusBadgeClass = computed(() => {
+  if (isTeamAccount.value) return 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
   const s = profile.value?.membership_status
   if (s === 'active') return 'bg-green-500/20 text-green-400 border border-green-500/30'
   if (s === 'past_due') return 'bg-red-500/20 text-red-400 border border-red-500/30'

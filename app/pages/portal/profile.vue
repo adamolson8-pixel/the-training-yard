@@ -16,7 +16,8 @@
         <div class="space-y-3">
           <div>
             <label class="text-xs text-gray-500 font-semibold">Email Address</label>
-            <div class="text-white text-sm mt-1">{{ user?.email }}</div>
+            <!-- The profile's own email: in "View as" the login session is the admin's, not this account's -->
+            <div class="text-white text-sm mt-1">{{ profile?.email || user?.email }}</div>
             <div class="text-gray-600 text-xs mt-0.5">Contact support to change your email.</div>
           </div>
           <div>
@@ -55,8 +56,26 @@
         </button>
       </form>
 
+      <!-- Team accounts: their team instead of family & dependents -->
+      <div v-if="profile?.is_team_account" class="rounded-2xl border border-white/10 bg-white/5 p-5">
+        <div class="flex items-center justify-between mb-4">
+          <div class="text-xs font-bold uppercase tracking-widest text-gray-500">Team</div>
+          <NuxtLink to="/portal/team" class="text-xs text-amber-400 font-semibold hover:text-amber-300">Manage team →</NuxtLink>
+        </div>
+        <div class="space-y-3">
+          <NuxtLink v-for="team in profile.managed_teams || []" :key="team.id" to="/portal/team" class="flex items-center gap-3 p-3 rounded-xl bg-gray-900 border border-white/5 hover:border-amber-500/30 transition-colors">
+            <span class="text-xl">🏆</span>
+            <div class="flex-1 min-w-0">
+              <div class="text-white text-sm font-semibold">{{ team.name }}</div>
+              <div class="text-gray-400 text-xs mt-0.5 capitalize">{{ team.role }} • {{ team.roster_count }} {{ team.roster_count === 1 ? 'player' : 'players' }} on roster</div>
+            </div>
+          </NuxtLink>
+        </div>
+        <p class="text-gray-500 text-xs mt-3">Players are covered by their own waivers. Add players and send waivers or signup links from My Team.</p>
+      </div>
+
       <!-- Family & Dependents -->
-      <div class="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
+      <div v-else class="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
         <div class="flex items-center justify-between mb-4">
           <div class="text-xs font-bold uppercase tracking-widest text-gray-500">Family & Dependents</div>
           <button @click="addDependent" class="text-xs text-amber-400 font-semibold hover:text-amber-300">

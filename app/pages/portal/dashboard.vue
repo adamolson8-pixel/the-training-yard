@@ -43,7 +43,8 @@
       <div class="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col gap-1">
         <span class="text-gray-500 text-xs font-semibold uppercase tracking-widest">Membership</span>
         <span class="text-sm font-bold mt-1" :class="membershipColor">{{ membershipLabel }}</span>
-        <span v-if="profile?.membership_expires" class="text-gray-400 text-xs">Expires {{ formatDate(profile.membership_expires) }}</span>
+        <span v-if="isTeamAccount" class="text-gray-400 text-xs">Team account</span>
+        <span v-else-if="profile?.membership_expires" class="text-gray-400 text-xs">Expires {{ formatDate(profile.membership_expires) }}</span>
         <span v-else class="text-gray-400 text-xs">—</span>
       </div>
       <div class="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col gap-1">
@@ -52,62 +53,6 @@
           {{ profile?.waiver_signed ? '✓ Signed' : 'Not Signed' }}
         </span>
         <span v-if="profile?.waiver_signed_at" class="text-gray-400 text-xs">{{ formatDate(profile.waiver_signed_at) }}</span>
-      </div>
-    </div>
-
-    <!-- Team Balances -->
-    <div class="mb-8 p-5 rounded-2xl border border-amber-500/30 bg-amber-500/5">
-      <div class="flex items-center gap-3 mb-4">
-        <span class="text-2xl">🏆</span>
-        <h2 class="text-lg font-bold text-white">Team Package Balances</h2>
-        <span v-if="!teamStats.hasAny" class="text-xs text-amber-500/70 border border-amber-500/30 px-2 py-0.5 rounded-full ml-auto">No active hours found</span>
-      </div>
-      
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <!-- Standard Team Stats -->
-        <div class="bg-black/20 rounded-xl p-4 border border-white/5">
-          <div class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-3">Standard Team Hours</div>
-          
-          <div class="grid grid-cols-3 gap-2 text-center mb-3">
-            <div class="bg-white/5 rounded-lg py-2">
-              <div class="text-2xl font-bold text-white">{{ teamStats.standard.total }}</div>
-              <div class="text-[10px] text-gray-500 uppercase font-bold">Total</div>
-            </div>
-            <div class="bg-white/5 rounded-lg py-2">
-              <div class="text-2xl font-bold text-gray-400">{{ teamStats.standard.used }}</div>
-              <div class="text-[10px] text-gray-500 uppercase font-bold">Used/Booked</div>
-            </div>
-            <div class="bg-amber-500/10 border border-amber-500/20 rounded-lg py-2">
-              <div class="text-2xl font-bold text-amber-400">{{ teamStats.standard.remaining }}</div>
-              <div class="text-[10px] text-amber-500 uppercase font-bold">Remaining</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Buyout Stats -->
-        <div class="bg-black/20 rounded-xl p-4 border border-white/5">
-          <div class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-3">Full Facility Buyout Hours</div>
-          
-          <div class="grid grid-cols-3 gap-2 text-center mb-3">
-            <div class="bg-white/5 rounded-lg py-2">
-              <div class="text-2xl font-bold text-white">{{ teamStats.buyout.total }}</div>
-              <div class="text-[10px] text-gray-500 uppercase font-bold">Total</div>
-            </div>
-            <div class="bg-white/5 rounded-lg py-2">
-              <div class="text-2xl font-bold text-gray-400">{{ teamStats.buyout.used }}</div>
-              <div class="text-[10px] text-gray-500 uppercase font-bold">Used/Booked</div>
-            </div>
-            <div class="bg-amber-500/10 border border-amber-500/20 rounded-lg py-2">
-              <div class="text-2xl font-bold text-amber-400">{{ teamStats.buyout.remaining }}</div>
-              <div class="text-[10px] text-amber-500 uppercase font-bold">Remaining</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="mt-4 flex gap-3">
-        <NuxtLink v-if="teamStats.standard.remaining > 0 || teamStats.buyout.remaining > 0" to="/portal/book" class="btn-primary text-sm px-4 py-2">Book a Team Session →</NuxtLink>
-        <NuxtLink to="/teams" class="border border-amber-500/50 text-amber-400 hover:bg-amber-500/10 transition-colors font-semibold text-sm px-4 py-2 rounded-lg">Buy More Hours</NuxtLink>
       </div>
     </div>
 
@@ -168,8 +113,31 @@
         </div>
       </div>
 
+      <!-- Team accounts: their team instead of family & dependents -->
+      <div v-if="isTeamAccount">
+        <h2 class="text-lg font-bold text-white mb-4">Team</h2>
+        <div class="space-y-3">
+          <NuxtLink
+            v-for="team in managedTeams"
+            :key="team.id"
+            to="/portal/team"
+            class="group flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/10 hover:border-amber-500/30 transition-all"
+          >
+            <div class="w-12 h-12 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-xl shrink-0">🏆</div>
+            <div class="flex-1 min-w-0">
+              <div class="text-white font-semibold text-sm group-hover:text-amber-400 transition-colors">{{ team.name }}</div>
+              <div class="text-gray-400 text-xs mt-0.5 capitalize">{{ team.role }} • {{ team.roster_count }} {{ team.roster_count === 1 ? 'player' : 'players' }} on roster</div>
+            </div>
+            <span class="text-gray-600 group-hover:text-amber-400 transition-colors">→</span>
+          </NuxtLink>
+        </div>
+        <NuxtLink to="/portal/team" class="mt-3 inline-block text-amber-400 text-sm font-medium hover:text-amber-300">
+          Manage roster and player signups →
+        </NuxtLink>
+      </div>
+
       <!-- Dependents -->
-      <div>
+      <div v-else>
         <h2 class="text-lg font-bold text-white mb-4">Family & Dependents</h2>
         <div v-if="profile?.dependents?.length" class="space-y-3">
           <div
@@ -211,32 +179,11 @@ const upcomingBookings = computed(() => bookingsData.value?.upcoming ?? [])
 const upcomingCount = computed(() => upcomingBookings.value.length)
 const totalCount = computed(() => (bookingsData.value?.upcoming?.length ?? 0) + (bookingsData.value?.past?.length ?? 0))
 
-const teamStats = computed(() => {
-  const allBookings = [...(bookingsData.value?.upcoming || []), ...(bookingsData.value?.past || [])]
-  
-  const standardUsed = allBookings.filter(b => b.credit_hours_used > 0 && b.status !== 'cancelled' && b.package_type === 'standard').reduce((sum, b) => sum + Number(b.credit_hours_used), 0)
-  const buyoutUsed = allBookings.filter(b => b.credit_hours_used > 0 && b.status !== 'cancelled' && b.package_type === 'buyout').reduce((sum, b) => sum + Number(b.credit_hours_used), 0)
-  
-  const p = profile.value as any
-  const standardRemaining = p?.team_standard_hours || 0
-  const buyoutRemaining = p?.team_buyout_hours || 0
-
-  return {
-    hasAny: (standardRemaining > 0 || standardUsed > 0 || buyoutRemaining > 0 || buyoutUsed > 0),
-    standard: {
-      total: standardRemaining + standardUsed,
-      used: standardUsed,
-      remaining: standardRemaining
-    },
-    buyout: {
-      total: buyoutRemaining + buyoutUsed,
-      used: buyoutUsed,
-      remaining: buyoutRemaining
-    }
-  }
-})
+const isTeamAccount = computed(() => Boolean((profile.value as any)?.is_team_account))
+const managedTeams = computed<any[]>(() => (profile.value as any)?.managed_teams || [])
 
 const membershipLabel = computed(() => {
+  if (isTeamAccount.value) return 'Custom Pricing'
   const s = (profile.value as any)?.membership_status
   if (s === 'active') return '✓ Active'
   if (s === 'past_due') return '⚠ Past Due'
@@ -245,13 +192,14 @@ const membershipLabel = computed(() => {
 })
 
 const membershipColor = computed(() => {
+  if (isTeamAccount.value) return 'text-amber-400'
   const s = (profile.value as any)?.membership_status
   if (s === 'active') return 'text-green-400'
   if (s === 'past_due') return 'text-red-400'
   return 'text-gray-500'
 })
 
-const quickActions = [
+const allQuickActions = [
   { to: '/portal/book', icon: '⚡', label: 'Book a Session', desc: 'Reserve a cage or field now' },
   { to: '/portal/bookings', icon: '📅', label: 'My Bookings', desc: 'View upcoming & past sessions' },
   { to: '/portal/membership', icon: '🌟', label: 'Membership', desc: 'View plan & billing status' },
@@ -259,6 +207,10 @@ const quickActions = [
   { to: '/portal/profile', icon: '⚙️', label: 'Profile', desc: 'Update your account info' },
   { to: '/teams', icon: '🏆', label: 'Team Rentals', desc: 'Request custom team pricing' },
 ]
+// Team accounts already have custom pricing: link to their team instead of the pricing request
+const quickActions = computed(() => isTeamAccount.value
+  ? allQuickActions.map(a => a.to === '/teams' ? { to: '/portal/team', icon: '🏆', label: 'My Team', desc: 'Roster and player signups' } : a)
+  : allQuickActions)
 
 function formatDate(dateStr: string): string {
   if (!dateStr) return ''

@@ -45,6 +45,9 @@
             <div v-if="profile?.membership_status === 'active'" class="inline-flex items-center gap-1 mt-0.5 px-2 py-0.5 rounded-full bg-green-500/20 border border-green-500/30 text-green-400 text-[10px] font-bold">
               🌟 Member
             </div>
+            <div v-else-if="profile?.is_team_account" class="inline-flex items-center gap-1 mt-0.5 px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 text-[10px] font-bold">
+              Team · Custom Pricing
+            </div>
             <div v-else class="inline-flex items-center gap-1 mt-0.5 px-1.5 py-0.5 rounded-full bg-white/10 text-gray-400 text-[10px] font-semibold">
               Non-Member
             </div>
