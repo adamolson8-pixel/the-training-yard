@@ -714,7 +714,8 @@ async function openStripePortal() {
 
 function formatDate(d: string) {
   if (!d) return ''
-  return new Date(d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+  // A bare "YYYY-MM-DD" parses as UTC midnight, which shows the day before in Central Time
+  return new Date(/^\d{4}-\d{2}-\d{2}$/.test(d) ? `${d}T12:00:00` : d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
 }
 </script>
 
