@@ -3,6 +3,9 @@ import { serverSupabaseServiceRole } from '#supabase/server'
 import { requireAuth } from '../../utils/auth'
 import { sendEmail } from '../../utils/email'
 import { escapeHtml } from '../../utils/sanitize'
+import { teamCodeActive } from '../../utils/teamMembership'
+
+const SIGNUP_LINK_MAX_EMAILS = 30
 
 function hashToken(token: string) {
   return createHash('sha256').update(token).digest('hex')
@@ -71,6 +74,33 @@ export default defineEventHandler(async (event) => {
       html: `<p>${escapeHtml(user.email || 'A coach')} invited you to help manage <strong>${escapeHtml(team?.name || 'their team')}</strong> at The Training Yard.</p><p>${inviteUrl ? `<a href="${inviteUrl}">Create your account and accept the invitation</a>` : '<a href="https://trainingyarddsm.com/portal/team">Open your team portal</a>'}</p>`,
     })
     return { success: true, existingAccount: Boolean(profile) }
+  }
+
+  if (action === 'send-signup-link') {
+    // Coach emails the player membership signup link (team code) to one or more players/parents
+    const emails = [...new Set(String(body.emails ?? body.email ?? '').split(/[\s,;]+/).map(e => e.trim().toLowerCase()).filter(Boolean))]
+    if (!emails.length) throw createError({ statusCode: 400, statusMessage: 'Enter at least one email.' })
+    if (emails.length > SIGNUP_LINK_MAX_EMAILS) throw createError({ statusCode: 400, statusMessage: `Send to ${SIGNUP_LINK_MAX_EMAILS} emails or fewer at a time.` })
+    const invalid = emails.filter(e => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e))
+    if (invalid.length) throw createError({ statusCode: 400, statusMessage: `Check these emails: ${invalid.join(', ')}` })
+    const { data: team } = await (supabase as any).from('teams')
+      .select('id,name,membership_code,membership_code_plan,membership_includes_turf,membership_discount_ends_on').eq('id', teamId).single()
+    if (!team?.membership_code) throw createError({ statusCode: 400, statusMessage: 'This team has no player signup code yet. Contact us to set one up.' })
+    if (!teamCodeActive(team)) throw createError({ statusCode: 400, statusMessage: 'This team rate has ended. Contact us to renew it for your players.' })
+    const { data: sender } = await (supabase as any).from('profiles').select('full_name').eq('id', user.id).maybeSingle()
+    const siteUrl = String(useRuntimeConfig().public.siteUrl || process.env.URL || 'https://trainingyarddsm.com').replace(/\/$/, '')
+    const link = `${siteUrl}/portal/membership?team=${encodeURIComponent(team.membership_code)}`
+    const coach = escapeHtml(sender?.full_name || 'Your coach')
+    const teamName = escapeHtml(team.name)
+    const html = `<p>${coach} invited you to sign up for a Training Yard player membership at the <strong>${teamName}</strong> team rate.</p>`
+      + `<p><a href="${link}" style="display:inline-block;padding:12px 20px;background:#f59e0b;color:#000;font-weight:bold;text-decoration:none;border-radius:8px">Sign up at the team rate</a></p>`
+      + `<p>Team code: <strong>${escapeHtml(team.membership_code)}</strong>. If the button doesn't work, copy this link into your browser:<br>${link}</p>`
+      + `<p>Create your account (or log in), fill in the player's details and waiver, and you'll be added to the ${teamName} roster automatically.</p>`
+      + `<p>The Training Yard<br>2519 NW 66th Ave, Des Moines</p>`
+    const results = await Promise.allSettled(emails.map(to => sendEmail({ to, subject: `${team.name} player membership at The Training Yard`, html })))
+    const failed = emails.filter((_, i) => results[i].status === 'rejected')
+    if (failed.length === emails.length) throw createError({ statusCode: 502, statusMessage: 'Unable to send the email right now. Please try again.' })
+    return { success: true, sent: emails.length - failed.length, failed }
   }
 
   if (action === 'request-waiver') {
