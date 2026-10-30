@@ -1,11 +1,11 @@
 <template>
   <div class="glass-card overflow-hidden">
-    <!-- Team accounts: online booking waits on custom team pricing (the server enforces it too) -->
-    <div v-if="profileData?.team_booking_soon" class="p-8 text-center">
+    <!-- Team accounts book team time at team rates in the portal (the server enforces it too) -->
+    <div v-if="profileData?.is_team_account" class="p-8 text-center">
       <div class="text-4xl mb-3">🗓️</div>
-      <h2 class="text-xl font-bold text-white">Online team booking is coming soon</h2>
-      <p class="text-gray-400 mt-2">We're setting up custom team pricing. Contact us to schedule team time, and see your team's reserved times in your portal.</p>
-      <NuxtLink to="/portal/bookings" class="btn-primary mt-5 inline-block text-sm">View My Bookings</NuxtLink>
+      <h2 class="text-xl font-bold text-white">Book team time in your portal</h2>
+      <p class="text-gray-400 mt-2">Your team account books turf and cages at your team rate.</p>
+      <NuxtLink to="/portal/book" class="btn-primary mt-5 inline-block text-sm">Book Team Time</NuxtLink>
     </div>
     <template v-else>
     <!-- Progress Bar -->

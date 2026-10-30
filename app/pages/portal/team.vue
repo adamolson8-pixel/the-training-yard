@@ -16,8 +16,7 @@
       <section v-for="team in data.teams" :key="team.id" class="rounded-2xl border border-white/10 bg-white/5 p-6">
         <div class="flex items-center justify-between gap-3 mb-5">
           <div><h2 class="text-xl font-bold text-white">{{ team.name }}</h2><p class="text-gray-500 text-xs uppercase tracking-wide mt-1">Your role: {{ team.currentUserRole }}</p></div>
-          <!-- Online team booking is coming soon (custom team pricing is being set up) -->
-          <span class="border border-white/10 text-gray-500 rounded-lg px-4 py-2 text-sm font-semibold cursor-not-allowed" aria-disabled="true">Book Practice <span class="ml-1 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded-full bg-white/10 text-gray-400">Coming soon</span></span>
+          <NuxtLink v-if="['owner', 'coach', 'manager'].includes(team.currentUserRole)" to="/portal/book" class="btn-primary text-sm">Book Practice</NuxtLink>
         </div>
         <div class="grid sm:grid-cols-2 gap-4 mb-7">
           <div v-for="pkg in team.packages" :key="pkg.id" class="rounded-xl bg-black/20 border border-white/10 p-4">
