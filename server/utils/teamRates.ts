@@ -1,17 +1,15 @@
 /**
- * Hourly rates for team accounts booking hours beyond their agreement.
- * Defaults come from the team pricing Jesse set (Oct 2026); admins can change
- * them in Admin > Settings (system_settings key `team_hourly_rates`).
+ * Hourly rates for team accounts booking online (Book a Session in the team portal).
+ * Defaults set by Adam (Oct 30, 2026): half turf + 1 cage $88/hr, $40/hr per cage.
+ * Admins can change the prices in Admin > Settings (system_settings key `team_hourly_rates`).
  */
 export type TeamHourlyRate = { id: string; label: string; description: string; cents: number }
 
 export const TEAM_RATES_SETTING_KEY = 'team_hourly_rates'
 
 export const DEFAULT_TEAM_HOURLY_RATES: TeamHourlyRate[] = [
-  { id: 'turf_cage', label: 'Turf + 1 cage', description: 'The turf field (half the facility) plus one batting cage', cents: 8800 },
-  { id: 'turf', label: 'Turf only', description: "The 60'x50' turf field (half the facility)", cents: 7500 },
-  { id: 'cage', label: 'Additional cage', description: 'One batting cage, per cage', cents: 4000 },
-  { id: 'full', label: 'Full facility', description: 'Turf plus all four batting cages', cents: 15000 },
+  { id: 'turf_cage', label: 'Half turf + 1 cage', description: "The 60'x50' turf field (half the facility) plus one batting cage", cents: 8800 },
+  { id: 'cage', label: 'Batting cage', description: 'Per cage, on its own or added to the turf', cents: 4000 },
 ]
 
 /** Saved rates merged over the defaults: only the price is editable, ids and labels stay fixed. */

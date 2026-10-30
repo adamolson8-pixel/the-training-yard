@@ -35,7 +35,7 @@
     <!-- Team hourly rates (additional hours requested from the team portal) -->
     <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mb-6">
       <h2 class="font-bold text-gray-800 mb-1">Team Hourly Rates</h2>
-      <p class="text-gray-400 text-xs mb-5">Rates teams see on My Team for hours beyond their agreement. Requests email the admin inbox for confirmation.</p>
+      <p class="text-gray-400 text-xs mb-5">Hourly rates team accounts pay when they book online (up to 14 days out). Turf + 1 cage, plus the per-cage rate for each cage added or booked on its own.</p>
       <div class="space-y-3">
         <div v-for="rate in teamRates" :key="rate.id" class="flex items-center gap-4">
           <div class="flex-1 min-w-0">

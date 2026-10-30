@@ -1,7 +1,7 @@
 import { serverSupabaseServiceRole } from '#supabase/server'
 import { requireAuth } from '../../utils/auth'
 import { membershipIncludesTurf } from '../../utils/teamMembership'
-import { teamBookingPaused, TEAM_MANAGER_ROLES } from '../../utils/teamBooking'
+import { loadTeamHourlyRates, teamBookingPaused, TEAM_BOOKING_HORIZON_DAYS, TEAM_BOOKING_HOURS, TEAM_MANAGER_ROLES } from '../../utils/teamBooking'
 
 export default defineEventHandler(async (event) => {
   const user = await requireAuth(event)
@@ -55,12 +55,17 @@ export default defineEventHandler(async (event) => {
   data.default_team_id = memberships?.[0]?.team_id || null
   data.team_standard_hours = packages.filter((pkg: any) => pkg.package_type === 'standard').reduce((sum: number, pkg: any) => sum + Number(pkg.hours_remaining), 0)
   data.team_buyout_hours = packages.filter((pkg: any) => pkg.package_type === 'buyout').reduce((sum: number, pkg: any) => sum + Number(pkg.hours_remaining), 0)
-  // Team accounts can't book online until custom team pricing is ready, so the
-  // portal shows booking as "coming soon" (the booking endpoints enforce it too)
-  data.team_booking_soon = teamBookingPaused(memberships, data.membership_status)
   // Team account (owner, coach or manager) without its own active membership:
-  // the portal shows "Custom Pricing" and the team instead of individual plans
-  data.is_team_account = data.team_booking_soon
+  // the portal shows "Custom Pricing", the team instead of individual plans,
+  // and books team time at team rates (individual booking endpoints reject it)
+  data.is_team_account = teamBookingPaused(memberships, data.membership_status)
+  // Online team booking is open (kept for older portal code that checks it)
+  data.team_booking_soon = false
+  if (data.is_team_account) {
+    data.team_rates = await loadTeamHourlyRates(supabase)
+    data.team_booking_horizon_days = TEAM_BOOKING_HORIZON_DAYS
+    data.team_booking_hours = TEAM_BOOKING_HOURS
+  }
   // Teams this account manages, with roster counts, for the dashboard and profile team cards
   const managed = (memberships || []).filter((m: any) => TEAM_MANAGER_ROLES.includes(m.role))
   const rosterCounts = new Map<string, number>()
