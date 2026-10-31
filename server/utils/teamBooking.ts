@@ -1,4 +1,4 @@
-import { addFacilityDays, bookingWindow, facilityDateParts, CAGE_CAPACITY, LAST_START_HOUR, TURF_CAPACITY } from './booking'
+import { addFacilityDays, facilityDateParts, facilityWindow, CAGE_CAPACITY, OPENING_HOUR, TURF_CAPACITY } from './booking'
 import { loadTeamHourlyRates } from './teamRates'
 
 /**
@@ -45,9 +45,14 @@ export async function assertTeamBookingAllowed(supabase: any, userId: string | n
 
 /** Teams can book online up to two weeks out. */
 export const TEAM_BOOKING_HORIZON_DAYS = 14
-/** Whole-hour team sessions; they must end by the close of online booking hours. */
+/** Whole-hour team sessions. */
 export const TEAM_BOOKING_HOURS = [1, 2, 3]
-export const TEAM_BOOKING_LAST_END_HOUR = LAST_START_HOUR + 1
+/**
+ * Teams book as late as they want (Adam, Oct 30, 2026): starts from opening
+ * until 11 PM, ending by midnight. Individual bookings keep the 8 AM to 7 PM starts.
+ */
+export const TEAM_BOOKING_LAST_START_HOUR = 23
+export const TEAM_BOOKING_LAST_END_HOUR = 24
 
 export type TeamBookingOption = 'turf_cage' | 'cages'
 
@@ -81,9 +86,11 @@ export function teamBookingWindow(date: string, time: string, rawHours: unknown,
   if (!TEAM_BOOKING_HOURS.includes(hours)) throw createError({ statusCode: 400, statusMessage: `Choose ${TEAM_BOOKING_HOURS.join(', ')} hours.` })
   const lastDate = addFacilityDays(facilityDateParts(now).date, TEAM_BOOKING_HORIZON_DAYS)
   if (date > lastDate) throw createError({ statusCode: 400, statusMessage: `Team bookings open ${TEAM_BOOKING_HORIZON_DAYS} days in advance. Choose a date on or before ${lastDate}.` })
-  const window = bookingWindow(date, time, hours * 60)
-  const startHour = Number(window.normalizedTime.split(':')[0])
-  if (startHour + hours > TEAM_BOOKING_LAST_END_HOUR) throw createError({ statusCode: 400, statusMessage: 'That session would run past online booking hours.' })
+  const window = facilityWindow(date, time, hours * 60)
+  const [startHour, startMinute] = window.normalizedTime.split(':').map(Number)
+  if (window.startAt.getTime() <= now.getTime() + 30 * 60_000) throw createError({ statusCode: 400, statusMessage: 'Please choose a time at least 30 minutes from now.' })
+  if (startMinute !== 0 || (startHour ?? 0) < OPENING_HOUR || (startHour ?? 0) > TEAM_BOOKING_LAST_START_HOUR) throw createError({ statusCode: 400, statusMessage: 'That time is outside team booking hours.' })
+  if ((startHour ?? 0) + hours > TEAM_BOOKING_LAST_END_HOUR) throw createError({ statusCode: 400, statusMessage: 'Team sessions must end by midnight.' })
   return { ...window, hours }
 }
 

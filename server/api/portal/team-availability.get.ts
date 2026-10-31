@@ -1,7 +1,7 @@
 import { serverSupabaseServiceRole } from '#supabase/server'
 import { requireAuth } from '../../utils/auth'
-import { addFacilityDays, displayTime, facilityDateParts, OPENING_HOUR, LAST_START_HOUR } from '../../utils/booking'
-import { loadTeamHourlyRates, requireTeamManager, teamBookingUnits, teamBookingWindow, windowHasCapacity, TEAM_BOOKING_HORIZON_DAYS, TEAM_BOOKING_HOURS } from '../../utils/teamBooking'
+import { addFacilityDays, displayTime, facilityDateParts, OPENING_HOUR } from '../../utils/booking'
+import { loadTeamHourlyRates, requireTeamManager, teamBookingUnits, teamBookingWindow, windowHasCapacity, TEAM_BOOKING_HORIZON_DAYS, TEAM_BOOKING_HOURS, TEAM_BOOKING_LAST_START_HOUR } from '../../utils/teamBooking'
 
 /**
  * Open start times for a team booking (option + cages + hours) on one date.
@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
   const units = teamBookingUnits(String(query.option || ''), query.cages, await loadTeamHourlyRates(supabase))
   const slots: { time: string; available: boolean }[] = []
   try {
-    for (let hour = OPENING_HOUR; hour <= LAST_START_HOUR; hour++) {
+    for (let hour = OPENING_HOUR; hour <= TEAM_BOOKING_LAST_START_HOUR; hour++) {
       const time = `${String(hour).padStart(2, '0')}:00`
       let window
       try {
